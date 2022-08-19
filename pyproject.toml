@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+  { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+]
+description = """\
+  A CLI tool to convert Python packages into a wide range of Linux distributions \
+  packages. \
+"""
+license = { file="LICENSE" }
+name = "polycotylus"
+requires-python  = ">=3.7"
+readme = "README.rst"
+version = "0.1.0"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=3",
+    "pytest-order",
+    "coverage",
+    "pytest-cov",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
+
+[tool.setuptools]
+zip-safe = false
