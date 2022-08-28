@@ -1,7 +1,7 @@
 import tkinter.filedialog
 from pathlib import Path
 
-from dumb_text_viewer import TextViewerWidget
+from dumb_text_viewer import TextViewerWidget, favicon
 
 path = Path(__file__).with_name("some-text.txt")
 
@@ -32,3 +32,7 @@ def test_subsequent_open(monkeypatch):
     assert "Hello!" in self.textbox.get(1.0, "end")
 
     root.quit()
+
+
+def test_icon_exists():
+    tkinter.PhotoImage(file=favicon)
