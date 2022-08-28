@@ -16,6 +16,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
+    "strictyaml",
+    "tomli",
+    "docker",
 ]
 description = """\
   A CLI tool to convert Python packages into a wide range of Linux distributions \
@@ -30,9 +33,10 @@ version = "0.1.0"
 [project.optional-dependencies]
 test = [
     "pytest>=3",
-    "pytest-order",
+    "pytest-ordered @ git+ssh://git@github.com/bwoodsend/pytest-ordered.git@480e13c0c23ca8f4601f18aff9990f42935cc8c4",
     "coverage",
     "pytest-cov",
+    "pillow",
 ]
 
 [project.urls]

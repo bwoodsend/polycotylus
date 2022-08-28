@@ -1,0 +1,95 @@
+import os
+import subprocess
+import shutil
+import sys
+import io
+from tarfile import TarFile
+
+from docker import from_env
+from PIL import Image
+
+from polycotylus._project import Project
+from polycotylus import _arch
+from tests import dumb_text_viewer
+
+pkgbuild_prefix = """\
+# Maintainer: Brénainn Woodsend <bwoodsend@gmail.com>
+pkgname=dumb_text_viewer
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='A small example GUI package'
+arch=(any)
+url=https://github.com/me/blah
+license=(MIT)
+"""
+
+
+def test_build():
+    self = Project.from_root(dumb_text_viewer)
+    self.write_gitignore()
+    self.write_desktop_files()
+    arch = self.root / ".polycotylus/arch/"
+    try:
+        shutil.rmtree(arch)
+    except FileNotFoundError:
+        pass
+    arch.mkdir()
+
+    pkgbuild = _arch.pkgbuild(self)
+    assert pkgbuild.startswith(pkgbuild_prefix)
+
+    (arch / "PKGBUILD").write_text(pkgbuild, encoding="utf-8")
+    (arch / "Dockerfile").write_text(_arch.dockerfile, encoding="utf-8")
+    sysroot = arch / "pkg/dumb_text_viewer"
+    docker = from_env()
+    build, _ = docker.images.build(path=str(self.root), target="build",
+                                   dockerfile=".polycotylus/arch/Dockerfile")
+    with self.serve_repo() as url:
+        docker.containers.run(build, "makepkg -fs --noconfirm",
+                              volumes=[f"{arch}:/io"], network_mode="host",
+                              environment={"TEST_SOURCE_URL": url})
+
+    site_packages = next(
+        (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
+    pycache = site_packages / "dumb_text_viewer/__pycache__"
+    pyc_contents = {i: i.read_bytes() for i in pycache.iterdir()}
+    assert len(pyc_contents) == 2
+    subprocess.run([sys.executable, "-c", "import dumb_text_viewer"], env={
+        **os.environ, "PYTHONPATH": str(site_packages)
+    })
+    assert pyc_contents == {
+        i: i.read_bytes()
+        for i in (site_packages / "dumb_text_viewer/__pycache__").iterdir()
+    }
+
+    for size in [16, 24, 128]:
+        path = sysroot / f"usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png"
+        assert path.exists()
+        png = Image.open(path)
+        assert png.size == (size, size)
+        assert png.getpixel((0, 0))[3] == 0
+
+    test, _ = docker.images.build(path=str(self.root), target="test",
+                                  dockerfile=".polycotylus/arch/Dockerfile")
+    command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb_text_viewer-0.1.0-1-any.pkg.tar.zst'"
+    container = docker.containers.run(test, command, volumes=[f"{arch}:/io"],
+                                      detach=True)
+    assert container.wait()["StatusCode"] == 0, container.logs().decode()
+    installed = container.commit()
+
+    command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
+    output = docker.containers.run(installed, command).decode()
+    assert "Name: dumb-text-viewer" in output
+
+    container = docker.containers.run(
+        installed, "python -c 'import dumb_text_viewer'", detach=True)
+    assert container.wait()["StatusCode"] == 0, container.logs().decode()
+    raw = b"".join(container.get_archive(pycache.relative_to(sysroot))[0])
+    with TarFile("", "r", io.BytesIO(raw)) as tar:
+        for pyc in pyc_contents:
+            with tar.extractfile("__pycache__/" + pyc.name) as f:
+                assert pyc_contents[pyc] == f.read()
+        assert len(tar.getmembers()) == 3
+
+    docker.containers.run(installed, "xvfb-run pytest /io/tests",
+                          volumes=[f"{self.root}/tests:/io/tests"])

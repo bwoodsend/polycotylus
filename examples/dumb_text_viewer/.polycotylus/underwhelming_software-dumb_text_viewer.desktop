@@ -1,0 +1,13 @@
+[Desktop Entry]
+Comment=Text Viewer
+Comment[ar]=عارض النص
+Comment[es]=Visor de Texto
+Comment[zh_tw]=文本查看器
+Exec=dumb_text_viewer %U
+GenericName=Text Viewer
+Icon=underwhelming_software-dumb_text_viewer
+MimeType=text/css;text/csv;text/html;text/plain;text/richtext;text/tab-separated-values;text/x-python;text/x-setext;text/x-sgml;text/x-vcard;text/xml;application/x-php;application/x-httpd-php3;application/x-httpd-php4;application/x-httpd-php5;application/xml
+Name=Dumb Text Viewer
+Terminal=false
+Type=Application
+Version=1.0
