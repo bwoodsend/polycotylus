@@ -2,13 +2,14 @@ import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http import HTTPStatus
+from http.client import HTTPResponse
 import shutil
 import re
 import threading
 from functools import wraps
 from fnmatch import fnmatch
 from pathlib import Path
-from urllib.request import urlopen, Request
+from urllib.request import urlopen
 from urllib.error import HTTPError
 
 import appdirs
@@ -18,10 +19,12 @@ cache_root = Path(appdirs.user_cache_dir("polycotylus"))
 
 class CachedMirror:
 
-    def __init__(self, base_url, base_dir, index_patterns, port):
+    def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
+                 port):
         self.base_url = base_url.strip("/")
         self.base_dir = Path(base_dir)
         self.index_patterns = index_patterns
+        self.ignore_patterns = ignore_patterns
         self.port = port
 
     def serve(self):
@@ -61,44 +64,51 @@ class RequestHandler(BaseHTTPRequestHandler):
     parent: CachedMirror
 
     def do_HEAD(self):
+        response = self._head()
+        if isinstance(response, HTTPResponse):
+            response.close()
+        self.end_headers()
+
+    def _head(self):
         path = self.cache
+        if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
+            self.send_response(404)
+            return
         if path.is_file():
             self.send_response(HTTPStatus.OK)
-        elif path.is_dir():
+            return path
+        if path.is_dir():
             self.send_response(404)
-        else:
-            request = Request(self.parent.base_url + self.path, method="HEAD")
-            try:
-                with urlopen(request):
-                    pass
-            except HTTPError as ex:
-                self.send_response(ex.code)
-            else:
-                self.send_response(HTTPStatus.OK)
-        self.end_headers()
+            return
+        try:
+            response = urlopen(self.parent.base_url + self.path)
+            self.send_response(HTTPStatus.OK)
+            return response
+        except HTTPError as ex:
+            self.send_response(ex.code)
 
     @property
     def cache(self):
         return self.parent.base_dir / self.path.lstrip("/")
 
     def do_GET(self):
-        self.do_HEAD()
-        cache = self.cache
-        if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
-            with urlopen(self.parent.base_url + "/lastsync") as response:
-                timestamp = int(response.read())
-            try:
+        response = self._head()
+        self.end_headers()
+        if not response:
+            return
+
+        if isinstance(response, Path):
+            cache = response
+            if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
+                with urlopen(self.parent.base_url + "/lastsync") as _response:
+                    timestamp = int(_response.read())
                 if cache.stat().st_mtime < timestamp:
-                    return self._download_send()
-            except FileNotFoundError:
-                return self._download_send()
+                    response = urlopen(self.parent.base_url + self.path)
 
-        try:
-            return self._cache_send()
-        except FileNotFoundError:
-            pass
-
-        self._download_send()
+        if isinstance(response, Path):
+            self._cache_send()
+        else:
+            self._download_send(response)
 
     def _cache_send(self):
         cache = self.cache
@@ -112,11 +122,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                 f.seek(start)
             shutil.copyfileobj(f, self.wfile, length)
 
-    def _download_send(self):
+    def _download_send(self, response):
         cache = self.cache
         cache.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with urlopen(self.parent.base_url + self.path) as response:
+            with response:
                 with open(cache, "wb") as f:
                     buffer = bytearray(1 << 10)
                     while consumed := response.readinto(buffer):
@@ -139,7 +149,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 mirrors = {
     "arch":
         CachedMirror("https://geo.mirror.pkgbuild.com/", cache_root / "arch",
-                     ["*.db", "*.db.sig", "*.files", "*.files.sig"], 8900),
+                     ["*.db", "*.files"], ["*.db.sig", "*.files.sig"], 8900),
 }
 
 if __name__ == "__main__":
