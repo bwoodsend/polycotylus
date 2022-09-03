@@ -6,9 +6,10 @@ from tarfile import TarFile
 import io
 
 import pkg_resources
+from docker import from_env
 
 from polycotylus._project import Project
-from polycotylus._lazy_base_image import LazyImage
+from polycotylus._mirror import mirrors
 
 
 def array(*items):
@@ -17,8 +18,14 @@ def array(*items):
 
 @lru_cache()
 def available_packages():
-    p = LazyImage("archlinux:base")(["pacman", "-Sysq"])
-    return set(re.findall("([^\n]+)", p.output.decode()))
+    docker = from_env()
+    with mirrors["arch"]:
+        output = docker.containers.run("archlinux:base", ["bash", "-c", _w("""
+            echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+            pacman -Sysq
+        """)
+        ], network_mode="host")  # yapf: disable
+    return set(re.findall("([^\n]+)", output.decode()))
 
 
 def _shell_variables(**variables):
@@ -45,7 +52,8 @@ def _w(text, level=0):
 
 @lru_cache()
 def available_licenses():
-    container = LazyImage("archlinux:base").container
+    docker = from_env()
+    container = docker.containers.create("archlinux:base")
     chunks, _ = container.get_archive("/usr/share/licenses/common")
     out = {}
     with TarFile("", "r", io.BytesIO(b"".join(chunks))) as tar:

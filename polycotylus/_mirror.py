@@ -26,6 +26,8 @@ class CachedMirror:
         self.index_patterns = index_patterns
         self.ignore_patterns = ignore_patterns
         self.port = port
+        self._lock = threading.Lock()
+        self._listeners = 0
 
     def serve(self):
         handler = type("Handler", (RequestHandler,), {"parent": self})
@@ -34,19 +36,29 @@ class CachedMirror:
         host, port = httpd.socket.getsockname()
         host = "localhost" if os.name == "nt" else host
         print("http://{}:{}".format(host, self.port))
+        print(f"Install via:\n{self.install}")
         try:
             httpd.serve_forever()
         except:
             httpd.shutdown()
 
     def __enter__(self):
+        with self._lock:
+            if self._listeners:
+                self._listeners += 1
+                return
         handler = type("Handler", (RequestHandler,), {"parent": self})
         self._httpd = ThreadingHTTPServer(("", self.port), handler)
         thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
         thread.start()
         self._thread = thread
+        self._listeners = 1
 
     def __exit__(self, *_):
+        with self._lock:
+            self._listeners -= 1
+            if self._listeners:
+                return
         self._httpd.shutdown()
         del self._httpd
 
