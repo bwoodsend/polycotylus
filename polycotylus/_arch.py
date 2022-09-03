@@ -2,7 +2,6 @@ import re
 import textwrap
 import shlex
 from functools import lru_cache
-from subprocess import run, PIPE
 from tarfile import TarFile
 import io
 
@@ -183,6 +182,7 @@ FROM archlinux:base-devel AS build
 
 RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
 RUN useradd -m -g wheel user
+RUN echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 
 RUN mkdir /io && chown user /io
 WORKDIR /io
@@ -193,6 +193,7 @@ ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
 CMD ["bash"]
 
 FROM archlinux:base AS test
+RUN echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 
 RUN mkdir /io
 WORKDIR /io

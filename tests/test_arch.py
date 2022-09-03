@@ -9,8 +9,11 @@ from docker import from_env
 from PIL import Image
 
 from polycotylus._project import Project
+from polycotylus._mirror import mirrors
 from polycotylus import _arch
 from tests import dumb_text_viewer
+
+mirror = mirrors["arch"]
 
 pkgbuild_prefix = """\
 # Maintainer: Brénainn Woodsend <bwoodsend@gmail.com>
@@ -24,6 +27,7 @@ license=(MIT)
 """
 
 
+@mirror.decorate
 def test_build():
     self = Project.from_root(dumb_text_viewer)
     self.write_gitignore()
@@ -43,7 +47,8 @@ def test_build():
     sysroot = arch / "pkg/dumb_text_viewer"
     docker = from_env()
     build, _ = docker.images.build(path=str(self.root), target="build",
-                                   dockerfile=".polycotylus/arch/Dockerfile")
+                                   dockerfile=".polycotylus/arch/Dockerfile",
+                                   network_mode="host")
     with self.serve_repo() as url:
         docker.containers.run(build, "makepkg -fs --noconfirm",
                               volumes=[f"{arch}:/io"], network_mode="host",
@@ -70,19 +75,22 @@ def test_build():
         assert png.getpixel((0, 0))[3] == 0
 
     test, _ = docker.images.build(path=str(self.root), target="test",
+                                  network_mode="host",
                                   dockerfile=".polycotylus/arch/Dockerfile")
     command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb_text_viewer-0.1.0-1-any.pkg.tar.zst'"
     container = docker.containers.run(test, command, volumes=[f"{arch}:/io"],
-                                      detach=True)
+                                      detach=True, network_mode="host")
     assert container.wait()["StatusCode"] == 0, container.logs().decode()
     installed = container.commit()
 
     command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
-    output = docker.containers.run(installed, command).decode()
+    output = docker.containers.run(installed, command,
+                                   network_mode="host").decode()
     assert "Name: dumb-text-viewer" in output
 
-    container = docker.containers.run(
-        installed, "python -c 'import dumb_text_viewer'", detach=True)
+    container = docker.containers.run(installed,
+                                      "python -c 'import dumb_text_viewer'",
+                                      detach=True, network_mode="host")
     assert container.wait()["StatusCode"] == 0, container.logs().decode()
     raw = b"".join(container.get_archive(pycache.relative_to(sysroot))[0])
     with TarFile("", "r", io.BytesIO(raw)) as tar:

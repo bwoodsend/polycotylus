@@ -1,19 +1,18 @@
+import pytest
 from docker import from_env
 
-from polycotylus._arch import python_extras
+from polycotylus._mirror import mirrors
+from polycotylus._arch import python_extras, _w
 
 
-def test_arch():
+@pytest.mark.parametrize("name, extras", python_extras.items(), ids=repr)
+def test_arch(name, extras):
     docker = from_env()
-    base = docker.containers.run("archlinux:base",
-                                 ["pacman", "-Syq", "--noconfirm", "python"],
-                                 detach=True)
-    base.wait()
-    image = base.commit()
-    for (name, extras) in python_extras.items():
-        if extras:
-            command = f"pacman -S --noconfirm {' '.join(extras)} && "
-        else:
-            command = ""
-        command += f"python -c 'import {name}'"
-        docker.containers.run(image, ["sh", "-c", command])
+    script = _w("""
+        echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+        pacman -Sy --noconfirm python {}
+        python -c 'import {}'
+    """.format(" ".join(extras), name))
+    with mirrors["arch"]:
+        docker.containers.run("archlinux:base", ["sh", "-c", script],
+                              network_mode="host")
