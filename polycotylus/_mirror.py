@@ -20,14 +20,16 @@ cache_root = Path(appdirs.user_cache_dir("polycotylus"))
 class CachedMirror:
 
     def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
-                 port):
+                 port, install, last_sync_time):
         self.base_url = base_url.strip("/")
         self.base_dir = Path(base_dir)
         self.index_patterns = index_patterns
         self.ignore_patterns = ignore_patterns
         self.port = port
+        self.install = install
         self._lock = threading.Lock()
         self._listeners = 0
+        self.last_sync_time = lambda: last_sync_time(self)
 
     def serve(self):
         handler = type("Handler", (RequestHandler,), {"parent": self})
@@ -112,9 +114,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if isinstance(response, Path):
             cache = response
             if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
-                with urlopen(self.parent.base_url + "/lastsync") as _response:
-                    timestamp = int(_response.read())
-                if cache.stat().st_mtime < timestamp:
+                if cache.stat().st_mtime < self.parent.last_sync_time():
                     response = urlopen(self.parent.base_url + self.path)
 
         if isinstance(response, Path):
@@ -158,10 +158,22 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.remove(cache)
 
 
+def _arch_sync_time(self):
+    with urlopen(self.base_url + "/lastsync") as _response:
+        return int(_response.read())
+
+
 mirrors = {
     "arch":
-        CachedMirror("https://geo.mirror.pkgbuild.com/", cache_root / "arch",
-                     ["*.db", "*.files"], ["*.db.sig", "*.files.sig"], 8900),
+        CachedMirror(
+            "https://geo.mirror.pkgbuild.com/",
+            cache_root / "arch",
+            ["*.db", "*.files"],
+            ["*.db.sig", "*.files.sig"],
+            8900,
+            "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
+            _arch_sync_time,
+        ),
 }
 
 if __name__ == "__main__":

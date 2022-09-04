@@ -20,8 +20,8 @@ def array(*items):
 def available_packages():
     docker = from_env()
     with mirrors["arch"]:
-        output = docker.containers.run("archlinux:base", ["bash", "-c", _w("""
-            echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+        output = docker.containers.run("archlinux:base", ["bash", "-c", _w(f"""
+            {mirrors["arch"].install}
             pacman -Sysq
         """)
         ], network_mode="host")  # yapf: disable
@@ -198,9 +198,9 @@ check() {
 dockerfile = _w("""
 FROM archlinux:base-devel AS build
 
-RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+RUN echo '%%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
 RUN useradd -m -g wheel user
-RUN echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+RUN %s
 
 RUN mkdir /io && chown user /io
 WORKDIR /io
@@ -211,13 +211,13 @@ ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
 CMD ["bash"]
 
 FROM archlinux:base AS test
-RUN echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+RUN %s
 
 RUN mkdir /io
 WORKDIR /io
 COPY .polycotylus/arch/PKGBUILD .
 RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
-""")
+""" % (mirrors["arch"].install, mirrors["arch"].install))
 
 
 def icon_installer(icons):
