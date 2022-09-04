@@ -147,7 +147,7 @@ def pkgbuild(p: Project):
             *map(python_package, p.test_dependencies), "xorg-server-xvfb",
             "ttf-dejavu"
         ],
-        source=f"(${{TEST_SOURCE_URL:-{p.url}}})",
+        source=f'("{p.source_url.format(version="$pkgver")}")',
         sha256sums=["SKIP"],
     )
     out += "\n"
@@ -168,6 +168,16 @@ def std_license_path(content: bytes):
     for (name, body) in available_licenses().items():
         if b" ".join(re.findall(rb"\S+", body)) == content:
             return name
+
+
+def inject_source(p: Project):
+    from urllib.parse import urlparse
+    from pathlib import PurePosixPath
+
+    url = p.source_url.format(version=p.version)
+    name = PurePosixPath(urlparse(url).path).name
+    with open(p.root / ".polycotylus/arch" / name, "wb") as f:
+        f.write(p.tar())
 
 
 build = _w("""
@@ -226,6 +236,8 @@ def icon_installer(icons):
 
 if __name__ == "__main__":
     p = Project.from_root(".")
+    (p.root / ".polycotylus/arch").mkdir(parents=True, exist_ok=True)
+    inject_source(p)
     (p.root / ".polycotylus/arch/PKGBUILD").write_text(pkgbuild(p),
                                                        encoding="utf-8")
     (p.root / ".polycotylus/arch/Dockerfile").write_text(

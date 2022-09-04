@@ -42,6 +42,7 @@ def test_build():
     pkgbuild = _arch.pkgbuild(self)
     assert pkgbuild.startswith(pkgbuild_prefix)
 
+    _arch.inject_source(self)
     (arch / "PKGBUILD").write_text(pkgbuild, encoding="utf-8")
     (arch / "Dockerfile").write_text(_arch.dockerfile, encoding="utf-8")
     sysroot = arch / "pkg/dumb_text_viewer"
@@ -49,10 +50,8 @@ def test_build():
     build, _ = docker.images.build(path=str(self.root), target="build",
                                    dockerfile=".polycotylus/arch/Dockerfile",
                                    network_mode="host")
-    with self.serve_repo() as url:
-        docker.containers.run(build, "makepkg -fs --noconfirm",
-                              volumes=[f"{arch}:/io"], network_mode="host",
-                              environment={"TEST_SOURCE_URL": url})
+    docker.containers.run(build, "makepkg -fs --noconfirm",
+                          volumes=[f"{arch}:/io"], network_mode="host")
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"

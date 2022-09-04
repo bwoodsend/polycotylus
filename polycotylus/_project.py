@@ -14,7 +14,6 @@ import tomli
 import strictyaml
 
 from polycotylus import _exceptions
-from polycotylus._miniserver import miniserver
 
 
 @dataclass
@@ -33,6 +32,7 @@ class Project:
     licenses: list
     python_extras: list
     desktop_entry_points: dict
+    source_url: str
     url: str
 
     @classmethod
@@ -84,13 +84,11 @@ class Project:
             python_extras=polycotylus_options.get("python_extras", []),
             desktop_entry_points=polycotylus_options.get(
                 "desktop_entry_points", {}),
+            source_url=polycotylus_options["source_url"],
             root=root,
         )
 
-    def serve_repo(self):
-        return miniserver({"/": self._tar})
-
-    def _tar(self):
+    def tar(self):
         p = subprocess.run(["git", "ls-files", "--exclude-standard", "-oc"],
                            text=True, cwd=str(self.root),
                            stdout=subprocess.PIPE)
