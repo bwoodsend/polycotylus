@@ -1,5 +1,4 @@
 import re
-import textwrap
 import shlex
 from functools import lru_cache
 from tarfile import TarFile
@@ -8,12 +7,11 @@ import io
 import pkg_resources
 from docker import from_env
 
+from polycotylus import _shell
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 
-
-def array(*items):
-    return "(" + " ".join(map(shlex.quote, items)) + ")"
+_w = _shell.Formatter()
 
 
 @lru_cache()
@@ -28,12 +26,6 @@ def available_packages():
     return set(re.findall("([^\n]+)", output.decode()))
 
 
-def _shell_variables(**variables):
-    items = ((i, array(*j) if isinstance(j, list) else j)
-             for (i, j) in variables.items())
-    return "".join(f"{key}={value}\n" for (key, value) in items)
-
-
 def python_package(pypi_name):
     requirement = pkg_resources.Requirement(pypi_name)
     name = requirement.key
@@ -44,10 +36,6 @@ def python_package(pypi_name):
     else:
         assert 0
     return str(requirement)
-
-
-def _w(text, level=0):
-    return textwrap.indent(textwrap.dedent(text).strip(), "    " * level) + "\n"
 
 
 @lru_cache()
@@ -133,7 +121,7 @@ def pkgbuild(p: Project):
 
     package += "}\n"
 
-    out += _shell_variables(
+    out += _shell.variables(
         pkgname=shlex.quote(p.name),
         pkgver=p.version,
         pkgrel=1,
