@@ -32,6 +32,7 @@ class Project:
     licenses: list
     python_extras: list
     desktop_entry_points: dict
+    gui: bool
     source_url: str
     url: str
 
@@ -68,6 +69,11 @@ class Project:
                 continue
             test_dependencies.append(entry)
 
+        if "gui" in polycotylus_options:
+            gui = polycotylus_options["gui"]
+        else:
+            gui = bool(project.get('gui-scripts'))
+
         return cls(
             name=project["name"],
             maintainer=maintainer["name"],
@@ -85,6 +91,7 @@ class Project:
             desktop_entry_points=polycotylus_options.get(
                 "desktop_entry_points", {}),
             source_url=polycotylus_options["source_url"],
+            gui=gui,
             root=root,
         )
 

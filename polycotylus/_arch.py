@@ -1,6 +1,6 @@
 import re
 import shlex
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from tarfile import TarFile
 import io
 
@@ -10,32 +10,130 @@ from docker import from_env
 from polycotylus import _shell
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
+from polycotylus._base import BaseDistribution
 
 _w = _shell.Formatter()
 
 
-@lru_cache()
-def available_packages():
-    docker = from_env()
-    with mirrors["arch"]:
-        output = docker.containers.run("archlinux:base", ["bash", "-c", _w(f"""
+class Arch(BaseDistribution):
+    name = "arch"
+    python_prefix = "/usr"
+    python_extras = {
+        "tkinter": ["tk"],
+        "sqlite3": ["sqlite"],
+        "decimal": ["mpdecimal"],
+        "lzma": ["xz"],
+        "zlib": [],
+        "readline": [],
+        "bz2": [],
+    }
+    xvfb_run = "xorg-server-xvfb"
+    _formatter = _w
+
+    @cached_property
+    def available_packages(self):
+        docker = from_env()
+        command = _w(f"""
             {mirrors["arch"].install}
             pacman -Sysq
         """)
-        ], network_mode="host")  # yapf: disable
-    return set(re.findall("([^\n]+)", output.decode()))
+        with mirrors["arch"]:
+            output = docker.containers.run(
+                "archlinux:base", ["bash", "-c", command], network_mode="host")
+        return set(re.findall("([^\n]+)", output.decode()))
 
+    def python_package(self, pypi_name):
+        requirement = pkg_resources.Requirement(pypi_name)
+        name = requirement.key
+        if "python-" + name in self.available_packages:
+            requirement.name = "python-" + name
+        elif name.startswith("python-") and name in self.available_packages:
+            pass
+        else:
+            assert 0
+        return str(requirement)
 
-def python_package(pypi_name):
-    requirement = pkg_resources.Requirement(pypi_name)
-    name = requirement.key
-    if "python-" + name in available_packages():
-        requirement.name = "python-" + name
-    elif name.startswith("python-") and name in available_packages():
-        pass
-    else:
-        assert 0
-    return str(requirement)
+    def pkgbuild(self):
+        out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
+        package = _w("""
+            package() {
+                cd "$pkgname-"*
+                _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
+                rm -f "$_metadata_dir/direct_url.json"
+        """)
+        license_names = []
+        for license in self.project.licenses:
+            content = _normalize_whitespace(
+                (self.project.root / license).read_bytes())
+            license_name = std_license_path(content)
+            if not license_name:
+                for license_name in unshareable_license_identifiers:
+                    if unshareable_license_identifiers[license_name] in content:
+                        break
+                else:
+                    license_name = "custom"
+                package += _w(
+                    f'install -Dm644 "$_metadata_dir/{shlex.quote(license)}" '
+                    f'-t "$pkgdir/usr/share/licenses/{self.project.name}"', 1)
+            license_names.append(license_name)
+            package += _w(f'rm "$_metadata_dir/{license}"', 1)
+
+        package += self.install_icons(1)
+        package += self.install_desktop_files(1)
+
+        package += "}\n"
+
+        out += _shell.variables(
+            pkgname=shlex.quote(self.project.name),
+            pkgver=self.project.version,
+            pkgrel=1,
+            pkgdesc=shlex.quote(self.project.description),
+            arch=["any"],
+            url=self.project.url,
+            license=license_names,
+            depends=self.dependencies,
+            makedepends=self.make_dependencies,
+            checkdepends=self.test_dependencies,
+            source=f'("{self.project.source_url.format(version="$pkgver")}")',
+            sha256sums=["SKIP"],
+        )
+        out += "\n"
+        out += self._formatter("""
+            build() {
+                cd "$pkgname-"*
+        """)
+        out += self.pip_build_command(1)
+        out += self._formatter("}")
+        out += "\n"
+        out += package
+        out += "\n"
+        out += check
+        return out
+
+    def dockerfile(self):
+        return self._formatter("""
+            FROM archlinux:base-devel AS build
+
+            RUN echo '%%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+            RUN useradd -m -g wheel user
+            RUN %s
+
+            RUN mkdir /io && chown user /io
+            WORKDIR /io
+            COPY .polycotylus/arch/PKGBUILD .
+            RUN source ./PKGBUILD && pacman -Sy --noconfirm ${makedepends[*]} ${checkdepends[*]}
+
+            ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
+            CMD ["bash"]
+
+            FROM archlinux:base AS test
+            RUN %s
+
+            RUN mkdir /io
+            WORKDIR /io
+            COPY .polycotylus/arch/PKGBUILD .
+            RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
+    """ % (self.mirror.install, self.mirror.install))
 
 
 @lru_cache()
@@ -64,88 +162,6 @@ unshareable_license_identifiers = {
 
 build_script_name = "PKGBUILD"
 
-python_extras = {
-    "tkinter": ["tk"],
-    "sqlite3": ["sqlite"],
-    "decimal": ["mpdecimal"],
-    "lzma": ["xz"],
-    "zlib": [],
-    "readline": [],
-    "bz2": [],
-}
-
-
-def pkgbuild(p: Project):
-    out = f"# Maintainer: {p.maintainer} <{p.email}>\n"
-    depends = ["python" + p.supported_python]
-    depends += map(python_package, p.dependencies)
-    [depends.extend(python_extras[i]) for i in p.python_extras]
-
-    package = _w("""
-        package() {
-            cd "$pkgname-"*
-            metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
-            rm -f "${metadata_dir}/direct_url.json"
-    """)
-    license_names = []
-    for license in p.licenses:
-        content = _normalize_whitespace((p.root / license).read_bytes())
-        license_name = std_license_path(content)
-        if not license_name:
-            for license_name in unshareable_license_identifiers:
-                if unshareable_license_identifiers[license_name] in content:
-                    break
-            else:
-                license_name = "custom"
-            package += _w(
-                f'install -Dm644 "$metadata_dir/{shlex.quote(license)}" '
-                f'-t "$pkgdir/usr/share/licenses/{p.name}"', 1)
-        license_names.append(license_name)
-        package += _w(f'rm "$metadata_dir/{license}"', 1)
-
-    make_depends = [python_package("wheel"), python_package("pip")]
-    make_depends += map(python_package, p.build_dependencies)
-
-    icons = [(i["icon"]["source"], i["icon"]["id"])
-             for i in p.desktop_entry_points.values()]
-    if icons:
-        package += _w(icon_installer(icons), 1)
-        make_depends.append("imagemagick")
-    if any(source.endswith(".svg") for (source, dest) in icons):
-        make_depends.append("librsvg")
-
-    for id in p.desktop_entry_points:
-        package += _w(
-            f'install -Dm644 ".polycotylus/{id}.desktop" '
-            f'"$pkgdir/usr/share/applications/{id}.desktop"', 1)
-
-    package += "}\n"
-
-    out += _shell.variables(
-        pkgname=shlex.quote(p.name),
-        pkgver=p.version,
-        pkgrel=1,
-        pkgdesc=shlex.quote(p.description),
-        arch=["any"],
-        url=p.url,
-        license=license_names,
-        depends=depends,
-        makedepends=make_depends,
-        checkdepends=[
-            *map(python_package, p.test_dependencies), "xorg-server-xvfb",
-            "ttf-dejavu"
-        ],
-        source=f'("{p.source_url.format(version="$pkgver")}")',
-        sha256sums=["SKIP"],
-    )
-    out += "\n"
-    out += build
-    out += "\n"
-    out += package
-    out += "\n"
-    out += check
-    return out
-
 
 def _normalize_whitespace(x: bytes):
     return b" ".join(re.findall(rb"\S+", x))
@@ -158,24 +174,6 @@ def std_license_path(content: bytes):
             return name
 
 
-def inject_source(p: Project):
-    from urllib.parse import urlparse
-    from pathlib import PurePosixPath
-
-    url = p.source_url.format(version=p.version)
-    name = PurePosixPath(urlparse(url).path).name
-    with open(p.root / ".polycotylus/arch" / name, "wb") as f:
-        f.write(p.tar())
-
-
-build = _w("""
-build() {
-    cd "$pkgname-"*
-    /bin/pip install --no-compile --prefix="$pkgdir/usr" --no-warn-script-location --no-deps --no-build-isolation .
-    python -m compileall --invalidation-mode=unchecked-hash -s "$pkgdir" "$pkgdir/usr/lib/"
-}
-""")
-
 check = _w("""
 check() {
     PYTHONPATH="$(echo "$pkgdir"/usr/lib/python*/site-packages/)"
@@ -183,50 +181,11 @@ check() {
 }
 """)
 
-dockerfile = _w("""
-FROM archlinux:base-devel AS build
-
-RUN echo '%%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-RUN useradd -m -g wheel user
-RUN %s
-
-RUN mkdir /io && chown user /io
-WORKDIR /io
-COPY .polycotylus/arch/PKGBUILD .
-RUN source ./PKGBUILD && pacman -Sy --noconfirm ${makedepends[*]} ${checkdepends[*]}
-
-ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
-CMD ["bash"]
-
-FROM archlinux:base AS test
-RUN %s
-
-RUN mkdir /io
-WORKDIR /io
-COPY .polycotylus/arch/PKGBUILD .
-RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
-""" % (mirrors["arch"].install, mirrors["arch"].install))
-
-
-def icon_installer(icons):
-    out = _w("""
-        for size in 16 22 24 32 48 128; do
-            icon_dir="$pkgdir/usr/share/icons/hicolor/${size}x$size/apps"
-            mkdir -p "$icon_dir"
-    """)
-    for (source, dest) in icons:
-        out += _w(
-            f'convert -background "#00000000" -resize $size +set date:create '
-            f'+set date:modify "{source}" "$icon_dir/{dest}.png"', 1)
-    out += _w("done")
-    return out
-
-
 if __name__ == "__main__":
-    p = Project.from_root(".")
-    (p.root / ".polycotylus/arch").mkdir(parents=True, exist_ok=True)
-    inject_source(p)
-    (p.root / ".polycotylus/arch/PKGBUILD").write_text(pkgbuild(p),
-                                                       encoding="utf-8")
-    (p.root / ".polycotylus/arch/Dockerfile").write_text(
-        dockerfile, encoding="utf-8")
+    self = Arch(Project.from_root("."))
+    self.distro_root.mkdir(parents=True, exist_ok=True)
+    self.inject_source()
+    (self.distro_root / "PKGBUILD").write_text(self.pkgbuild(),
+                                               encoding="utf-8")
+    (self.distro_root / "Dockerfile").write_text(self.dockerfile(),
+                                                 encoding="utf-8")

@@ -10,7 +10,7 @@ from PIL import Image
 
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
-from polycotylus import _arch
+from polycotylus._arch import Arch
 from tests import dumb_text_viewer
 
 mirror = mirrors["arch"]
@@ -29,29 +29,31 @@ license=(MIT)
 
 @mirror.decorate
 def test_build():
-    self = Project.from_root(dumb_text_viewer)
-    self.write_gitignore()
-    self.write_desktop_files()
-    arch = self.root / ".polycotylus/arch/"
+    self = Arch(Project.from_root(dumb_text_viewer))
+    self.project.write_gitignore()
+    self.project.write_desktop_files()
     try:
-        shutil.rmtree(arch)
+        shutil.rmtree(self.distro_root)
     except FileNotFoundError:
         pass
-    arch.mkdir()
+    self.distro_root.mkdir()
 
-    pkgbuild = _arch.pkgbuild(self)
+    pkgbuild = self.pkgbuild()
     assert pkgbuild.startswith(pkgbuild_prefix)
 
-    _arch.inject_source(self)
-    (arch / "PKGBUILD").write_text(pkgbuild, encoding="utf-8")
-    (arch / "Dockerfile").write_text(_arch.dockerfile, encoding="utf-8")
-    sysroot = arch / "pkg/dumb_text_viewer"
+    self.inject_source()
+    (self.distro_root / "PKGBUILD").write_text(pkgbuild, encoding="utf-8")
+    (self.distro_root / "Dockerfile").write_text(self.dockerfile(),
+                                                 encoding="utf-8")
+    subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
+    sysroot = self.distro_root / "pkg/dumb_text_viewer"
     docker = from_env()
-    build, _ = docker.images.build(path=str(self.root), target="build",
+    build, _ = docker.images.build(path=str(self.project.root), target="build",
                                    dockerfile=".polycotylus/arch/Dockerfile",
                                    network_mode="host")
     docker.containers.run(build, "makepkg -fs --noconfirm",
-                          volumes=[f"{arch}:/io"], network_mode="host")
+                          volumes=[f"{self.distro_root}:/io"],
+                          network_mode="host")
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
@@ -73,11 +75,12 @@ def test_build():
         assert png.size == (size, size)
         assert png.getpixel((0, 0))[3] == 0
 
-    test, _ = docker.images.build(path=str(self.root), target="test",
+    test, _ = docker.images.build(path=str(self.project.root), target="test",
                                   network_mode="host",
                                   dockerfile=".polycotylus/arch/Dockerfile")
     command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb_text_viewer-0.1.0-1-any.pkg.tar.zst'"
-    container = docker.containers.run(test, command, volumes=[f"{arch}:/io"],
+    container = docker.containers.run(test, command,
+                                      volumes=[f"{self.distro_root}:/io"],
                                       detach=True, network_mode="host")
     assert container.wait()["StatusCode"] == 0, container.logs().decode()
     installed = container.commit()
@@ -99,4 +102,4 @@ def test_build():
         assert len(tar.getmembers()) == 3
 
     docker.containers.run(installed, "xvfb-run pytest /io/tests",
-                          volumes=[f"{self.root}/tests:/io/tests"])
+                          volumes=[f"{self.project.root}/tests:/io/tests"])
