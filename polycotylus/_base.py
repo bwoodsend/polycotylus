@@ -68,7 +68,7 @@ class BaseDistribution(abc.ABC):
         out = {self.python + self.project.supported_python}
         [out.update(self.python_extras[i]) for i in self.project.python_extras]
         out.update(self.python_package(i) for i in self.project.dependencies)
-        return list(out)
+        return sorted(out)
 
     @property
     def make_dependencies(self):
@@ -78,14 +78,14 @@ class BaseDistribution(abc.ABC):
             out.add(self.imagemagick)
             if any(source.endswith(".svg") for (source, _) in self.icons):
                 out.add(self.imagemagick_svg)
-        return list(out)
+        return sorted(out)
 
     @property
     def test_dependencies(self):
         out = [self.python_package(i) for i in self.project.test_dependencies]
         if self.project.gui:
             out += [self.xvfb_run, self.font]
-        return out
+        return sorted(set(out))
 
     def install_icons(self, indentation):
         if not self.icons:
