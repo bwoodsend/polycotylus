@@ -9,6 +9,7 @@ import json
 import mimetypes
 from fnmatch import fnmatch
 from locale import locale_alias
+import gzip
 
 import tomli
 import strictyaml
@@ -105,7 +106,7 @@ class Project:
         with tarfile.TarFile("", mode="w", fileobj=buffer) as tar:
             for file in files:
                 tar.add(self.root / file, f"{self.name}-{self.version}/{file}")
-        return buffer.getvalue()
+        return gzip.compress(buffer.getvalue(), mtime=0)
 
     def _desktop_file(self, id, options):
         out = {"Version": 1.0, "Type": "Application", "Terminal": False}
