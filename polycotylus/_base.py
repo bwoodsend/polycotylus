@@ -27,6 +27,7 @@ class BaseDistribution(abc.ABC):
     def available_packages(self):
         pass
 
+    @abc.abstractmethod
     def python_package(pypi_name):
         pass
 
