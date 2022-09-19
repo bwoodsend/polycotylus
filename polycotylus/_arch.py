@@ -183,9 +183,4 @@ check() {
 
 if __name__ == "__main__":
     self = Arch(Project.from_root("."))
-    self.distro_root.mkdir(parents=True, exist_ok=True)
-    self.inject_source()
-    (self.distro_root / "PKGBUILD").write_text(self.pkgbuild(),
-                                               encoding="utf-8")
-    (self.distro_root / "Dockerfile").write_text(self.dockerfile(),
-                                                 encoding="utf-8")
+    self.generate()

@@ -30,21 +30,11 @@ license=(MIT)
 @mirror.decorate
 def test_build():
     self = Arch(Project.from_root(dumb_text_viewer))
-    self.project.write_gitignore()
-    self.project.write_desktop_files()
-    try:
-        shutil.rmtree(self.distro_root)
-    except FileNotFoundError:
-        pass
-    self.distro_root.mkdir()
+    self.generate(clean=True)
 
     pkgbuild = self.pkgbuild()
     assert pkgbuild.startswith(pkgbuild_prefix)
 
-    self.inject_source()
-    (self.distro_root / "PKGBUILD").write_text(pkgbuild, encoding="utf-8")
-    (self.distro_root / "Dockerfile").write_text(self.dockerfile(),
-                                                 encoding="utf-8")
     subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb_text_viewer"
     docker = from_env()

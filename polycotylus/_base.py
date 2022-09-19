@@ -1,4 +1,5 @@
 import abc
+import shutil
 
 from polycotylus._mirror import mirrors
 
@@ -10,6 +11,7 @@ class BaseDistribution(abc.ABC):
     python_extras: dict = abc.abstractproperty()
     _formatter = abc.abstractproperty()
     pkgdir = "$pkgdir"
+    build_script_name = "PKGBUILD"
 
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg"
@@ -113,3 +115,18 @@ class BaseDistribution(abc.ABC):
                 f'"{self.pkgdir}/usr/share/applications/{id}.desktop"',
                 indentation)
         return out
+
+    def generate(self, clean=False):
+        """Generate all pragmatically created files."""
+        if clean:
+            try:
+                shutil.rmtree(self.distro_root)
+            except FileNotFoundError:
+                pass
+        self.distro_root.mkdir(parents=True, exist_ok=True)
+        self.project.write_desktop_files()
+        self.project.write_gitignore()
+        self.inject_source()
+        (self.distro_root / self.build_script_name).write_text(
+            self.pkgbuild(), encoding="utf-8")
+        (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
