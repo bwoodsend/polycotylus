@@ -103,9 +103,15 @@ class Project:
         assert p.returncode == 0
         files = re.findall("[^\n]+", p.stdout)
         buffer = io.BytesIO()
+
+        def _strip_mtime(tar_info):
+            tar_info.mtime = 0
+            return tar_info
+
         with tarfile.TarFile("", mode="w", fileobj=buffer) as tar:
             for file in files:
-                tar.add(self.root / file, f"{self.name}-{self.version}/{file}")
+                tar.add(self.root / file, f"{self.name}-{self.version}/{file}",
+                        filter=_strip_mtime)
         return gzip.compress(buffer.getvalue(), mtime=0)
 
     def _desktop_file(self, id, options):
