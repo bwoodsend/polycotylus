@@ -54,11 +54,11 @@ class BaseDistribution(abc.ABC):
         with open(self.distro_root / name, "wb") as f:
             f.write(self.project.tar())
 
-    def pip_build_command(self, indentation):
+    def pip_build_command(self, indentation, into="$pkgdir"):
         return self._formatter(
             f"""
-            {self.python_prefix}/bin/pip install --no-compile --prefix="$pkgdir{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
-            {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "$pkgdir" "$pkgdir{self.python_prefix}/lib/"
+            {self.python_prefix}/bin/pip install --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
+            {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "{into}" "{into}{self.python_prefix}/lib/"
         """, indentation)
 
     @property
@@ -107,13 +107,14 @@ class BaseDistribution(abc.ABC):
         out += self._formatter("done", indentation)
         return out
 
-    def install_desktop_files(self, indentation):
+    def install_desktop_files(self, indentation, source="", dest="$pkgdir"):
+        if source:
+            source += "/"
         out = ""
         for id in self.project.desktop_entry_points:
             out += self._formatter(
-                f'install -Dm644 ".polycotylus/{id}.desktop" '
-                f'"{self.pkgdir}/usr/share/applications/{id}.desktop"',
-                indentation)
+                f'install -Dm644 "{source}.polycotylus/{id}.desktop" '
+                f'"{dest}/usr/share/applications/{id}.desktop"', indentation)
         return out
 
     def generate(self, clean=False):

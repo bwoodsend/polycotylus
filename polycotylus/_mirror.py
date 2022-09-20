@@ -114,7 +114,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         if isinstance(response, Path):
             cache = response
             if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
-                if cache.stat().st_mtime < self.parent.last_sync_time():
+                timestamp = cache.stat().st_mtime
+                if any(timestamp < i for i in self.parent.last_sync_time()):
                     response = urlopen(self.parent.base_url + self.path)
 
         if isinstance(response, Path):
@@ -160,7 +161,15 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 def _arch_sync_time(self):
     with urlopen(self.base_url + "/lastsync") as _response:
-        return int(_response.read())
+        yield int(_response.read())
+
+
+def _alpine_sync_time(self):
+    # Alpine repositories are only updated at most, once per hour and always on
+    # the hour (i.e. at xx:00:00).
+    yield time.time() // 3600 * 3600
+    with urlopen(self.base_url + "/last-updated") as _response:
+        yield int(_response.read())
 
 
 mirrors = {
@@ -173,6 +182,16 @@ mirrors = {
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
             _arch_sync_time,
+        ),
+    "alpine":
+        CachedMirror(
+            "https://dl-cdn.alpinelinux.org/alpine/",
+            cache_root / "alpine",
+            ["APKINDEX.tar.gz"],
+            [],
+            8901,
+            r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/edge/|g' /etc/apk/repositories",
+            _alpine_sync_time,
         ),
 }
 
