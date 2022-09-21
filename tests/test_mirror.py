@@ -163,4 +163,4 @@ def test_tar_integrity(tmp_path):
         with self:
             docker.containers.run(
                 "alpine", ["ash", "-c", f"{self.install} && apk add libbz2"],
-                network_mode="host")
+                network_mode="host", remove=True)

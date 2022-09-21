@@ -51,7 +51,7 @@ class Alpine(BaseDistribution):
                 apk update -q
                 apk search -q
             """)
-            ], network_mode="host")  # yapf: disable
+            ], network_mode="host", remove=True)  # yapf: disable
         return set(re.findall("([^\n]+)", output.decode()))
 
     def python_package(self, pypi_name):
@@ -222,6 +222,7 @@ class Alpine(BaseDistribution):
         with tarfile.TarFile("", "r", io.BytesIO(raw)) as tar:
             tar.extractall(Path.home())
             _, key, _ = sorted(tar.getnames(), key=len)
+        container.remove()
 
         if config.exists():
             content = config.read_text().rstrip("\n") + "\n"

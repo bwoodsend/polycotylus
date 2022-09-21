@@ -16,7 +16,7 @@ def test_arch(name, extras):
     """.format(mirrors["arch"].install, " ".join(extras), name))
     with mirrors["arch"]:
         docker.containers.run("archlinux:base", ["sh", "-c", script],
-                              network_mode="host")
+                              network_mode="host", remove=True)
 
 
 @pytest.mark.parametrize("name, extras", _alpine.Alpine.python_extras.items(),
@@ -30,4 +30,4 @@ def test_alpine(name, extras):
     """.format(mirrors["alpine"].install, " ".join(extras), name))
     with mirrors["alpine"]:
         docker.containers.run("alpine", ["ash", "-c", script],
-                              network_mode="host")
+                              network_mode="host", remove=True)

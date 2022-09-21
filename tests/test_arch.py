@@ -43,7 +43,7 @@ def test_build():
                                    network_mode="host")
     docker.containers.run(build, "makepkg -fs --noconfirm",
                           volumes=[f"{self.distro_root}:/io"],
-                          network_mode="host")
+                          network_mode="host", remove=True)
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
@@ -74,10 +74,11 @@ def test_build():
                                       detach=True, network_mode="host")
     assert container.wait()["StatusCode"] == 0, container.logs().decode()
     installed = container.commit()
+    container.remove()
 
     command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
-    output = docker.containers.run(installed, command,
-                                   network_mode="host").decode()
+    output = docker.containers.run(installed, command, network_mode="host",
+                                   remove=True).decode()
     assert "Name: dumb-text-viewer" in output
 
     container = docker.containers.run(installed,
@@ -90,6 +91,8 @@ def test_build():
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
+    container.remove()
 
     docker.containers.run(installed, "xvfb-run pytest /io/tests",
-                          volumes=[f"{self.project.root}/tests:/io/tests"])
+                          volumes=[f"{self.project.root}/tests:/io/tests"],
+                          remove=True)

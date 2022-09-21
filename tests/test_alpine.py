@@ -48,7 +48,7 @@ def test_build():
     docker = from_env()
     docker.containers.run("alpine",
                           ["ash", "-c", "set -e; source /io/APKBUILD"],
-                          volumes=[f"{self.distro_root}:/io"])
+                          volumes=[f"{self.distro_root}:/io"], remove=True)
 
     build, _ = docker.images.build(path=str(self.project.root), target="build",
                                    dockerfile=".polycotylus/alpine/Dockerfile",
@@ -59,13 +59,13 @@ def test_build():
             f"{self.distro_root}:/io",
             f"{private_key}:/home/user/.abuild/{private_key.name}:shared",
             f"{self.distro_root}/dist:/home/user/packages:shared"
-        ])
+        ], remove=True)
     apk = self.distro_root / "dist" / platform.machine(
     ) / "dumb_text_viewer-0.1.0-r1.apk"
     assert apk.exists()
 
     logs = docker.containers.run("alpine", ["tar", "tf", f"/io/{apk.name}"],
-                                 volumes=[f"{apk.parent}:/io"])
+                                 volumes=[f"{apk.parent}:/io"], remove=True)
     files = set(re.findall("[^\n]+", logs.decode()))
     assert "usr/share/icons/hicolor/128x128/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/icons/hicolor/32x32/apps/underwhelming_software-dumb_text_viewer.png" in files
@@ -82,19 +82,21 @@ def test_build():
         ], detach=True, network_mode="host")
     assert container.wait()["StatusCode"] == 0, container.logs().decode()
     installed = container.commit()
+    container.remove()
 
     command = "ash -c 'apk add py3-pip && pip show dumb_text_viewer'"
-    output = docker.containers.run(installed, command,
-                                   network_mode="host").decode()
+    output = docker.containers.run(installed, command, network_mode="host",
+                                   remove=True).decode()
     assert "Name: dumb-text-viewer" in output
 
     docker.containers.run(installed, "xvfb-run pytest /io/tests",
-                          volumes=[f"{self.project.root}/tests:/io/tests"])
+                          volumes=[f"{self.project.root}/tests:/io/tests"],
+                          remove=True)
 
     assert docker.containers.run(installed, [
         "ash", "-c", """
         apk add -q xdg-utils shared-mime-info
         xdg-mime query default text/plain
     """
-    ], network_mode="host").strip(
+    ], network_mode="host", remove=True).strip(
     ) == b"underwhelming_software-dumb_text_viewer.desktop"

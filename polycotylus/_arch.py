@@ -38,8 +38,9 @@ class Arch(BaseDistribution):
             pacman -Sysq
         """)
         with mirrors["arch"]:
-            output = docker.containers.run(
-                "archlinux:base", ["bash", "-c", command], network_mode="host")
+            output = docker.containers.run("archlinux:base",
+                                           ["bash", "-c", command],
+                                           network_mode="host", remove=True)
         return set(re.findall("([^\n]+)", output.decode()))
 
     def python_package(self, pypi_name):
@@ -148,6 +149,7 @@ def available_licenses():
             if m:
                 with tar.extractfile(member.name) as f:
                     out[m[1]] = f.read()
+    container.remove()
     return out
 
 
