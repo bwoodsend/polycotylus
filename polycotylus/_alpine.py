@@ -151,15 +151,10 @@ class Alpine(BaseDistribution):
             FROM alpine AS build
             RUN {self.mirror.install}
 
-            RUN apk add alpine-sdk libuser sudo
+            RUN apk add alpine-sdk shadow sudo
             RUN echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
-
-            RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-            RUN mkdir -p /etc/default /etc/skel
-            RUN touch /etc/default/useradd /etc/login.defs /etc/gshadow
-            RUN luseradd -u {os.getuid()} -g wheel -s "$(which ash)" user
-            RUN addgroup user abuild
+            RUN useradd --create-home --uid {os.getuid()} --groups wheel,abuild user
 
             RUN mkdir /io && chown user /io
             WORKDIR /io
