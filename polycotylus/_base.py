@@ -1,6 +1,8 @@
 import abc
 import shutil
 
+import pkg_resources
+
 from polycotylus._mirror import mirrors
 
 
@@ -29,8 +31,17 @@ class BaseDistribution(abc.ABC):
     def available_packages(self):
         pass
 
+    def python_package(self, requirement):
+        requirement = pkg_resources.Requirement(requirement)
+        name = requirement.key
+        if self.python_package_convention(name) in self.available_packages:
+            requirement.name = self.python_package_convention(name)
+        else:
+            assert 0
+        return str(requirement)
+
     @abc.abstractmethod
-    def python_package(pypi_name):
+    def python_package_convention(pypi_name):
         pass
 
     @abc.abstractmethod

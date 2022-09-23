@@ -4,7 +4,6 @@ from functools import cached_property, lru_cache
 from tarfile import TarFile
 import io
 
-import pkg_resources
 from docker import from_env
 
 from polycotylus import _shell
@@ -43,16 +42,8 @@ class Arch(BaseDistribution):
                                            network_mode="host", remove=True)
         return set(re.findall("([^\n]+)", output.decode()))
 
-    def python_package(self, pypi_name):
-        requirement = pkg_resources.Requirement(pypi_name)
-        name = requirement.key
-        if "python-" + name in self.available_packages:
-            requirement.name = "python-" + name
-        elif name.startswith("python-") and name in self.available_packages:
-            pass
-        else:
-            assert 0
-        return str(requirement)
+    def python_package_convention(self, pypi_name):
+        return "python-" + pypi_name
 
     def pkgbuild(self):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"

@@ -12,7 +12,6 @@ from pathlib import Path
 import tarfile
 import io
 
-import pkg_resources
 from docker import from_env
 
 from polycotylus import _shell
@@ -54,14 +53,8 @@ class Alpine(BaseDistribution):
             ], network_mode="host", remove=True)  # yapf: disable
         return set(re.findall("([^\n]+)", output.decode()))
 
-    def python_package(self, pypi_name):
-        requirement = pkg_resources.Requirement(pypi_name)
-        name = requirement.key
-        if "py3-" + name in self.available_packages:
-            requirement.name = "py3-" + name
-        else:
-            assert 0
-        return str(requirement)
+    def python_package_convention(self, pypi_name):
+        return "py3-" + pypi_name
 
     def inject_source(self):
         # abuild insists that the archive must be named something more than just
