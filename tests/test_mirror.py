@@ -6,9 +6,9 @@ import threading
 import signal
 import os
 
-from docker import from_env
 import pytest
 
+from polycotylus import _docker
 from polycotylus._mirror import mirrors, CachedMirror, _alpine_sync_time
 
 
@@ -167,11 +167,8 @@ def test_kill_resume(tmp_path):
 
 
 def test_tar_integrity(tmp_path):
-    docker = from_env()
     self = _alpine_mirror(tmp_path)
 
     for i in range(3):
         with self:
-            docker.containers.run(
-                "alpine", ["ash", "-c", f"{self.install} && apk add libbz2"],
-                network_mode="host", remove=True)
+            _docker.run("alpine", f"{self.install} && apk add libbz2")

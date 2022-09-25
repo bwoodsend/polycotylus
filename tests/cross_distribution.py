@@ -1,8 +1,8 @@
 import shlex
 
-from docker import from_env
 import pytest
 
+from polycotylus import _docker
 from polycotylus._mirror import mirrors
 
 awkward_pypi_packages = [
@@ -31,7 +31,6 @@ class Base:
         "name",
         ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline", "bz2"])
     def test_python_extras(self, name, ids=str):
-        docker = from_env()
         extras = self.cls.python_extras[name]
         mirror = mirrors[self.cls.name]
         script = self.cls._formatter(f"""
@@ -40,5 +39,4 @@ class Base:
             python3 -c 'import {name}'
         """)
         with mirror:
-            docker.containers.run(self.base_image, ["sh", "-c", script],
-                                  network_mode="host", remove=True)
+            _docker.run(self.base_image, script)

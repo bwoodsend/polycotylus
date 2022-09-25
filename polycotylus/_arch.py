@@ -4,17 +4,11 @@ https://wiki.manjaro.org/index.php/PKGBUILD
 import re
 import shlex
 from functools import cache
-from tarfile import TarFile
-import io
 
-from docker import from_env
-
-from polycotylus import _shell
+from polycotylus import _shell, _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._base import BaseDistribution
-
-_w = _shell.Formatter()
 
 
 class Arch(BaseDistribution):
@@ -30,21 +24,18 @@ class Arch(BaseDistribution):
         "bz2": [],
     }
     xvfb_run = "xorg-server-xvfb"
-    _formatter = _w
+    _formatter = _shell.Formatter()
 
     @staticmethod
     @cache
     def available_packages():
-        docker = from_env()
-        command = _w(f"""
-            {mirrors["arch"].install}
-            pacman -Sysq
-        """)
         with mirrors["arch"]:
-            output = docker.containers.run("archlinux:base",
-                                           ["bash", "-c", command],
-                                           network_mode="host", remove=True)
-        return set(re.findall("([^\n]+)", output.decode()))
+            output = _docker.run(
+                "archlinux:base", f"""
+                {mirrors["arch"].install}
+                pacman -Sysq
+            """).output
+        return set(re.findall("([^\n]+)", output))
 
     invalid_package_characters = "[^a-z0-9-]"
 
@@ -58,7 +49,7 @@ class Arch(BaseDistribution):
 
     def pkgbuild(self):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
-        package = _w("""
+        package = self._formatter("""
             package() {
                 cd "%s-"*
                 cp -r _build/* "$pkgdir"
@@ -76,11 +67,11 @@ class Arch(BaseDistribution):
                         break
                 else:
                     license_name = "custom"
-                package += _w(
+                package += self._formatter(
                     f'install -Dm644 "$_metadata_dir/{shlex.quote(license)}" '
                     f'-t "$pkgdir/usr/share/licenses/{self.package_name}"', 1)
             license_names.append(license_name)
-            package += _w(f'rm "$_metadata_dir/{license}"', 1)
+            package += self._formatter(f'rm "$_metadata_dir/{license}"', 1)
 
         package += self.install_icons(1)
         package += self.install_desktop_files(1)
@@ -111,7 +102,7 @@ class Arch(BaseDistribution):
         out += "\n"
         out += package
         out += "\n"
-        out += _w(f"""
+        out += self._formatter(f"""
             check() {{
                 PYTHONPATH="$(echo {self.project.name}-*/_build/usr/lib/python*/site-packages/)"
                 PYTHONPATH="$PYTHONPATH" xvfb-run pytest "{self.project.name}-"*/tests
@@ -147,17 +138,13 @@ class Arch(BaseDistribution):
 
 @cache
 def available_licenses():
-    docker = from_env()
-    container = docker.containers.create("archlinux:base")
-    chunks, _ = container.get_archive("/usr/share/licenses/common")
     out = {}
-    with TarFile("", "r", io.BytesIO(b"".join(chunks))) as tar:
+    with _docker.run("archlinux:base")["/usr/share/licenses/common"] as tar:
         for member in tar.getmembers():
             m = re.fullmatch("common/([^/]+)/license.txt", member.name)
             if m:
                 with tar.extractfile(member.name) as f:
                     out[m[1]] = f.read()
-    container.remove()
     return out
 
 

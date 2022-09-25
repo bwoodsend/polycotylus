@@ -1,13 +1,10 @@
 import os
 import subprocess
-import shutil
 import sys
-import io
-from tarfile import TarFile
 
-from docker import from_env
 from PIL import Image
 
+from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
@@ -43,13 +40,10 @@ def test_build():
 
     subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb-text-viewer"
-    docker = from_env()
-    build, _ = docker.images.build(path=str(self.project.root), target="build",
-                                   dockerfile=".polycotylus/arch/Dockerfile",
-                                   network_mode="host")
-    docker.containers.run(build, "makepkg -fs --noconfirm",
-                          volumes=[f"{self.distro_root}:/io"],
-                          network_mode="host", remove=True)
+    build = _docker.build(".polycotylus/arch/Dockerfile", self.project.root,
+                          target="build")
+    _docker.run(build, "makepkg -fs --noconfirm",
+                volumes=[(self.distro_root, "/io")])
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
@@ -71,34 +65,21 @@ def test_build():
         assert png.size == (size, size)
         assert png.getpixel((0, 0))[3] == 0
 
-    test, _ = docker.images.build(path=str(self.project.root), target="test",
-                                  network_mode="host",
-                                  dockerfile=".polycotylus/arch/Dockerfile")
+    test = _docker.build(".polycotylus/arch/Dockerfile", self.project.root,
+                         target="test")
     command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb-text-viewer-0.1.0-1-any.pkg.tar.zst'"
-    container = docker.containers.run(test, command,
-                                      volumes=[f"{self.distro_root}:/io"],
-                                      detach=True, network_mode="host")
-    assert container.wait()["StatusCode"] == 0, container.logs().decode()
+    container = _docker.run(test, command, volumes=[(self.distro_root, "/io")])
     installed = container.commit()
-    container.remove()
 
     command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
-    output = docker.containers.run(installed, command, network_mode="host",
-                                   remove=True).decode()
-    assert "Name: dumb-text-viewer" in output
+    assert "Name: dumb-text-viewer" in _docker.run(installed, command).output
 
-    container = docker.containers.run(installed,
-                                      "python -c 'import dumb_text_viewer'",
-                                      detach=True, network_mode="host")
-    assert container.wait()["StatusCode"] == 0, container.logs().decode()
-    raw = b"".join(container.get_archive(pycache.relative_to(sysroot))[0])
-    with TarFile("", "r", io.BytesIO(raw)) as tar:
+    container = _docker.run(installed, "python -c 'import dumb_text_viewer'")
+    with container[pycache.relative_to(sysroot)] as tar:
         for pyc in pyc_contents:
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
-    container.remove()
 
-    docker.containers.run(installed, "xvfb-run pytest /io/tests",
-                          volumes=[f"{self.project.root}/tests:/io/tests"],
-                          remove=True)
+    _docker.run(installed, "xvfb-run pytest /io/tests",
+                volumes=[(self.project.root / "tests", "/io/tests")])
