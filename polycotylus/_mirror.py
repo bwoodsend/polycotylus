@@ -14,6 +14,7 @@ from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 import email.utils
 import contextlib
+import collections
 
 from polycotylus import _docker
 from polycotylus._docker import cache_root
@@ -25,7 +26,7 @@ class CachedMirror:
     """
 
     def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
-                 port, install, last_sync_time):
+                 port, install, last_sync_time, package_version_pattern="(.+)()()"):
         """
         Args:
             base_url:
@@ -47,6 +48,8 @@ class CachedMirror:
                 A sequence of functions, each taking a RequestHandler()
                 instance as an argument and returning an integer timestamp
                 corresponding to the time the requested file was last updated.
+            package_version_pattern:
+                A regex to detect the version component of a package's filename.
 
         """
         self._base_url = base_url
@@ -63,6 +66,7 @@ class CachedMirror:
         self._lock = threading.Lock()
         self._listeners = 0
         self.last_sync_time = last_sync_time
+        self.package_version_pattern = package_version_pattern
         self._in_progress = {}
         self.verbose = False
 
@@ -93,8 +97,10 @@ class CachedMirror:
                 self._listeners += 1
                 return
         self.base_url
+        self.base_dir.mkdir(parents=True, exist_ok=True)
         handler = type("Handler", (RequestHandler,), {"parent": self})
         self._httpd = ThreadingHTTPServer(("", self.port), handler)
+        self._prune()
         thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
         thread.start()
         self._thread = thread
@@ -123,6 +129,25 @@ class CachedMirror:
                 return f(*args, **kwargs)
 
         return wrapped
+
+    def _prune(self, root=None):
+        """Delete all but the latest version of each cached package."""
+        root = root or str(self.base_dir)
+        caches = collections.defaultdict(list)
+        file_re = re.compile(self.package_version_pattern)
+        version_re = re.compile(r"(\d+)|(\D+)")
+
+        for entry in os.scandir(root):
+            if entry.is_dir():
+                self._prune(entry.path)
+            elif match := file_re.fullmatch(entry.name):
+                caches[(match[1], match[3])].append(match[2])
+        for (key, versions) in caches.items():
+            if len(versions) > 1:
+                versions.sort(key=lambda x: tuple(j or int(i)
+                                                  for (i, j) in version_re.findall(x)))
+                for version in versions[:-1]:
+                    os.remove(root + "/" + key[0] + version + key[1])
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -323,6 +348,7 @@ mirrors = {
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
             (_use_last_modified_header,),
+            r"(.+-)([^-]+-\d+)(-[^-]+)",
         ),
     "manjaro":
         CachedMirror(
@@ -333,6 +359,7 @@ mirrors = {
             8903,
             "if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
             (_use_last_modified_header,),
+            r"(.+-)([^-]+-\d+)(-[^-]+)",
         ),
     "alpine":
         CachedMirror(
@@ -343,6 +370,7 @@ mirrors = {
             8901,
             r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/v3.17/|g' /etc/apk/repositories",
             (_alpine_sync_time, _use_last_modified_header),
+            r"(.+-)([^-]+-r\d+)(\.apk)",
         ),
     "void":
         CachedMirror(
@@ -354,6 +382,7 @@ mirrors = {
             r"sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
             r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
             (_use_last_modified_header,),
+            r"(.+-)([^_-]+_\d+)(\..+)",
         ),
 }
 
