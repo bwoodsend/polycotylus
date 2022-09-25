@@ -137,7 +137,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
             self.send_response(404)
             return
-        if path.is_dir():
+        if ".." in self.path.split("/"):
             self.send_response(404)
             return
         # File is cached - send the cache.
@@ -154,11 +154,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             # File is not cached - attempt to download it.
             response = urlopen(self.parent.base_url + self.path)
-            if response.headers["Content-Type"] == "text/html":
-                # Crude block from downloading .../index.html files.
-                self.send_response(404)
-                response.close()
-                return
             self.send_response(HTTPStatus.OK)
             return response
         except HTTPError as ex:
@@ -186,6 +181,14 @@ class RequestHandler(BaseHTTPRequestHandler):
         if isinstance(response, Path):
             self._cache_send()
         else:
+            # Don't cache FTP index pages (e.g. /some/directory/) since the
+            # upstream server will redirect /some/directory/ to
+            # /some/directory/index.html and that would create a local cache
+            # file called $cache/some/directory where the directory
+            # $cache/some/directory/ is supposed to be.
+            if response.headers["Content-Type"] == "text/html":
+                shutil.copyfileobj(response, self.wfile)
+                return
             self._download_send(response)
 
     def _cache_send(self):

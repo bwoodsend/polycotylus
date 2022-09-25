@@ -114,7 +114,7 @@ def test_head(tmp_path):
 
 
 @pytest.mark.parametrize("path", [
-    "/cake/sausages", "/..", "//etc", "/edge/main/x86_64/",
+    "/cake/sausages", "/..", "//etc",
     "/edge/main/x86_64/aaudit-0.7.2-r3.apk.penguin"
 ])
 def test_errors(tmp_path, path):
@@ -124,6 +124,17 @@ def test_errors(tmp_path, path):
         with pytest.raises(HTTPError) as error:
             urlopen("http://0.0.0.0:9989" + path)
         assert error.value.code == 404
+
+
+def test_index_page_handling(tmp_path):
+    self = _alpine_mirror(tmp_path)
+    with self:
+        with urlopen("http://0.0.0.0:9989") as response:
+            content = response.read()
+        assert b"edge" in content
+        assert b"latest-stable" in content
+    assert tmp_path.is_dir()
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_concurrent(tmp_path):
