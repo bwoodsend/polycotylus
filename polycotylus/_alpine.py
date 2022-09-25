@@ -9,12 +9,8 @@ import shlex
 from functools import cache
 import hashlib
 from pathlib import Path
-import tarfile
-import io
 
-from docker import from_env
-
-from polycotylus import _shell
+from polycotylus import _shell, _docker
 from polycotylus._mirror import mirrors
 from polycotylus._project import Project
 from polycotylus._base import BaseDistribution
@@ -45,15 +41,14 @@ class Alpine(BaseDistribution):
     @classmethod
     @cache
     def available_packages(cls):
-        docker = from_env()
         with cls.mirror:
-            output = docker.containers.run("alpine", ["ash", "-c", cls._formatter(f"""
+            output = _docker.run(
+                "alpine", f"""
                 {mirrors["alpine"].install}
                 apk update -q
                 apk search -q
-            """)
-            ], network_mode="host", remove=True)  # yapf: disable
-        return set(re.findall("([^\n]+)", output.decode()))
+            """).output
+        return set(re.findall("([^\n]+)", output))
 
     @staticmethod
     def python_package_convention(pypi_name):
@@ -206,25 +201,18 @@ class Alpine(BaseDistribution):
                 assert private_key.stat().st_uid == os.getuid()
                 return public_key, private_key
 
-        docker = from_env()
         with self.mirror:
-            container = docker.containers.run("alpine", [
-                "ash", "-c",
-                self._formatter(f"""
+            container = _docker.run(
+                "alpine", f"""
                 {self.mirror.install}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/abuild.conf
                 echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
                 abuild-keygen -nq
             """)
-            ], network_mode="host", detach=True)
-            assert container.wait()["StatusCode"] == 0, container.logs().decode(
-            )
-        raw = b"".join(container.get_archive("/root/.abuild")[0])
-        with tarfile.TarFile("", "r", io.BytesIO(raw)) as tar:
+        with container["/root/.abuild"] as tar:
             tar.extractall(Path.home())
             _, key, _ = sorted(tar.getnames(), key=len)
-        container.remove()
 
         if config.exists():
             content = config.read_text().rstrip("\n") + "\n"
