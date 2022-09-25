@@ -6,6 +6,7 @@ import threading
 import shutil
 import signal
 import os
+from pathlib import Path
 
 import pytest
 
@@ -215,3 +216,60 @@ def test_abort_cleanup(tmp_path, monkeypatch):
 
         with urlopen(url) as response:
             gzip.decompress(response.read())
+
+
+obsolete_caches = {
+    "alpine": [
+            "./v3.17/main/aarch64/curl-7.87.0-r1.apk",
+            "./v3.17/main/aarch64/curl-7.87.0-r2.apk",
+            "./v3.17/main/aarch64/gcc-12.2.1_git20220924-r3.apk",
+            "./v3.17/main/x86_64/curl-7.87.0-r0.apk",
+            "./v3.17/main/x86_64/curl-7.87.0-r1.apk",
+            "./v3.17/main/x86_64/curl-7.87.0-r2.apk",
+        ],
+    "arch": [
+            "./extra/os/x86_64/libtiff-4.4.0-4-x86_64.pkg.tar.zst",
+            "./extra/os/x86_64/libtiff-4.4.0-4-x86_64.pkg.tar.zst.sig",
+            "./extra/os/x86_64/libtiff-4.5.0-1-x86_64.pkg.tar.zst",
+            "./extra/os/x86_64/libtiff-4.5.0-1-x86_64.pkg.tar.zst.sig",
+        ],
+    "manjaro": [
+            "./arm-stable/core/aarch64/archlinux-keyring-20230130-1-any.pkg.tar.xz",
+            "./arm-stable/core/aarch64/archlinux-keyring-20230130-1-any.pkg.tar.xz.sig",
+            "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst",
+            "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst.sig",
+            "./stable/extra/x86_64/librsvg-2:2.55.1-1-x86_64.pkg.tar.zst",
+        ],
+    "void": [
+            "./current/aarch64/musl-1.1.24_12.aarch64-musl.xbps",
+            "./current/aarch64/musl-1.1.24_12.aarch64-musl.xbps.sig",
+            "./current/aarch64/musl-1.1.24_13.aarch64-musl.xbps",
+            "./current/aarch64/musl-1.1.24_13.aarch64-musl.xbps.sig",
+            "./current/aarch64/musl-devel-1.1.24_12.aarch64-musl.xbps",
+            "./current/aarch64/musl-devel-1.1.24_12.aarch64-musl.xbps.sig",
+            "./current/aarch64/musl-devel-1.1.24_13.aarch64-musl.xbps",
+            "./current/aarch64/musl-devel-1.1.24_13.aarch64-musl.xbps.sig",
+            "./current/musl/musl-1.1.24_12.x86_64-musl.xbps",
+            "./current/musl/musl-1.1.24_12.x86_64-musl.xbps.sig",
+            "./current/musl/musl-1.1.24_13.x86_64-musl.xbps",
+            "./current/musl/musl-1.1.24_13.x86_64-musl.xbps.sig",
+            "./current/musl/musl-1.1.24_14.x86_64-musl.xbps",
+            "./current/musl/musl-1.1.24_14.x86_64-musl.xbps.sig",
+            "./current/musl/musl-devel-1.1.24_12.x86_64-musl.xbps",
+            "./current/musl/musl-devel-1.1.24_12.x86_64-musl.xbps.sig",
+            "./current/musl/musl-devel-1.1.24_13.x86_64-musl.xbps",
+            "./current/musl/musl-devel-1.1.24_13.x86_64-musl.xbps.sig",
+            "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps",
+            "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps.sig",
+        ],
+}
+
+@pytest.mark.parametrize("distro", mirrors)
+def test_prune(distro, monkeypatch):
+    mirror = mirrors[distro]
+    monkeypatch.chdir(Path(__file__, "../mock-mirror-states", distro).resolve())
+    monkeypatch.setattr(mirror, "base_dir", ".")
+    to_delete = []
+    monkeypatch.setattr(os, "remove", to_delete.append)
+    mirror._prune()
+    assert sorted(to_delete) == sorted(obsolete_caches[distro])
