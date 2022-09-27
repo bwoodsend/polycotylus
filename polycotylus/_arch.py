@@ -50,6 +50,7 @@ class Arch(BaseDistribution):
         package = _w("""
             package() {
                 cd "$pkgname-"*
+                cp -r _build/* "$pkgdir"
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
         """)
@@ -94,7 +95,7 @@ class Arch(BaseDistribution):
             build() {
                 cd "$pkgname-"*
         """)
-        out += self.pip_build_command(1)
+        out += self.pip_build_command(1, into="_build")
         out += self._formatter("}")
         out += "\n"
         out += package
@@ -169,7 +170,7 @@ def std_license_path(content: bytes):
 
 check = _w("""
 check() {
-    PYTHONPATH="$(echo "$pkgdir"/usr/lib/python*/site-packages/)"
+    PYTHONPATH="$(echo $pkgname-*/_build/usr/lib/python*/site-packages/)"
     PYTHONPATH="$PYTHONPATH" xvfb-run pytest "$pkgname-"*/tests
 }
 """)

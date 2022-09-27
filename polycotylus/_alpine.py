@@ -226,6 +226,10 @@ class Alpine(BaseDistribution):
 
         return self.abuild_keys()
 
+    def generate(self, clean=False):
+        super().generate(clean=clean)
+        (self.distro_root / "dist").mkdir(exist_ok=True)
+
 
 if __name__ == "__main__":
     self = Alpine(Project.from_root("."))
