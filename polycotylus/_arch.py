@@ -1,6 +1,6 @@
 import re
 import shlex
-from functools import cached_property, lru_cache
+from functools import cache
 from tarfile import TarFile
 import io
 
@@ -29,8 +29,9 @@ class Arch(BaseDistribution):
     xvfb_run = "xorg-server-xvfb"
     _formatter = _w
 
-    @cached_property
-    def available_packages(self):
+    @staticmethod
+    @cache
+    def available_packages():
         docker = from_env()
         command = _w(f"""
             {mirrors["arch"].install}
@@ -42,7 +43,14 @@ class Arch(BaseDistribution):
                                            network_mode="host", remove=True)
         return set(re.findall("([^\n]+)", output.decode()))
 
-    def python_package_convention(self, pypi_name):
+    invalid_package_characters = "[^a-z0-9-]"
+
+    @staticmethod
+    def fix_package_name(name):
+        return name.lower().replace("_", "-").replace(".", "-")
+
+    @staticmethod
+    def python_package_convention(pypi_name):
         return "python-" + pypi_name
 
     def pkgbuild(self):
@@ -129,7 +137,7 @@ class Arch(BaseDistribution):
     """ % (self.mirror.install, self.mirror.install))
 
 
-@lru_cache()
+@cache
 def available_licenses():
     docker = from_env()
     container = docker.containers.create("archlinux:base")

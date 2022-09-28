@@ -14,9 +14,13 @@ from PIL import Image
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
-from tests import dumb_text_viewer
+from tests import dumb_text_viewer, cross_distribution
 
 mirror = mirrors["alpine"]
+
+
+class TestCommon(cross_distribution.Base):
+    cls = Alpine
 
 
 def test_key_generation(tmp_path, monkeypatch):

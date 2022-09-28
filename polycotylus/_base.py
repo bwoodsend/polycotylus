@@ -1,5 +1,6 @@
 import abc
 import shutil
+import re
 
 import pkg_resources
 
@@ -27,21 +28,43 @@ class BaseDistribution(abc.ABC):
     def distro_root(self):
         return self.project.root / ".polycotylus" / self.name
 
-    @abc.abstractproperty
-    def available_packages(self):
+    @abc.abstractmethod
+    def available_packages():
         pass
 
-    def python_package(self, requirement):
+    @classmethod
+    def python_package(cls, requirement):
         requirement = pkg_resources.Requirement(requirement)
-        name = requirement.key
-        if self.python_package_convention(name) in self.available_packages:
-            requirement.name = self.python_package_convention(name)
+        name = cls.normalise_package(requirement.key)
+        if cls.python_package_convention(name) in cls.available_packages():
+            requirement.name = cls.python_package_convention(name)
+        elif name in cls.available_packages():
+            requirement.name = name
         else:
             assert 0
         return str(requirement)
 
+    invalid_package_characters = abc.abstractproperty()
+
     @abc.abstractmethod
-    def python_package_convention(pypi_name):
+    def fix_package_name(name):
+        """Apply the distribution's package naming rules for case folding/
+        underscore vs hyphen normalisation."""
+
+    @classmethod
+    def normalise_package(cls, name):
+        """Fix up a package name to make it compatible with this Linux
+        Distribution, raise an error if there any unfixable invalid characters.
+        """
+        normalised = cls.fix_package_name(name)
+        if invalid := re.findall(cls.invalid_package_characters, normalised):
+            raise ValueError(
+                f"'{name} is an invalid {cls.name} package name because it "
+                f"contains the characters {invalid}.")
+        return normalised
+
+    @abc.abstractmethod
+    def python_package_convention(self, pypi_name):
         pass
 
     @abc.abstractmethod

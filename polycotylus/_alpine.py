@@ -6,7 +6,7 @@ Reference: https://wiki.alpinelinux.org/wiki/APKBUILD_Reference
 import os
 import re
 import shlex
-from functools import cached_property
+from functools import cache
 import hashlib
 from pathlib import Path
 import tarfile
@@ -22,6 +22,7 @@ from polycotylus._base import BaseDistribution
 
 class Alpine(BaseDistribution):
     name = "alpine"
+    mirror = mirrors[name]
     build_script_name = "APKBUILD"
     python_prefix = "/usr"
     python = "python3"
@@ -41,11 +42,12 @@ class Alpine(BaseDistribution):
     xvfb_run = "xvfb-run"
     font = "ttf-dejavu"
 
-    @cached_property
-    def available_packages(self):
+    @classmethod
+    @cache
+    def available_packages(cls):
         docker = from_env()
-        with mirrors["alpine"]:
-            output = docker.containers.run("alpine", ["ash", "-c", self._formatter(f"""
+        with cls.mirror:
+            output = docker.containers.run("alpine", ["ash", "-c", cls._formatter(f"""
                 {mirrors["alpine"].install}
                 apk update -q
                 apk search -q
@@ -53,8 +55,15 @@ class Alpine(BaseDistribution):
             ], network_mode="host", remove=True)  # yapf: disable
         return set(re.findall("([^\n]+)", output.decode()))
 
-    def python_package_convention(self, pypi_name):
+    @staticmethod
+    def python_package_convention(pypi_name):
         return "py3-" + pypi_name
+
+    @staticmethod
+    def fix_package_name(name):
+        return name.lower().replace(".", "-").replace("_", "-")
+
+    invalid_package_characters = r"[^.\-_+0-9a-z]"
 
     def inject_source(self):
         # abuild insists that the archive must be named something more than just

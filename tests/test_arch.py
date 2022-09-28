@@ -11,7 +11,7 @@ from PIL import Image
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
-from tests import dumb_text_viewer
+from tests import dumb_text_viewer, cross_distribution
 
 mirror = mirrors["arch"]
 
@@ -25,6 +25,10 @@ arch=(any)
 url=https://github.com/me/blah
 license=(MIT)
 """
+
+
+class TestCommon(cross_distribution.Base):
+    cls = Arch
 
 
 @mirror.decorate
