@@ -21,6 +21,8 @@ mirror = mirrors["alpine"]
 
 class TestCommon(cross_distribution.Base):
     cls = Alpine
+    base_image = "alpine"
+    package_install = "apk add"
 
 
 def test_key_generation(tmp_path, monkeypatch):
