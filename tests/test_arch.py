@@ -29,6 +29,8 @@ license=(MIT)
 
 class TestCommon(cross_distribution.Base):
     cls = Arch
+    base_image = "archlinux"
+    package_install = "pacman -Sy --noconfirm"
 
 
 @mirror.decorate
