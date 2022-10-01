@@ -1,5 +1,7 @@
 from pathlib import Path
 import tkinter.filedialog
+import tkinter.scrolledtext
+from tkinter import E, W, S, N
 
 favicon = str(Path(__file__).with_name("icon.png").resolve())
 
@@ -7,12 +9,25 @@ favicon = str(Path(__file__).with_name("icon.png").resolve())
 class TextViewerWidget:
 
     def __init__(self, root, initial=None):
-        self.open_button = tkinter.Button(root, text="Open",
+        frame = tkinter.Frame(root)
+        frame.grid(row=0, column=0, sticky=W + E)
+        self.open_button = tkinter.Button(frame, text='Open',
                                           command=self._open_pressed_cb)
-        self.open_button.pack(expand=True)
+        self.open_button.grid(row=0, column=0, padx=10, pady=10)
 
-        self.textbox = tkinter.Text(root)
-        self.textbox.pack(expand=True)
+        frame = tkinter.Frame(root, padx=5, pady=5)
+        frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10,
+                   sticky=E + W + N + S)
+
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(1, weight=1)
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        self.textbox = tkinter.Text(frame, width=100, height=30)
+        self.textbox.grid(row=0, column=0, sticky=E + W + N + S)
+
         if initial:
             self.open(initial)
 
