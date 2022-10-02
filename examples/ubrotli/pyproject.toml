@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ubrotli"
+version = "0.1.0"
+authors = [
+  { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+description = "An unsophisticated Python wrapper for the Brotli C API"
+readme = "README.rst"
+license = { file="LICENSE" }
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/me/blah"
+
+[tool.setuptools.packages.find]
+include = ["ubrotli*"]
+
