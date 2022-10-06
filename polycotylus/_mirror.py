@@ -173,7 +173,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             cache = response
             if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
                 timestamp = cache.stat().st_mtime
-                if any(timestamp < i for i in self.parent.last_sync_time()):
+                if all(timestamp < i for i in self.parent.last_sync_time()):
                     response = urlopen(self.parent.base_url + self.path)
                 else:
                     os.utime(cache)
