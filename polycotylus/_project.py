@@ -75,6 +75,11 @@ class Project:
         else:
             gui = bool(project.get('gui-scripts'))
 
+        desktop_files = polycotylus_options.get("desktop_entry_points", {})
+        for (id, desktop_file) in desktop_files.items():
+            if isinstance(icon := desktop_file.get("icon"), str):
+                desktop_file["icon"] = {"id": id, "source": icon}
+
         return cls(
             name=project["name"],
             maintainer=maintainer["name"],
@@ -89,8 +94,7 @@ class Project:
             license_names=license_names,
             licenses=[project["license"]["file"]],
             python_extras=polycotylus_options.get("python_extras", []),
-            desktop_entry_points=polycotylus_options.get(
-                "desktop_entry_points", {}),
+            desktop_entry_points=desktop_files,
             source_url=polycotylus_options["source_url"],
             gui=gui,
             root=root,
