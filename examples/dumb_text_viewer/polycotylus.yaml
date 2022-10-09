@@ -19,6 +19,4 @@ desktop_entry_points:
       es: Visor de Texto
       ar: عارض النص
       zh_tw: 文本查看器
-    icon:
-      source: icon-source.svg
-      id: underwhelming_software-dumb_text_viewer
+    icon: icon-source.svg
