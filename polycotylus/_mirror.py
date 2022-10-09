@@ -58,7 +58,7 @@ class CachedMirror:
         self._lock = threading.Lock()
         self._listeners = 0
         self.last_sync_time = lambda: last_sync_time(self)
-        self._in_progress = set()
+        self._in_progress = {}
 
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
@@ -141,14 +141,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             return
         # File is cached - send the cache.
-        if self.path in self.parent._in_progress or path.is_file():
-            while self.path in self.parent._in_progress:
-                # If the file is being downloaded in another request then we
-                # have to wait for it to finish before it's safe to read the
-                # cache. Keep sending little "it's coming" messages so that the
-                # client package manager doesn't time out.
-                self.send_response(HTTPStatus.ACCEPTED)
-                time.sleep(.1)
+        if path.is_file():
             self.send_response(HTTPStatus.OK)
             return path
         try:
@@ -178,18 +171,31 @@ class RequestHandler(BaseHTTPRequestHandler):
                 else:
                     os.utime(cache)
 
-        if isinstance(response, Path):
-            self._cache_send()
-        else:
+        if not isinstance(response, Path):
             # Don't cache FTP index pages (e.g. /some/directory/) since the
             # upstream server will redirect /some/directory/ to
             # /some/directory/index.html and that would create a local cache
             # file called $cache/some/directory where the directory
             # $cache/some/directory/ is supposed to be.
             if response.headers["Content-Type"] == "text/html":
-                shutil.copyfileobj(response, self.wfile)
+                with response:
+                    shutil.copyfileobj(response, self.wfile)
                 return
-            self._download_send(response)
+
+        with self.parent._lock:
+            if isinstance(response, Path):
+                pass
+            elif self.path not in self.parent._in_progress:
+                t = threading.Thread(target=lambda: self._download(response))
+                self.parent._in_progress[self.path] = t
+                t.start()
+            else:
+                response.close()
+            if self.path in self.parent._in_progress:
+                method = self._in_progress_send
+            else:
+                method = self._cache_send
+        method()
 
     def _cache_send(self):
         """Send a file from cache to the client."""
@@ -204,37 +210,28 @@ class RequestHandler(BaseHTTPRequestHandler):
                 f.seek(start)
             shutil.copyfileobj(f, self.wfile, length)
 
-    def _download_send(self, response):
-        """Send a file from the upstream package repository to the client
-        package manager and to cache."""
-        self.parent._in_progress.add(self.path)
+    def _download(self, response):
         cache = self.cache
         cache.parent.mkdir(parents=True, exist_ok=True)
         try:
             with response:
                 with open(cache, "wb") as f:
-                    buffer = bytearray(1 << 10)
-                    while consumed := response.readinto(buffer):
-                        f.write(buffer[:consumed])
-                        try:
-                            self.wfile.write(buffer[:consumed])
-                        except (BrokenPipeError, ConnectionResetError):
-                            # If the client package manager cancels half way
-                            # through then continue the download to cache since
-                            # the client will likely ask for the rest of the
-                            # file soon after.
-                            shutil.copyfileobj(response, f)
-                            return
-        except Exception as ex:  # pragma: no cover
-            if isinstance(ex, HTTPError):
-                self.send_response(ex.code)
-            else:
-                self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
-            if cache.exists():
-                os.remove(cache)
-            raise
+                    shutil.copyfileobj(response, f)
         finally:
-            self.parent._in_progress.remove(self.path)
+            del self.parent._in_progress[self.path]
+
+    def _in_progress_send(self):
+        """Send a file from the cache whilst the cache is being written."""
+        while not self.cache.exists():
+            time.sleep(0.1)
+        with open(self.cache, "rb") as f:
+            try:
+                while self.path in self.parent._in_progress:
+                    shutil.copyfileobj(f, self.wfile)
+                    time.sleep(0.1)
+                shutil.copyfileobj(f, self.wfile)
+            except (BrokenPipeError, ConnectionResetError):
+                return
 
 
 def _arch_sync_time(self):
