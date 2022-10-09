@@ -63,8 +63,8 @@ def test_build():
     docker.containers.run(
         build, "abuild", network_mode="host", volumes=[
             f"{self.distro_root}:/io",
-            f"{private_key}:/home/user/.abuild/{private_key.name}:shared",
-            f"{self.distro_root}/dist:/home/user/packages:shared"
+            f"{private_key}:/home/user/.abuild/{private_key.name}",
+            f"{self.distro_root}/dist:/home/user/packages"
         ], remove=True)
     apk = self.distro_root / "dist" / platform.machine(
     ) / "dumb_text_viewer-0.1.0-r1.apk"
