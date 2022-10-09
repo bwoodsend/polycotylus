@@ -42,8 +42,11 @@ class Project:
         root = Path(root)
         with (root / "pyproject.toml").open("rb") as f:
             pyproject_options = tomli.load(f)
-        with (root / "polycotylus.yaml").open("r") as f:
-            polycotylus_options = strictyaml.load(f.read()).data
+        yaml_path = root / "polycotylus.yaml"
+        with yaml_path.open("r") as f:
+            from polycotylus._yaml_schema import polycotylus_yaml as schema
+            yaml = strictyaml.load(f.read(), schema, str(yaml_path))
+            polycotylus_options = yaml.data
 
         project = pyproject_options["project"]
         maintainer, = project["authors"]
