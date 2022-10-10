@@ -135,7 +135,7 @@ class BaseDistribution(abc.ABC):
         """, indentation)
         for (source, dest) in self.icons:
             out += self._formatter(
-                f'convert -background "#00000000" -resize $_size +set date:create '
+                f'convert -background "#00000000" -size $_size +set date:create '
                 f'+set date:modify "{source}" "$_icon_dir/{dest}.png"',
                 indentation + 1)
         out += self._formatter("done", indentation)
