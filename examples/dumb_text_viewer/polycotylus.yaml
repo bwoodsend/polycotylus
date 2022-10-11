@@ -6,6 +6,8 @@ test_requirements:
 python_extras:
   - tkinter
 
+prefix_package_name: false
+
 desktop_entry_points:
   underwhelming_software-dumb_text_viewer:
     Name: Dumb Text Viewer

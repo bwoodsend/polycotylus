@@ -67,7 +67,7 @@ def test_build():
             f"{self.distro_root}/dist:/home/user/packages"
         ], remove=True)
     apk = self.distro_root / "dist" / platform.machine(
-    ) / "dumb_text_viewer-0.1.0-r1.apk"
+    ) / "dumb-text-viewer-0.1.0-r1.apk"
     assert apk.exists()
 
     logs = docker.containers.run("alpine", ["tar", "tf", f"/io/{apk.name}"],
@@ -80,7 +80,7 @@ def test_build():
     test, _ = docker.images.build(path=str(self.project.root), target="test",
                                   network_mode="host",
                                   dockerfile=".polycotylus/alpine/Dockerfile")
-    command = f"apk add /pkg/{platform.machine()}/dumb_text_viewer-0.1.0-r1.apk"
+    command = f"apk add /pkg/{platform.machine()}/dumb-text-viewer-0.1.0-r1.apk"
     container = docker.containers.run(
         test, ["sh", "-c", command], volumes=[
             f"{self.distro_root}/dist:/pkg",

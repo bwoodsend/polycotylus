@@ -67,6 +67,14 @@ class BaseDistribution(abc.ABC):
     def python_package_convention(self, pypi_name):
         pass
 
+    @property
+    def package_name(self):
+        """The distro-normalized/slugified version of this project's name,"""
+        name = self.fix_package_name(self.project.name)
+        if self.project.prefix_package_name:
+            name = self.python_package_convention(name)
+        return name
+
     @abc.abstractmethod
     def dockerfile(self):
         pass

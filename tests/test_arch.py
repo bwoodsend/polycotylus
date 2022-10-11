@@ -17,7 +17,7 @@ mirror = mirrors["arch"]
 
 pkgbuild_prefix = """\
 # Maintainer: Brénainn Woodsend <bwoodsend@gmail.com>
-pkgname=dumb_text_viewer
+pkgname=dumb-text-viewer
 pkgver=0.1.0
 pkgrel=1
 pkgdesc='A small example GUI package'
@@ -42,7 +42,7 @@ def test_build():
     assert pkgbuild.startswith(pkgbuild_prefix)
 
     subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
-    sysroot = self.distro_root / "pkg/dumb_text_viewer"
+    sysroot = self.distro_root / "pkg/dumb-text-viewer"
     docker = from_env()
     build, _ = docker.images.build(path=str(self.project.root), target="build",
                                    dockerfile=".polycotylus/arch/Dockerfile",
@@ -74,7 +74,7 @@ def test_build():
     test, _ = docker.images.build(path=str(self.project.root), target="test",
                                   network_mode="host",
                                   dockerfile=".polycotylus/arch/Dockerfile")
-    command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb_text_viewer-0.1.0-1-any.pkg.tar.zst'"
+    command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb-text-viewer-0.1.0-1-any.pkg.tar.zst'"
     container = docker.containers.run(test, command,
                                       volumes=[f"{self.distro_root}:/io"],
                                       detach=True, network_mode="host")

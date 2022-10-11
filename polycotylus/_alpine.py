@@ -69,7 +69,7 @@ class Alpine(BaseDistribution):
         # abuild insists that the archive must be named something more than just
         # $version.tar.gz.
         # https://wiki.alpinelinux.org/wiki/APKBUILD_Reference#source
-        name = f"{self.project.name}-{self.project.version}.tar.gz"
+        name = f"{self.package_name}-{self.project.version}.tar.gz"
         path = self.distro_root / name
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -86,7 +86,7 @@ class Alpine(BaseDistribution):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
 
         out += _shell.variables(
-            pkgname=shlex.quote(self.project.name),
+            pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
@@ -144,7 +144,7 @@ class Alpine(BaseDistribution):
             %s  %s-%s.tar.gz
             "
         """ % (hashlib.sha512(self.project.tar()).hexdigest(),
-               self.project.name, self.project.version))
+               self.package_name, self.project.version))
         return out
 
     def dockerfile(self):
