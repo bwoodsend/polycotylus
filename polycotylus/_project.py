@@ -35,6 +35,7 @@ class Project:
     desktop_entry_points: dict
     gui: bool
     source_url: str
+    prefix_package_name: bool
     url: str
 
     @classmethod
@@ -99,6 +100,7 @@ class Project:
             python_extras=polycotylus_options.get("python_extras", []),
             desktop_entry_points=desktop_files,
             source_url=polycotylus_options["source_url"],
+            prefix_package_name=polycotylus_options["prefix_package_name"],
             gui=gui,
             root=root,
         )

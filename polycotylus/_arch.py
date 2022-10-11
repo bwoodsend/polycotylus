@@ -1,3 +1,6 @@
+"""
+https://wiki.manjaro.org/index.php/PKGBUILD
+"""
 import re
 import shlex
 from functools import cache
@@ -57,11 +60,11 @@ class Arch(BaseDistribution):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
         package = _w("""
             package() {
-                cd "$pkgname-"*
+                cd "%s-"*
                 cp -r _build/* "$pkgdir"
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
-        """)
+        """ % self.project.name)
         license_names = []
         for license in self.project.licenses:
             content = _normalize_whitespace(
@@ -75,7 +78,7 @@ class Arch(BaseDistribution):
                     license_name = "custom"
                 package += _w(
                     f'install -Dm644 "$_metadata_dir/{shlex.quote(license)}" '
-                    f'-t "$pkgdir/usr/share/licenses/{self.project.name}"', 1)
+                    f'-t "$pkgdir/usr/share/licenses/{self.package_name}"', 1)
             license_names.append(license_name)
             package += _w(f'rm "$_metadata_dir/{license}"', 1)
 
@@ -85,7 +88,7 @@ class Arch(BaseDistribution):
         package += "}\n"
 
         out += _shell.variables(
-            pkgname=shlex.quote(self.project.name),
+            pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
@@ -99,16 +102,21 @@ class Arch(BaseDistribution):
             sha256sums=["SKIP"],
         )
         out += "\n"
-        out += self._formatter("""
-            build() {
-                cd "$pkgname-"*
+        out += self._formatter(f"""
+            build() {{
+                cd "{self.project.name}-"*
         """)
         out += self.pip_build_command(1, into="_build")
         out += self._formatter("}")
         out += "\n"
         out += package
         out += "\n"
-        out += check
+        out += _w(f"""
+            check() {{
+                PYTHONPATH="$(echo {self.project.name}-*/_build/usr/lib/python*/site-packages/)"
+                PYTHONPATH="$PYTHONPATH" xvfb-run pytest "{self.project.name}-"*/tests
+            }}
+        """)
         return out
 
     def dockerfile(self):
@@ -175,13 +183,6 @@ def std_license_path(content: bytes):
         if b" ".join(re.findall(rb"\S+", body)) == content:
             return name
 
-
-check = _w("""
-check() {
-    PYTHONPATH="$(echo $pkgname-*/_build/usr/lib/python*/site-packages/)"
-    PYTHONPATH="$PYTHONPATH" xvfb-run pytest "$pkgname-"*/tests
-}
-""")
 
 if __name__ == "__main__":
     self = Arch(Project.from_root("."))

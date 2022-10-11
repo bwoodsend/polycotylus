@@ -25,6 +25,7 @@ polycotylus_yaml = Map({
     Optional("python_extras"): Seq(python_extra),
     Optional("test_requirements"): Seq(Str()),
     Optional("gui"): Bool(),
+    Optional("prefix_package_name", default=True): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
 })
 
