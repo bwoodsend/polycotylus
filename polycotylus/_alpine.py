@@ -94,7 +94,7 @@ class Alpine(BaseDistribution):
             license='MIT',
             url=self.project.url,
             depends=shlex.quote(" ".join(self.dependencies)),
-            makedepends=shlex.quote(" ".join(self.make_dependencies)),
+            makedepends=shlex.quote(" ".join(self.build_dependencies)),
             checkdepends=shlex.quote(" ".join(self.test_dependencies)),
             install="",
             source=

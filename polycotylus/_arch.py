@@ -96,7 +96,7 @@ class Arch(BaseDistribution):
             url=self.project.url,
             license=license_names,
             depends=self.dependencies,
-            makedepends=self.make_dependencies,
+            makedepends=self.build_dependencies,
             checkdepends=self.test_dependencies,
             source=f'("{self.project.source_url.format(version="$pkgver")}")',
             sha256sums=["SKIP"],

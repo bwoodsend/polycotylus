@@ -1,0 +1,5 @@
+source_url:
+
+dependencies:
+  test:
+    pip: .[abc, xyz] -r requirements.txt

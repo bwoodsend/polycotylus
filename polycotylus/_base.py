@@ -108,29 +108,37 @@ class BaseDistribution(abc.ABC):
         return [(i["icon"]["source"], i["icon"]["id"])
                 for i in self.project.desktop_entry_points.values()]
 
-    @property
-    def dependencies(self):
-        out = {self.python + self.project.supported_python}
-        [out.update(self.python_extras[i]) for i in self.project.python_extras]
-        out.update(self.python_package(i) for i in self.project.dependencies)
-        return sorted(out)
+    def _dependencies(self, dependencies):
+        out = []
+        for extra in dependencies.get("python", []):
+            out += self.python_extras[extra]
+        for package in dependencies.get("pip", []):
+            out.append(self.python_package(package))
+        out += dependencies.get(self.name, [])
+        return out
 
     @property
-    def make_dependencies(self):
-        out = {self.python_package("wheel"), self.python_package("pip")}
-        out.update(map(self.python_package, self.project.build_dependencies))
+    def dependencies(self):
+        out = [self.python + self.project.supported_python]
+        out += self._dependencies(self.project.dependencies)
+        return _deduplicate(out)
+
+    @property
+    def build_dependencies(self):
+        out = [self.python_package("wheel"), self.python_package("pip")]
+        out += self._dependencies(self.project.build_dependencies)
         if self.icons:
-            out.add(self.imagemagick)
+            out.append(self.imagemagick)
             if any(source.endswith(".svg") for (source, _) in self.icons):
-                out.add(self.imagemagick_svg)
-        return sorted(out)
+                out.append(self.imagemagick_svg)
+        return _deduplicate(out)
 
     @property
     def test_dependencies(self):
-        out = [self.python_package(i) for i in self.project.test_dependencies]
+        out = self._dependencies(self.project.test_dependencies)
         if self.project.gui:
             out += [self.xvfb_run, self.font]
-        return sorted(set(out))
+        return _deduplicate(out)
 
     def install_icons(self, indentation):
         if not self.icons:
@@ -173,3 +181,8 @@ class BaseDistribution(abc.ABC):
         (self.distro_root / self.build_script_name).write_text(
             self.pkgbuild(), encoding="utf-8")
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
+
+
+def _deduplicate(array):
+    """Remove duplicates, preserving order of first appearance."""
+    return list(dict.fromkeys(array))

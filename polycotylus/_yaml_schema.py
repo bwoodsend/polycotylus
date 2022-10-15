@@ -1,11 +1,30 @@
+import re
+
 from strictyaml import Any, Bool, Enum, Map, MapCombined, MapPattern, \
-    Optional, OrValidator, Regex, Seq, Str, load
+    Optional, OrValidator, Regex, Seq, Str, load, ScalarValidator
+
+
+class WhitespaceDelimited(ScalarValidator):
+
+    def __init__(self, item_validator):
+        self._item_validator = item_validator
+        assert isinstance(self._item_validator,
+                          ScalarValidator), "item validator must be scalar too"
+
+    def validate_scalar(self, chunk):
+        out = []
+        for match in re.finditer(r"(?:-r *)?(?:\[[^]]*\]|\S)+", chunk.contents):
+            slice = chunk.textslice(match.start(), match.end())
+            out.append(self._item_validator.validate_scalar(slice))
+        return out
+
+    def to_yaml(self, data):
+        return " ".join([self._item_validator.to_yaml(item) for item in data])
+
 
 # yapf: disable
 
-python_extra = Enum([
-    "tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline", "bz2"])
-
+python_extra = Regex("(tkinter|sqlite3|decimal|lzma|zlib|readline|bz2)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
 icon = OrValidator(Map({"id": desktop_file_id, "source": Str()}), Str())
 locale_string = OrValidator(Str(), MapPattern(Str(), Str()))
@@ -20,10 +39,16 @@ desktop_file = MapCombined({
     Optional("NoDisplay"): Bool(),
 }, Regex("[A-Za-z0-9-]+"), Any())
 
+dependencies_group = MapCombined(
+    {Optional("python"): WhitespaceDelimited(python_extra)},
+    Str(), WhitespaceDelimited(Str()),
+)
+
 polycotylus_yaml = Map({
     "source_url": Str(),
-    Optional("python_extras"): Seq(python_extra),
-    Optional("test_requirements"): Seq(Str()),
+    Optional("dependencies"): Map({
+        Optional(type): dependencies_group for type in ["run", "build", "test"]
+    }),
     Optional("gui"): Bool(),
     Optional("prefix_package_name", default=True): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),

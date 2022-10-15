@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 import re
-import collections
 import subprocess
 import io
 import tarfile
@@ -26,12 +25,11 @@ class Project:
     version: str
     description: str
     supported_python: str
-    dependencies: list
-    build_dependencies: list
-    test_dependencies: list
+    dependencies: dict
+    build_dependencies: dict
+    test_dependencies: dict
     license_names: list
     licenses: list
-    python_extras: list
     desktop_entry_points: dict
     gui: bool
     source_url: str
@@ -53,26 +51,22 @@ class Project:
         maintainer, = project["authors"]
 
         license_names = []
-        for classifier in project["classifiers"]:
+        for classifier in project.get("classifiers", []):
             m = re.fullmatch("License :: (?:OSI Approved ::)? (.+)", classifier)
             if m and m[1] != "OSI Approved":
                 license_names.append(m[1])
 
+        dependencies = polycotylus_options.get("dependencies", {})
         test_dependencies = []
-        todo = collections.deque(polycotylus_options["test_requirements"])
-        while todo:
-            entry = todo.pop()
-            m = re.match("-r *([^ ].*)", entry)
-            if m:
-                text = (root / m[1]).read_text()
-                todo += re.findall(r"^ *\b[^#\n\r]+", text)
-                continue
-            m = re.match(r" *\[([^]]+)\]", entry)
-            if m:
-                for extra in re.findall("[^ ,]+", m[1]):
-                    assert 0
-                continue
-            test_dependencies.append(entry)
+        extras = project.get("optional-dependencies", {})
+        for requirement in dependencies.get("test", {}).get("pip", []):
+            test_dependencies += expand_pip_requirements(
+                requirement, root, extras)
+        dependencies.setdefault("test", {})["pip"] = test_dependencies
+        dependencies.setdefault("build", {})["pip"] = \
+            pyproject_options.get("build-system", {}).get("requires", [])
+        dependencies.setdefault("run", {})["pip"] = \
+            project.get("dependencies", [])
 
         if "gui" in polycotylus_options:
             gui = polycotylus_options["gui"]
@@ -90,14 +84,13 @@ class Project:
             email=maintainer["email"],
             version=project["version"],
             description=project["description"],
-            supported_python=project["requires-python"],
-            dependencies=project.get("dependencies", []),
-            build_dependencies=pyproject_options["build-system"]["requires"],
-            test_dependencies=test_dependencies,
+            supported_python=project.get("requires-python", ""),
+            dependencies=dependencies.get("run", {}),
+            build_dependencies=dependencies["build"],
+            test_dependencies=dependencies["test"],
             url=project["urls"]["Homepage"],
             license_names=license_names,
             licenses=[project["license"]["file"]],
-            python_extras=polycotylus_options.get("python_extras", []),
             desktop_entry_points=desktop_files,
             source_url=polycotylus_options["source_url"],
             prefix_package_name=polycotylus_options["prefix_package_name"],
@@ -192,6 +185,24 @@ def expand_mimetype(x, id):
             x, f"desktop_entry_points->{id}->MimeType in the polycotylus.yaml")
     out.sort()
     return out
+
+
+def expand_pip_requirements(requirement, cwd, extras=None):
+    if m := re.match("-r *([^ ].*)", requirement):
+        requirements_txt = cwd / m[1]
+        text = requirements_txt.read_text()
+        for child in re.findall(r"^ *([^#\n\r]+)", text, re.MULTILINE):
+            yield from expand_pip_requirements(child.strip(),
+                                               requirements_txt.parent)
+
+    elif m := re.match(r" *([^]]+) *\[([^]]+)\]", requirement):
+        assert m[1] == "."
+        for group in re.findall("[^ ,]+", m[2]):
+            for extra in extras[group]:
+                yield from expand_pip_requirements(extra, cwd)
+
+    else:
+        yield requirement
 
 
 if __name__ == "__main__":
