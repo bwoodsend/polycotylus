@@ -1,0 +1,7 @@
+soup
+cake
+-r foo/bar/more-requirements.txt
+# beans
+
+
+haggis  # extra noise

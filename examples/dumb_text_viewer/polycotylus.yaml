@@ -1,10 +1,10 @@
 source_url: https://github.com/bwoodsend/dumb_text_viewer/archive/refs/tags/{version}.tar.gz
 
-test_requirements:
-  - -r test-requirements.txt
-
-python_extras:
-  - tkinter
+dependencies:
+  run:
+    python: tkinter
+  test:
+    pip: -r test-requirements.txt
 
 prefix_package_name: false
 

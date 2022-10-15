@@ -1,0 +1,15 @@
+[project]
+name = "blahblahblah"
+description = "..."
+authors = [
+    { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+version = "1.2.3"
+license = { file="LICENSE" }
+
+[project.urls]
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
+
+[project.optional-dependencies]
+abc = ["pyperclip", "numpy"]
+xyz = ["humanize"]

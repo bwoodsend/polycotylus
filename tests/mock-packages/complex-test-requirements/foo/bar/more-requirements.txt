@@ -1,0 +1,3 @@
+-r ../yet-more-requirements.txt
+feet
+socks
