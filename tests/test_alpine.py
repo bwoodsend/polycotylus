@@ -38,6 +38,18 @@ def test_key_generation(tmp_path, monkeypatch):
 
 
 @mirror.decorate
+def test_abuild_lint():
+    self = Alpine(Project.from_root(dumb_text_viewer))
+    self.generate(clean=True)
+    _docker.run(
+        "alpine", f"""
+        {mirror.install}
+        apk add -q atools
+        apkbuild-lint /io/APKBUILD
+    """, volumes=[(self.distro_root, "/io")])
+
+
+@mirror.decorate
 def test_build():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
