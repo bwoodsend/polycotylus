@@ -91,7 +91,6 @@ class Alpine(BaseDistribution):
             depends=shlex.quote(" ".join(self.dependencies)),
             makedepends=shlex.quote(" ".join(self.build_dependencies)),
             checkdepends=shlex.quote(" ".join(self.test_dependencies)),
-            install="",
             source=
             f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
             builddir='"$srcdir/_build"',
