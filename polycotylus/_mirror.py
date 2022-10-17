@@ -59,6 +59,7 @@ class CachedMirror:
         self._listeners = 0
         self.last_sync_time = lambda: last_sync_time(self)
         self._in_progress = {}
+        self.verbose = False
 
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
@@ -66,11 +67,13 @@ class CachedMirror:
             host = "localhost" if os.name == "nt" else "0.0.0.0"
             print("http://{}:{}".format(host, self.port))
             print(f"Install via:\n{self.install}")
+            self.verbose = True
             try:
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
                 pass
+            self.verbose = False
 
     def __enter__(self):
         with self._lock:
@@ -232,6 +235,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 shutil.copyfileobj(f, self.wfile)
             except (BrokenPipeError, ConnectionResetError):
                 return
+
+    def log_message(self, format, *args):
+        if self.parent.verbose:
+            super().log_message(format, *args)
 
 
 def _arch_sync_time(self):
