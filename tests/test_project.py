@@ -1,7 +1,11 @@
 import gzip
 from pathlib import Path
+import shutil
+
+import pytest
 
 from polycotylus._project import Project, expand_pip_requirements
+from polycotylus._exceptions import PolycotylusYAMLParseError
 from tests import dumb_text_viewer
 
 
@@ -27,3 +31,24 @@ def test_expand_pip_requirements():
         "pyperclip", "numpy", "humanize", "soup", "cake", "hippo", "feet",
         "socks", "haggis"
     ]
+
+
+def test_yaml_error(tmp_path):
+    shutil.copy(Path(__file__, "../mock-packages/bare-minimum/pyproject.toml").resolve(), tmp_path)
+    polycotylus_yaml = tmp_path / "polycotylus.yaml"
+    polycotylus_yaml.write_text("""
+source_url: https://xyz
+desktop_entry_points:
+  socks:
+    Exec:
+gui: true
+""")
+    with pytest.raises(PolycotylusYAMLParseError) as capture:
+        Project.from_root(tmp_path)
+    assert str(capture.value) == f"""\
+Invalid polycotylus.yaml:
+  In "{polycotylus_yaml}", line 3
+        Exec: ''
+    ^ (line: 4)
+Required key(s) 'Name' not found while parsing a mapping.
+"""
