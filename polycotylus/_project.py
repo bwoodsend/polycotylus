@@ -43,9 +43,13 @@ class Project:
             pyproject_options = tomli.load(f)
         yaml_path = root / "polycotylus.yaml"
         with yaml_path.open("r") as f:
-            from polycotylus._yaml_schema import polycotylus_yaml as schema
-            yaml = strictyaml.load(f.read(), schema, str(yaml_path))
-            polycotylus_options = yaml.data
+            from polycotylus._yaml_schema import polycotylus_yaml, yaml_error
+            try:
+                yaml = strictyaml.load(f.read(), polycotylus_yaml,
+                                       str(yaml_path))
+                polycotylus_options = yaml.data
+            except strictyaml.StrictYAMLError as ex:
+                yaml_error(ex)
 
         project = pyproject_options["project"]
         maintainer, = project["authors"]

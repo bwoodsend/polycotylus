@@ -26,3 +26,7 @@ class InvalidMimetypePattern(PolycotylusUsageError):
             "does not match any known mimetypes. Run\n     " \
             'python -c "import mimetypes; print(*mimetypes.types_map.values())"\n' \
             "to see a list of valid mimetypes."
+
+
+class PolycotylusYAMLParseError(PolycotylusUsageError):
+    pass

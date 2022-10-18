@@ -3,6 +3,8 @@ import re
 from strictyaml import Any, Bool, Enum, Map, MapCombined, MapPattern, \
     Optional, OrValidator, Regex, Seq, Str, load, ScalarValidator
 
+from polycotylus._exceptions import PolycotylusYAMLParseError
+
 
 class WhitespaceDelimited(ScalarValidator):
 
@@ -54,14 +56,32 @@ polycotylus_yaml = Map({
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
 })
 
+
+def yaml_error(ex):
+    out = "Invalid polycotylus.yaml:\n"
+    out += f'  In "{ex.context_mark.name}", line {ex.problem_mark.line}\n'
+    out += ex.problem_mark.get_snippet() + "\n"
+    children = []
+    while ex:
+        children.append(ex)
+        ex = ex.__context__
+    for ex in children[::-1]:
+        out += ex.problem[0].upper() + ex.problem[1:] + " " + ex.context + ".\n"
+    raise PolycotylusYAMLParseError(out) from None
+
+
 if __name__ == "__main__":
     import sys
     import json
+    import strictyaml
+
     path = sys.argv[1]
     with open(path) as f:
         contents = f.read()
     try:
-        config = load(contents, polycotylus_yaml, path)
+        config = strictyaml.load(contents, polycotylus_yaml, path)
     except Exception as ex:
-        raise SystemExit(str(ex))
+        raise SystemExit(format_yaml_error(ex))
+
     print(json.dumps(config.data, indent="    ", ensure_ascii=False))
+    print(strictyaml.as_document(config.data, schema=polycotylus_yaml).as_yaml())
