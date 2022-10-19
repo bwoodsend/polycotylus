@@ -106,10 +106,9 @@ class Alpine(BaseDistribution):
 
         out += self._formatter("""
             build() {
-                cd "$srcdir"
-                tar xf "$pkgname-$pkgver.tar.gz" --strip-components=1
+                cd "$srcdir/%s-$pkgver"
                 rm -rf "$builddir"
-        """)
+        """ % self.project.name)
         out += self.pip_build_command(1, "$builddir")
         out += self._formatter(
             """
