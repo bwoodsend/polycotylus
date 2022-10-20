@@ -47,7 +47,7 @@ class Alpine(BaseDistribution):
                 {mirrors["alpine"].install}
                 apk update -q
                 apk search -q
-            """).output
+            """, verbosity=0).output
         return set(re.findall("([^\n]+)", output))
 
     @staticmethod
