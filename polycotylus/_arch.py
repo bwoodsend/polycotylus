@@ -34,7 +34,7 @@ class Arch(BaseDistribution):
                 "archlinux:base", f"""
                 {mirrors["arch"].install}
                 pacman -Sysq
-            """).output
+            """, verbosity=0).output
         return set(re.findall("([^\n]+)", output))
 
     invalid_package_characters = "[^a-z0-9-]"
@@ -139,7 +139,8 @@ class Arch(BaseDistribution):
 @cache
 def available_licenses():
     out = {}
-    with _docker.run("archlinux:base")["/usr/share/licenses/common"] as tar:
+    with _docker.run("archlinux:base",
+                     verbosity=0)["/usr/share/licenses/common"] as tar:
         for member in tar.getmembers():
             m = re.fullmatch("common/([^/]+)/license.txt", member.name)
             if m:

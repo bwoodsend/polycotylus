@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import re
 from textwrap import dedent
 import json
 
@@ -28,7 +29,8 @@ def test_interactive():
     p = subprocess.run([sys.executable, "-c", code], input=b"echo hello",
                        timeout=10, stdout=subprocess.PIPE)
     assert p.returncode == 0
-    assert p.stdout == b'$ docker run --rm --network=host -i alpine\nhello\n'
+    assert re.fullmatch(
+        br'(\$ docker run --rm --network=host -i alpine\n)?hello\n', p.stdout)
 
     code = dedent("""
         from polycotylus import _docker
@@ -72,3 +74,35 @@ def test_build(tmp_path):
     with pytest.raises(_docker.Error,
                        match="docker build -f cake --network=host ."):
         _docker.build("cake", tmp_path)
+
+
+def test_verbosity(monkeypatch, capsys, tmp_path):
+    (tmp_path / "Dockerfile").write_text("FROM alpine\nRUN touch /foo\n")
+    run = lambda: _docker.run(_docker.build("Dockerfile", tmp_path), "seq 10")
+    command_re = re.compile(r"^\$.+", re.M)
+    output_re = re.compile(r"^[^\$]+", re.M)
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "0")
+    run()
+    assert capsys.readouterr().out == ""
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "1")
+    run()
+    out = capsys.readouterr().out
+    assert len(command_re.findall(out)) == 2
+    assert not output_re.findall(out)
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "2")
+    run()
+    out = capsys.readouterr().out
+    assert len(command_re.findall(out)) == 2
+    assert output_re.findall(out)
+
+    monkeypatch.delenv("POLYCOTYLUS_VERBOSITY")
+    run()
+    assert capsys.readouterr().out == ""
+
+    _docker.build("Dockerfile", tmp_path, verbosity=1)
+    out = capsys.readouterr().out
+    assert command_re.findall(out)
+    assert not output_re.findall(out)
