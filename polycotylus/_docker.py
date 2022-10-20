@@ -1,4 +1,4 @@
-from subprocess import run as _run, PIPE, DEVNULL, STDOUT
+from subprocess import run as _run, PIPE, DEVNULL, STDOUT, Popen
 import re
 import io
 import shlex
@@ -10,7 +10,7 @@ import sys
 class run:
 
     def __init__(self, base, command=None, volumes=(), check=True,
-                 interactive=False):
+                 interactive=False, verbosity=0):
         __tracebackhide__ = True
         arguments = ["--network=host"]
         for (source, dest) in volumes:
@@ -22,8 +22,9 @@ class run:
             arguments += ["sh", "-c", textwrap.dedent(command)]
         elif command is not None:
             arguments += command
-        human_friendly = "$ docker run --rm " + shlex.join(arguments)
-        print(human_friendly, flush=True)
+        if verbosity >= 1:
+            human_friendly = "$ docker run --rm " + shlex.join(arguments)
+            print(human_friendly, flush=True)
 
         p = _run(["docker", "create"] + arguments, stdout=PIPE)
         self.id = p.stdout.decode().splitlines()[-1]
@@ -35,12 +36,10 @@ class run:
                 raise Error(human_friendly, logs)
 
         else:
-            p = _run(["docker", "container", "start", "-a", self.id],
-                     stderr=STDOUT, stdout=PIPE, text=True)
-            if check and p.returncode:
-                raise Error(human_friendly, p.stdout)
-            self.output = p.stdout
-            self.returncode = p.returncode
+            self.returncode, self.output = _tee_run(
+                ["docker", "container", "start", "-a", self.id], verbosity)
+            if check and self.returncode:
+                raise Error(human_friendly, self.output)
 
     def __del__(self):
         try:
@@ -58,15 +57,26 @@ class run:
                     text=True).stdout.strip()
 
 
-def build(dockerfile, root, target=None):
+def _tee_run(command, verbosity=0, **kwargs):
+    with Popen(command, stderr=STDOUT, stdout=PIPE, text=True, **kwargs) as p:
+        chunks = []
+        while (chunk := p.stdout.readline()) or p.poll() is None:
+            chunks.append(chunk)
+            if verbosity >= 2 :
+                sys.stdout.write(chunk)
+    return p.returncode, "".join(chunks)
+
+
+def build(dockerfile, root, target=None, verbosity=0):
     command = ["docker", "build", "-f", str(dockerfile), "--network=host", "."]
     if target:
         command += ["--target", target]
-    print("$", shlex.join(command))
-    p = _run(command, cwd=root, stdout=PIPE, text=True, stderr=STDOUT)
-    if p.returncode:
-        raise Error("$ " + shlex.join(command), p.stdout)
-    return next(m for line in p.stdout.splitlines()[::-1] if (
+    if verbosity >= 1:
+        print("$", shlex.join(command))
+    returncode, output = _tee_run(command, verbosity, cwd=root)
+    if returncode:
+        raise Error("$ " + shlex.join(command), output)
+    return next(m for line in output.splitlines()[::-1] if (
         m := re.search("Successfully built (.*)", line)))[1]  # pragma: no cover
 
 
