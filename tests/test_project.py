@@ -34,7 +34,8 @@ def test_expand_pip_requirements():
 
 
 def test_yaml_error(tmp_path):
-    shutil.copy(Path(__file__, "../mock-packages/bare-minimum/pyproject.toml").resolve(), tmp_path)
+    toml = Path(__file__, "../mock-packages/bare-minimum/pyproject.toml")
+    shutil.copy(toml.resolve(), tmp_path)
     polycotylus_yaml = tmp_path / "polycotylus.yaml"
     polycotylus_yaml.write_text("""
 source_url: https://xyz
