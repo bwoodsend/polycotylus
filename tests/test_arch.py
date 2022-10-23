@@ -40,10 +40,7 @@ def test_build():
 
     subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb-text-viewer"
-    build = _docker.build(".polycotylus/arch/Dockerfile", self.project.root,
-                          target="build")
-    _docker.run(build, "makepkg -fs --noconfirm",
-                volumes=[(self.distro_root, "/io")])
+    package = self.build()
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
@@ -65,21 +62,14 @@ def test_build():
         assert png.size == (size, size)
         assert png.getpixel((0, 0))[3] == 0
 
-    test = _docker.build(".polycotylus/arch/Dockerfile", self.project.root,
-                         target="test")
-    command = "bash -c 'pacman -Sy && pacman -U --noconfirm dumb-text-viewer-0.1.0-1-any.pkg.tar.zst'"
-    container = _docker.run(test, command, volumes=[(self.distro_root, "/io")])
+    container = self.test(package)
     installed = container.commit()
 
     command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
     assert "Name: dumb-text-viewer" in _docker.run(installed, command).output
 
-    container = _docker.run(installed, "python -c 'import dumb_text_viewer'")
     with container[pycache.relative_to(sysroot)] as tar:
         for pyc in pyc_contents:
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
-
-    _docker.run(installed, "xvfb-run pytest /io/tests",
-                volumes=[(self.project.root / "tests", "/io/tests")])

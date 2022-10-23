@@ -105,7 +105,7 @@ class Arch(BaseDistribution):
         out += self._formatter(f"""
             check() {{
                 PYTHONPATH="$(echo {self.project.name}-*/_build/usr/lib/python*/site-packages/)"
-                PYTHONPATH="$PYTHONPATH" xvfb-run pytest "{self.project.name}-"*/tests
+                PYTHONPATH="$PYTHONPATH" {self.project.test_command} "{self.project.name}-"*
             }}
         """)
         return out
@@ -134,6 +134,26 @@ class Arch(BaseDistribution):
             COPY .polycotylus/arch/PKGBUILD .
             RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
     """ % (self.mirror.install, self.mirror.install))
+
+    def build(self, verbosity=None):
+        _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
+                    volumes=[(self.distro_root, "/io")], verbosity=verbosity)
+        package, = self.distro_root.glob(
+            f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
+        return package
+
+    def test(self, package, verbosity=None):
+        base = self.build_test_image(verbosity=verbosity)
+        volumes = [(package.parent, "/pkg")]
+        for path in self.project.test_files:
+            volumes.append((self.project.root / path, f"/io/{path}"))
+        with self.mirror:
+            return _docker.run(
+                base, f"""
+                pacman -Sy
+                pacman -U --noconfirm /pkg/{package.name}
+                {self.project.test_command}
+            """, volumes=volumes, verbosity=verbosity)
 
 
 @cache
@@ -175,3 +195,4 @@ def std_license_path(content: bytes):
 if __name__ == "__main__":
     self = Arch(Project.from_root("."))
     self.generate()
+    self.test(self.build())

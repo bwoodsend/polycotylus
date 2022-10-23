@@ -8,6 +8,7 @@ import re
 import shlex
 from functools import cache
 import hashlib
+import platform
 from pathlib import Path
 
 from polycotylus import _shell, _docker
@@ -123,14 +124,14 @@ class Alpine(BaseDistribution):
 
         out += self._formatter("""
             check() {
-                PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" xvfb-run pytest "$srcdir/tests"
+                PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" %s "$srcdir"
             }
 
             package() {
                 mkdir -p "$(dirname "$pkgdir")"
                 cp -r "$builddir" "$pkgdir"
             }
-        """)
+        """ % self.project.test_command)
         out += "\n"
         out += self._formatter("""
             sha512sums="
@@ -225,7 +226,33 @@ class Alpine(BaseDistribution):
         super().generate(clean=clean)
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
+    def build(self, verbosity=None):
+        public_key, private_key = self.abuild_keys()
+        base = self.build_builder_image(verbosity)
+        volumes = [
+            (self.distro_root, "/io"),
+            (private_key, f"/home/user/.abuild/{private_key.name}"),
+            (self.distro_root / "dist", "/home/user/packages"),
+        ]
+        _docker.run(base, "abuild", volumes=volumes, verbosity=verbosity)
+        _dist = self.distro_root / "dist" / platform.machine()
+        apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
+        return apk
+
+    def test(self, package, verbosity=None):
+        base = self.build_test_image(verbosity=verbosity)
+        volumes = [(package.parent, "/pkg")]
+        for path in self.project.test_files:
+            volumes.append((self.project.root / path, f"/io/{path}"))
+        with self.mirror:
+            return _docker.run(
+                base, f"""
+                apk add /pkg/{package.name}
+                {self.project.test_command}
+            """, volumes=volumes, verbosity=verbosity)
+
 
 if __name__ == "__main__":
     self = Alpine(Project.from_root("."))
     self.generate()
+    self.test(self.build())

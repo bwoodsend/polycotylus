@@ -1,5 +1,4 @@
 import subprocess
-import platform
 from pathlib import Path
 import re
 
@@ -57,19 +56,7 @@ def test_build():
 
     _docker.run("alpine", ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
-
-    build = _docker.build(".polycotylus/alpine/Dockerfile", self.project.root,
-                          target="build")
-    public_key, private_key = self.abuild_keys()
-    _docker.run(
-        build, "abuild", volumes=[
-            (self.distro_root, "/io"),
-            (private_key, f"/home/user/.abuild/{private_key.name}"),
-            (self.distro_root / "dist", "/home/user/packages"),
-        ])
-    apk = self.distro_root / "dist" / platform.machine(
-    ) / "dumb-text-viewer-0.1.0-r1.apk"
-    assert apk.exists()
+    apk = self.build()
 
     logs = _docker.run("alpine", ["tar", "tf", f"/io/{apk.name}"],
                        volumes=[(apk.parent, "/io")]).output
@@ -78,21 +65,11 @@ def test_build():
     assert "usr/share/icons/hicolor/32x32/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/applications/underwhelming_software-dumb_text_viewer.desktop" in files
 
-    test = _docker.build(".polycotylus/alpine/Dockerfile", self.project.root,
-                         target="test")
-    command = f"apk add /pkg/{platform.machine()}/dumb-text-viewer-0.1.0-r1.apk"
-    container = _docker.run(
-        test, command, volumes=[
-            (self.distro_root / "dist", "/pkg"),
-            (self.project.root / "tests", "/io/tests"),
-        ])
+    container = self.test(apk)
     installed = container.commit()
 
     command = "apk add py3-pip && pip show dumb_text_viewer"
     assert "Name: dumb-text-viewer" in _docker.run(installed, command).output
-
-    _docker.run(installed, "xvfb-run pytest /io/tests",
-                volumes=[(self.project.root / "tests", "/io/tests")])
 
     assert _docker.run(
         installed, """

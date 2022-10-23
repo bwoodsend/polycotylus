@@ -28,6 +28,7 @@ class Project:
     dependencies: dict
     build_dependencies: dict
     test_dependencies: dict
+    test_files: list
     license_names: list
     licenses: list
     desktop_entry_points: dict
@@ -82,6 +83,10 @@ class Project:
             if isinstance(icon := desktop_file.get("icon"), str):
                 desktop_file["icon"] = {"id": id, "source": icon}
 
+        test_files = []
+        for pattern in polycotylus_options["test_files"]:
+            test_files += root.glob(pattern)
+
         return cls(
             name=project["name"],
             maintainer=maintainer["name"],
@@ -92,6 +97,7 @@ class Project:
             dependencies=dependencies.get("run", {}),
             build_dependencies=dependencies["build"],
             test_dependencies=dependencies["test"],
+            test_files=test_files,
             url=project["urls"]["Homepage"],
             license_names=license_names,
             licenses=[project["license"]["file"]],
@@ -164,6 +170,10 @@ class Project:
     def write_gitignore(self):
         path = (self.root / ".polycotylus/.gitignore")
         path.write_text("*\n!.gitignore\n!*.desktop\n", encoding="utf-8")
+
+    @property
+    def test_command(self):
+        return "xvfb-run pytest" if self.gui else "pytest"
 
 
 def _list_join(x):
