@@ -4,6 +4,7 @@ import re
 
 import pkg_resources
 
+from polycotylus import _docker
 from polycotylus._mirror import mirrors
 
 
@@ -181,6 +182,26 @@ class BaseDistribution(abc.ABC):
         (self.distro_root / self.build_script_name).write_text(
             self.pkgbuild(), encoding="utf-8")
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
+
+    def build_builder_image(self, verbosity=None):
+        with self.mirror:
+            return _docker.build(self.distro_root / "Dockerfile",
+                                 self.project.root, target="build",
+                                 verbosity=verbosity)
+
+    @abc.abstractmethod
+    def build(self, verbosity=None):
+        pass
+
+    def build_test_image(self, verbosity=None):
+        with self.mirror:
+            return _docker.build(self.distro_root / "Dockerfile",
+                                 self.project.root, target="test",
+                                 verbosity=verbosity)
+
+    @abc.abstractmethod
+    def test(self, package, verbosity=None):
+        pass
 
 
 def _deduplicate(array):
