@@ -5,6 +5,7 @@ import io
 import shlex
 import textwrap
 from tarfile import TarFile
+from pathlib import Path
 import sys
 
 
@@ -17,7 +18,7 @@ class run:
         __tracebackhide__ = True
         arguments = ["--network=host"]
         for (source, dest) in volumes:
-            arguments.append(f"-v{source}:{dest}")
+            arguments.append(f"-v{Path(source).resolve()}:{dest}")
         if interactive:
             arguments.append("-it" if sys.stdin.isatty() else "-i")
         arguments.append(base)
