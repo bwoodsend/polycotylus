@@ -13,3 +13,4 @@ exclude_lines =
     if __name__ == .__main__.:
     @abc
 ignore_errors = True
+show_missing = True

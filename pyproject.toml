@@ -32,7 +32,7 @@ version = "0.1.0"
 [project.optional-dependencies]
 test = [
     "pytest>=3",
-    "pytest-ordered @ git+ssh://git@github.com/bwoodsend/pytest-ordered.git@c86f9f460bb24b1029f6ce77feefea0e011e1b90",
+    "pytest_ordered @ https://github.com/bwoodsend/pytest-ordered/archive/c86f9f460bb24b1029f6ce77feefea0e011e1b90.zip",
     "coverage",
     "pytest-cov",
     "pillow",
