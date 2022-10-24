@@ -47,13 +47,6 @@ def test_build():
     pycache = site_packages / "dumb_text_viewer/__pycache__"
     pyc_contents = {i: i.read_bytes() for i in pycache.iterdir()}
     assert len(pyc_contents) == 2
-    subprocess.run([sys.executable, "-c", "import dumb_text_viewer"], env={
-        **os.environ, "PYTHONPATH": str(site_packages)
-    })
-    assert pyc_contents == {
-        i: i.read_bytes()
-        for i in (site_packages / "dumb_text_viewer/__pycache__").iterdir()
-    }
 
     for size in [16, 24, 128]:
         path = sysroot / f"usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png"
