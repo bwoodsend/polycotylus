@@ -38,7 +38,7 @@ def test_build():
     pkgbuild = self.pkgbuild()
     assert pkgbuild.startswith(pkgbuild_prefix)
 
-    subprocess.run(["sh", str(self.distro_root / "PKGBUILD")], check=True)
+    subprocess.run(["bash", str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb-text-viewer"
     package = self.build()
 
