@@ -3,7 +3,7 @@ https://wiki.manjaro.org/index.php/PKGBUILD
 """
 import re
 import shlex
-from functools import cache
+from functools import lru_cache
 
 from polycotylus import _shell, _docker
 from polycotylus._project import Project
@@ -27,7 +27,7 @@ class Arch(BaseDistribution):
     _formatter = _shell.Formatter()
 
     @staticmethod
-    @cache
+    @lru_cache()
     def available_packages():
         with mirrors["arch"]:
             output = _docker.run(
@@ -156,7 +156,7 @@ class Arch(BaseDistribution):
             """, volumes=volumes, verbosity=verbosity)
 
 
-@cache
+@lru_cache()
 def available_licenses():
     out = {}
     with _docker.run("archlinux:base",

@@ -6,7 +6,7 @@ Reference: https://wiki.alpinelinux.org/wiki/APKBUILD_Reference
 import os
 import re
 import shlex
-from functools import cache
+from functools import lru_cache
 import hashlib
 import platform
 from pathlib import Path
@@ -40,7 +40,7 @@ class Alpine(BaseDistribution):
     font = "ttf-dejavu"
 
     @classmethod
-    @cache
+    @lru_cache()
     def available_packages(cls):
         with cls.mirror:
             output = _docker.run(
