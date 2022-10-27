@@ -1,6 +1,5 @@
 import sys
 import tkinter
-from pathlib import Path
 
 from dumb_text_viewer import TextViewerWidget, favicon
 
