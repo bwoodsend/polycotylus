@@ -1,13 +1,14 @@
 import subprocess
 from pathlib import Path
 import re
+import platform
 import tarfile
 
 from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
-from tests import dumb_text_viewer, cross_distribution
+from tests import dumb_text_viewer, ubrotli, cross_distribution
 
 mirror = mirrors["alpine"]
 
@@ -49,7 +50,7 @@ def test_abuild_lint():
     """, volumes=[(self.distro_root, "/io")])
 
 
-def test_build():
+def test_dumb_text_viewer():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
@@ -80,3 +81,20 @@ def test_build():
             apk add -q xdg-utils shared-mime-info
             xdg-mime query default text/plain
         """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
+
+
+def test_ubrotli():
+    self = Alpine(Project.from_root(ubrotli))
+    self.generate(clean=True)
+    assert "arch=all" in self.pkgbuild()
+
+    apk = self.build()
+    with tarfile.open(apk) as tar:
+        for file in tar.getnames():
+            assert ".desktop" not in file
+            assert ".png" not in file
+        with tar.extractfile(".PKGINFO") as f:
+            pkginfo = f.read().decode()
+        assert f"arch = {platform.machine()}" in pkginfo
+
+    self.test(apk)
