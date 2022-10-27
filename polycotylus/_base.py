@@ -107,7 +107,8 @@ class BaseDistribution(abc.ABC):
     @property
     def icons(self):
         return [(i["icon"]["source"], i["icon"]["id"])
-                for i in self.project.desktop_entry_points.values()]
+                for i in self.project.desktop_entry_points.values()
+                if "icon" in i]
 
     def _dependencies(self, dependencies):
         out = []
