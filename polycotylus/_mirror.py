@@ -24,7 +24,7 @@ class CachedMirror:
     """
 
     def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
-                 port, install, last_sync_time):
+                 port, install, last_sync_time, package_pattern):
         """
         Args:
             base_url:
@@ -59,7 +59,33 @@ class CachedMirror:
         self._listeners = 0
         self.last_sync_time = lambda: last_sync_time(self)
         self._in_progress = {}
+        self.package_re = re.compile(package_pattern)
         self.verbose = False
+        self.latest_versions = {}
+        for path in self.base_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            if any(fnmatch(path.name, i) for i in self.index_patterns):
+                continue
+            self.register_new_version(path)
+
+    def register_new_version(self, local_path):
+        key, version = self._split_package(local_path)
+        if key in self.latest_versions:
+            _version, _local_path = self.latest_versions[key]
+            if _version > version:
+                print("Deleting", local_path, "in favour of", _local_path)
+                os.remove(local_path)
+            else:
+                os.remove(_local_path)
+                self.latest_versions[key] = version, local_path
+        else:
+            self.latest_versions[key] = version, local_path
+
+    def _split_package(self, local_path):
+        match = self.package_re.fullmatch(local_path.name)
+        version = tuple(i[2] or int(i[1]) for i in re.finditer(r"(\d+)|(\D+)", match[1]))
+        return (local_path.parent, local_path.name[:match.start(1)], local_path.name[match.end(1):]), version
 
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
@@ -167,7 +193,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if isinstance(response, Path):
             cache = response
-            if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
+            if self.is_index:
                 timestamp = cache.stat().st_mtime
                 if all(timestamp < i for i in self.parent.last_sync_time()):
                     response = urlopen(self.parent.base_url + self.path)
@@ -192,6 +218,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 t = threading.Thread(target=lambda: self._download(response))
                 self.parent._in_progress[self.path] = t
                 t.start()
+                if not self.is_index:
+                    self.parent.register_new_version(self.cache)
             else:
                 response.close()
             if self.path in self.parent._in_progress:
@@ -199,6 +227,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             else:
                 method = self._cache_send
         method()
+
+    @property
+    def is_index(self):
+        return any(fnmatch(self.cache.name, i) for i in self.parent.index_patterns)
 
     def _cache_send(self):
         """Send a file from cache to the client."""
@@ -264,6 +296,7 @@ mirrors = {
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
             _arch_sync_time,
+            r".+-([^-]+-[^-]+)-[^-]+",
         ),
     "alpine":
         CachedMirror(
@@ -274,6 +307,7 @@ mirrors = {
             8901,
             r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/edge/|g' /etc/apk/repositories",
             _alpine_sync_time,
+            r".+-([^-]+-r\d+)\.apk",
         ),
 }
 
