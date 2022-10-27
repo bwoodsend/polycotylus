@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 import re
+import tarfile
 
 from polycotylus import _docker
 from polycotylus._project import Project
@@ -53,14 +54,17 @@ def test_build():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
+    assert "arch=noarch" in self.pkgbuild()
 
     _docker.run("alpine", ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
     apk = self.build()
 
-    logs = _docker.run("alpine", ["tar", "tf", f"/io/{apk.name}"],
-                       volumes=[(apk.parent, "/io")]).output
-    files = set(re.findall("[^\n]+", logs))
+    with tarfile.open(apk) as tar:
+        files = tar.getnames()
+        with tar.extractfile(".PKGINFO") as f:
+            pkginfo = f.read().decode()
+        assert "arch = noarch" in pkginfo
     assert "usr/share/icons/hicolor/128x128/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/icons/hicolor/32x32/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/applications/underwhelming_software-dumb_text_viewer.desktop" in files
