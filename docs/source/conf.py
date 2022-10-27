@@ -17,16 +17,13 @@
 # relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #
-import os
-import sys
 from pathlib import Path
+from textwrap import indent
 
 try:
     from importlib.metadata import version
 except ImportError:
     from importlib_metadata import version
-
-import polycotylus
 
 # -- General configuration ---------------------------------------------
 
@@ -142,8 +139,6 @@ if (not history_path.exists()) or history_path.read_text() != history:
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-
-import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 

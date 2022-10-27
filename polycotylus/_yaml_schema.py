@@ -1,7 +1,7 @@
 import re
 
-from strictyaml import Any, Bool, Enum, Map, MapCombined, MapPattern, \
-    Optional, OrValidator, Regex, Seq, Str, load, ScalarValidator
+from strictyaml import Any, Bool, Map, MapCombined, MapPattern, \
+    Optional, OrValidator, Regex, Seq, Str, ScalarValidator
 
 from polycotylus._exceptions import PolycotylusYAMLParseError
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     try:
         config = strictyaml.load(contents, polycotylus_yaml, path)
     except Exception as ex:
-        raise SystemExit(format_yaml_error(ex))
+        raise SystemExit(yaml_error(ex))
 
     print(json.dumps(config.data, indent="    ", ensure_ascii=False))
     print(strictyaml.as_document(config.data, schema=polycotylus_yaml).as_yaml())
