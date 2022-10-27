@@ -80,13 +80,19 @@ class Alpine(BaseDistribution):
 
     def pkgbuild(self):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
+        if self.project.architecture == "none":
+            architecture = "noarch"
+        elif self.project.architecture == "any":
+            architecture = "all"
+        else:
+            architecture = " ".join(self.project.architecture)
 
         out += _shell.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
-            arch="noarch",
+            arch=shlex.quote(architecture),
             license='MIT',
             url=self.project.url,
             depends=shlex.quote(" ".join(self.dependencies)),

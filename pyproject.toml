@@ -36,6 +36,7 @@ test = [
     "coverage",
     "pytest-cov",
     "pillow",
+    "pyzstd",
 ]
 
 [project.urls]

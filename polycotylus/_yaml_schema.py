@@ -46,6 +46,14 @@ dependencies_group = MapCombined(
     Str(), WhitespaceDelimited(Str()),
 )
 
+architectures = [
+    "i386", "aarch64", "aarch64_be", "alpha", "arm", "armeb", "hexagon",
+    "hppa", "m68k", "microblaze", "microblazeel", "mips", "mips64",
+    "mips64el","mipsel", "mipsn32", "mipsn32el", "or1k", "ppc", "ppc64",
+    "ppc64le", "riscv32", "riscv64", "s390x", "sh4", "sh4eb", "sparc",
+    "sparc32plus", "sparc64", "x86_64", "xtensa", "xtensaeb"
+]
+
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]
 
 polycotylus_yaml = Map({
@@ -57,6 +65,10 @@ polycotylus_yaml = Map({
     Optional("prefix_package_name", default=True): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
     Optional("test_files", default=default_test_files): Seq(Str()),
+    Optional("architecture"): OrValidator(
+        Regex("(any|none)"),
+        WhitespaceDelimited(Regex("!?(" + "|".join(architectures) + ")")),
+    ),
 })
 
 

@@ -77,13 +77,17 @@ class Arch(BaseDistribution):
         package += self.install_desktop_files(1)
 
         package += "}\n"
+        if self.project.architecture == "none":
+            architecture = "any"
+        else:
+            architecture = "x86_64"
 
         out += _shell.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
-            arch=["any"],
+            arch=[architecture],
             url=self.project.url,
             license=license_names,
             depends=self.dependencies,

@@ -32,6 +32,7 @@ class Project:
     license_names: list
     licenses: list
     desktop_entry_points: dict
+    architecture: object
     gui: bool
     source_url: str
     prefix_package_name: bool
@@ -78,6 +79,15 @@ class Project:
         else:
             gui = bool(project.get('gui-scripts'))
 
+        if "architecture" in polycotylus_options:
+            architecture = polycotylus_options["architecture"]
+        else:
+            architecture = "none"
+            for compiler in ("gcc", "g++", "build-base", "clang"):
+                for group in dependencies["build"].values():
+                    if compiler in group:
+                        architecture = "any"
+
         desktop_files = polycotylus_options.get("desktop_entry_points", {})
         for (id, desktop_file) in desktop_files.items():
             if isinstance(icon := desktop_file.get("icon"), str):
@@ -104,6 +114,7 @@ class Project:
             desktop_entry_points=desktop_files,
             source_url=polycotylus_options["source_url"],
             prefix_package_name=polycotylus_options["prefix_package_name"],
+            architecture=architecture,
             gui=gui,
             root=root,
         )
