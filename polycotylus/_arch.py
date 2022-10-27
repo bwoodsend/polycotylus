@@ -105,7 +105,7 @@ class Arch(BaseDistribution):
         out += self._formatter(f"""
             check() {{
                 PYTHONPATH="$(echo {self.project.name}-*/_build/usr/lib/python*/site-packages/)"
-                PYTHONPATH="$PYTHONPATH" {self.project.test_command} "{self.project.name}-"*/tests
+                PYTHONPATH="$PYTHONPATH" {self.project.test_command} "{self.project.name}-"*
             }}
         """)
         return out
