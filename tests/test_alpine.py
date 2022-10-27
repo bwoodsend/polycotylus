@@ -49,7 +49,6 @@ def test_abuild_lint():
     """, volumes=[(self.distro_root, "/io")])
 
 
-@mirror.decorate
 def test_build():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
@@ -72,11 +71,12 @@ def test_build():
     container = self.test(apk)
     installed = container.commit()
 
-    command = "apk add py3-pip && pip show dumb_text_viewer"
-    assert "Name: dumb-text-viewer" in _docker.run(installed, command).output
+    with mirror:
+        script = "apk add py3-pip && pip show dumb_text_viewer"
+        assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
 
-    assert _docker.run(
-        installed, """
-        apk add -q xdg-utils shared-mime-info
-        xdg-mime query default text/plain
-    """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
+        assert _docker.run(
+            installed, """
+            apk add -q xdg-utils shared-mime-info
+            xdg-mime query default text/plain
+        """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"

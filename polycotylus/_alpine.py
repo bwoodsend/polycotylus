@@ -232,6 +232,7 @@ class Alpine(BaseDistribution):
         super().generate(clean=clean)
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
+    @mirror.decorate
     def build(self, verbosity=None):
         public_key, private_key = self.abuild_keys()
         base = self.build_builder_image(verbosity)
@@ -245,17 +246,17 @@ class Alpine(BaseDistribution):
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         return apk
 
+    @mirror.decorate
     def test(self, package, verbosity=None):
         base = self.build_test_image(verbosity=verbosity)
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        with self.mirror:
-            return _docker.run(
-                base, f"""
-                apk add /pkg/{package.name}
-                {self.project.test_command}
-            """, volumes=volumes, verbosity=verbosity)
+        return _docker.run(
+            base, f"""
+            apk add /pkg/{package.name}
+            {self.project.test_command}
+        """, volumes=volumes, verbosity=verbosity)
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ version = "0.1.0"
 [project.optional-dependencies]
 test = [
     "pytest>=3",
-    "pytest-ordered @ git+ssh://git@github.com/bwoodsend/pytest-ordered.git@480e13c0c23ca8f4601f18aff9990f42935cc8c4",
+    "pytest-ordered @ git+ssh://git@github.com/bwoodsend/pytest-ordered.git@c86f9f460bb24b1029f6ce77feefea0e011e1b90",
     "coverage",
     "pytest-cov",
     "pillow",
@@ -44,3 +44,6 @@ test = [
 
 [tool.setuptools]
 zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["polycotylus"]

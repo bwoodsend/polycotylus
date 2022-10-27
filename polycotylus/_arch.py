@@ -13,6 +13,7 @@ from polycotylus._base import BaseDistribution
 
 class Arch(BaseDistribution):
     name = "arch"
+    mirror = mirrors[name]
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["tk"],
@@ -139,6 +140,7 @@ class Arch(BaseDistribution):
             RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
     """ % (self.mirror.install, self.mirror.install))
 
+    @mirror.decorate
     def build(self, verbosity=None):
         _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
                     volumes=[(self.distro_root, "/io")], verbosity=verbosity)
@@ -146,18 +148,18 @@ class Arch(BaseDistribution):
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
         return package
 
+    @mirror.decorate
     def test(self, package, verbosity=None):
         base = self.build_test_image(verbosity=verbosity)
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        with self.mirror:
-            return _docker.run(
-                base, f"""
-                pacman -Sy
-                pacman -U --noconfirm /pkg/{package.name}
-                {self.project.test_command}
-            """, volumes=volumes, verbosity=verbosity)
+        return _docker.run(
+            base, f"""
+            pacman -Sy
+            pacman -U --noconfirm /pkg/{package.name}
+            {self.project.test_command}
+        """, volumes=volumes, verbosity=verbosity)
 
 
 @lru_cache()

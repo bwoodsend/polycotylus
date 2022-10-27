@@ -30,7 +30,6 @@ class TestCommon(cross_distribution.Base):
     package_install = "pacman -Sy --noconfirm"
 
 
-@mirror.decorate
 def test_build():
     self = Arch(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
@@ -58,8 +57,9 @@ def test_build():
     container = self.test(package)
     installed = container.commit()
 
-    command = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
-    assert "Name: dumb-text-viewer" in _docker.run(installed, command).output
+    with mirror:
+        script = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
+        assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
 
     with container[pycache.relative_to(sysroot)] as tar:
         for pyc in pyc_contents:
