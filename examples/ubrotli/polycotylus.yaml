@@ -1,0 +1,11 @@
+source_url: https://github.com/bwoodsend/ubrotli/archive/refs/tags/{version}.tar.gz
+
+dependencies:
+  build:
+    arch: brotli
+    alpine: brotli-dev python3-dev gcc musl-dev
+  run:
+    arch: brotli
+    alpine: brotli-libs
+  test:
+    pip: pytest

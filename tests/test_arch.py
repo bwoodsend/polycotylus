@@ -1,14 +1,16 @@
-import os
+import io
 import subprocess
-import sys
+import platform
+import tarfile
 
 from PIL import Image
+import pyzstd
 
 from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
-from tests import dumb_text_viewer, cross_distribution
+from tests import dumb_text_viewer, cross_distribution, ubrotli
 
 mirror = mirrors["arch"]
 
@@ -30,7 +32,7 @@ class TestCommon(cross_distribution.Base):
     package_install = "pacman -Sy --noconfirm"
 
 
-def test_build():
+def test_dumb_text_viewer():
     self = Arch(Project.from_root(dumb_text_viewer))
     self.generate(clean=True)
 
@@ -66,3 +68,21 @@ def test_build():
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
+
+
+def test_ubrotli():
+    self = Arch(Project.from_root(ubrotli))
+    self.generate(clean=True)
+    assert "arch=(x86_64)" in self.pkgbuild()
+
+    package = self.build()
+    raw = pyzstd.decompress(package.read_bytes())
+    with tarfile.open("", "r", io.BytesIO(raw)) as tar:
+        for file in tar.getnames():
+            assert ".desktop" not in file
+            assert ".png" not in file
+        with tar.extractfile(".PKGINFO") as f:
+            pkginfo = f.read().decode()
+        assert f"arch = {platform.machine()}" in pkginfo
+
+    self.test(package)
