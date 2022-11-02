@@ -27,11 +27,12 @@ class Base:
     base_image: str
     package_install: str
 
-    @pytest.mark.parametrize(
-        "name",
-        ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline", "bz2"])
+    @pytest.mark.parametrize("name", [
+        "tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline", "bz2",
+        "curses", "ctypes"
+    ])
     def test_python_extras(self, name, ids=str):
-        extras = self.cls.python_extras[name]
+        extras = self.cls.python_extras.get(name, [])
         mirror = mirrors[self.cls.name]
         script = self.cls._formatter(f"""
             {mirror.install}

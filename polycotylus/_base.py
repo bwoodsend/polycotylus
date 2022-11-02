@@ -113,7 +113,7 @@ class BaseDistribution(abc.ABC):
     def _dependencies(self, dependencies):
         out = []
         for extra in dependencies.get("python", []):
-            out += self.python_extras[extra]
+            out += self.python_extras.get(extra, [])
         for package in dependencies.get("pip", []):
             out.append(self.python_package(package))
         out += dependencies.get(self.name, [])
