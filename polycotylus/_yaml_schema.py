@@ -26,7 +26,7 @@ class WhitespaceDelimited(ScalarValidator):
 
 # yapf: disable
 
-python_extra = Regex("(tkinter|sqlite3|decimal|lzma|zlib|readline|bz2)")
+python_extra = Regex("(tkinter|sqlite3|decimal|lzma|readline|ctypes|curses|bz2)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
 icon = OrValidator(Map({"id": desktop_file_id, "source": Str()}), Str())
 locale_string = OrValidator(Str(), MapPattern(Str(), Str()))
