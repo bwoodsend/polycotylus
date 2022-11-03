@@ -97,6 +97,11 @@ class Project:
         for pattern in polycotylus_options["test_files"]:
             test_files += root.glob(pattern)
 
+        source = polycotylus_options.get("source_url")
+        if not source:
+            name = project["name"]
+            source = f"https://pypi.io/packages/source/{name[0]}/{name}/{name}-{{version}}.tar.gz"
+
         return cls(
             name=project["name"],
             maintainer=maintainer["name"],
@@ -112,7 +117,7 @@ class Project:
             license_names=license_names,
             licenses=[project["license"]["file"]],
             desktop_entry_points=desktop_files,
-            source_url=polycotylus_options["source_url"],
+            source_url=source,
             prefix_package_name=polycotylus_options["prefix_package_name"],
             architecture=architecture,
             gui=gui,

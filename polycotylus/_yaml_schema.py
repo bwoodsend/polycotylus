@@ -57,7 +57,7 @@ architectures = [
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]
 
 polycotylus_yaml = Map({
-    "source_url": Str(),
+    Optional("source_url"): Str(),
     Optional("dependencies"): Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
