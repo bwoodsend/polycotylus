@@ -185,7 +185,10 @@ class Project:
 
     def write_gitignore(self):
         path = (self.root / ".polycotylus/.gitignore")
-        path.write_text("*\n!.gitignore\n!*.desktop\n", encoding="utf-8")
+        if self.desktop_entry_points:
+            path.write_text("*\n!.gitignore\n!*.desktop\n", encoding="utf-8")
+        else:
+            path.write_text("*\n")
 
     @property
     def test_command(self):
