@@ -11,9 +11,8 @@ from locale import locale_alias
 import gzip
 
 import tomli
-import strictyaml
 
-from polycotylus import _exceptions
+from polycotylus import _exceptions, _yaml_schema
 
 
 @dataclass
@@ -43,15 +42,7 @@ class Project:
         root = Path(root)
         with (root / "pyproject.toml").open("rb") as f:
             pyproject_options = tomli.load(f)
-        yaml_path = root / "polycotylus.yaml"
-        with yaml_path.open("r") as f:
-            from polycotylus._yaml_schema import polycotylus_yaml, yaml_error
-            try:
-                yaml = strictyaml.load(f.read(), polycotylus_yaml,
-                                       str(yaml_path))
-                polycotylus_options = yaml.data
-            except strictyaml.StrictYAMLError as ex:
-                yaml_error(ex)
+        polycotylus_options = _yaml_schema.read(root / "polycotylus.yaml")
 
         project = pyproject_options["project"]
         maintainer, = project["authors"]

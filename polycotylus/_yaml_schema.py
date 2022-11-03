@@ -1,7 +1,7 @@
 import re
 
-from strictyaml import Any, Bool, Map, MapCombined, MapPattern, \
-    Optional, OrValidator, Regex, Seq, Str, ScalarValidator
+from strictyaml import Any, Bool, Map, MapCombined, MapPattern, load, \
+    Optional, OrValidator, Regex, Seq, Str, ScalarValidator, StrictYAMLError
 
 from polycotylus._exceptions import PolycotylusYAMLParseError
 
@@ -85,6 +85,16 @@ def yaml_error(ex):
     raise PolycotylusYAMLParseError(out) from None
 
 
+def read(path):
+    with open(path, "r") as f:
+        raw = f.read()
+    try:
+        yaml = load(raw, polycotylus_yaml, str(path))
+        return yaml.data
+    except StrictYAMLError as ex:
+        yaml_error(ex)
+
+
 if __name__ == "__main__":
     import sys
     import json
@@ -94,9 +104,9 @@ if __name__ == "__main__":
     with open(path) as f:
         contents = f.read()
     try:
-        config = strictyaml.load(contents, polycotylus_yaml, path)
-    except Exception as ex:
-        raise SystemExit(yaml_error(ex))
+        config = read(path)
+    except PolycotylusYAMLParseError as ex:
+        raise SystemExit(ex)
 
-    print(json.dumps(config.data, indent="    ", ensure_ascii=False))
-    print(strictyaml.as_document(config.data, schema=polycotylus_yaml).as_yaml())
+    print(json.dumps(config, indent="    ", ensure_ascii=False))
+    print(strictyaml.as_document(config, schema=polycotylus_yaml).as_yaml())
