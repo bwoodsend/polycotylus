@@ -160,6 +160,13 @@ class BaseDistribution(abc.ABC):
         out += self._formatter("done", indentation)
         return out
 
+    def define_py3ver(self):
+        return self._formatter(f"""
+            _py3ver() {{
+                {self.python_prefix}/bin/python3 -c 'import sys; print("{{0}}.{{1}}".format(*sys.version_info))'
+            }}
+        """) + "\n"
+
     def install_desktop_files(self, indentation, source="", dest="$pkgdir"):
         if source:
             source += "/"

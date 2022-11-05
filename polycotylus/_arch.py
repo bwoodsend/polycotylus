@@ -52,11 +52,11 @@ class Arch(BaseDistribution):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
         package = self._formatter("""
             package() {
-                cd "%s-"*
+                cd "%s-%s"
                 cp -r _build/* "$pkgdir"
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
-        """ % self.project.name)
+        """ % (self.project.name, self.project.version))
         license_names = []
         for license in self.project.licenses:
             content = _normalize_whitespace(
@@ -100,7 +100,7 @@ class Arch(BaseDistribution):
         out += "\n"
         out += self._formatter(f"""
             build() {{
-                cd "{self.project.name}-"*
+                cd "{self.project.name}-{self.project.version}"
         """)
         out += self.pip_build_command(1, into="_build")
         out += self._formatter("}")
@@ -109,8 +109,9 @@ class Arch(BaseDistribution):
         out += "\n"
         out += self._formatter(f"""
             check() {{
-                PYTHONPATH="$(echo {self.project.name}-*/_build/usr/lib/python*/site-packages/)"
-                PYTHONPATH="$PYTHONPATH" {self.project.test_command} "{self.project.name}-"*
+                cd "{self.project.name}-{self.project.version}"
+                PYTHONPATH="$(echo _build/usr/lib/python*/site-packages/)"
+                PYTHONPATH="$PYTHONPATH" {self.project.test_command}
             }}
         """)
         return out
