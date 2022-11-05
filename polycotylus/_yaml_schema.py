@@ -88,6 +88,10 @@ def yaml_error(ex):
 def read(path):
     with open(path, "r") as f:
         raw = f.read()
+    if not re.sub(r"#.*|\s|^---$|^\.\.\.$", "", raw, flags=re.M):
+        # Strictyaml raises a parse error if the YAML is empty - even when all
+        # fields are optional. Replace empty YAMLs.
+        raw = "gui: false\n"
     try:
         yaml = load(raw, polycotylus_yaml, str(path))
         return yaml.data

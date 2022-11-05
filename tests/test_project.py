@@ -52,3 +52,10 @@ Invalid polycotylus.yaml:
     ^ (line: 4)
 Required key(s) 'Name' not found while parsing a mapping.
 """
+
+
+def test_mimal_configuration(tmp_path):
+    shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
+    for contents in ["", "\n", "  \n   \n # hello \n\n", "\n\n---\n\n"]:
+        (tmp_path / "polycotylus.yaml").write_text(contents)
+        Project.from_root(tmp_path)
