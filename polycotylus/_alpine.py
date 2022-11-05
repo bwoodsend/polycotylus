@@ -102,13 +102,7 @@ class Alpine(BaseDistribution):
             builddir='"$srcdir/_build"',
         )
         out += "\n"
-
-        out += self._formatter("""
-            _py3ver() {
-                python3 -c 'import sys; print("{0}.{1}".format(*sys.version_info))'
-            }
-        """)
-        out += "\n"
+        out += self.define_py3ver()
 
         out += self._formatter("""
             build() {
@@ -117,9 +111,9 @@ class Alpine(BaseDistribution):
         """ % self.project.name)
         out += self.pip_build_command(1, "$builddir")
         out += self._formatter(
-            """
-                _metadata_dir="$(find "$builddir" -name '*.dist-info')"
-                rm -f "$_metadata_dir/direct_url.json"
+            f"""
+            _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{self.project.name}-$pkgver.dist-info"
+            rm -f "$_metadata_dir/direct_url.json"
         """, 1)
         for license in self.project.licenses:
             out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
