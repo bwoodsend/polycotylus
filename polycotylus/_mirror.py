@@ -12,6 +12,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import HTTPError
+import contextlib
 
 import appdirs
 
@@ -68,11 +69,9 @@ class CachedMirror:
             print("http://{}:{}".format(host, self.port))
             print(f"Install via:\n{self.install}")
             self.verbose = True
-            try:
+            with contextlib.suppress(KeyboardInterrupt):
                 while True:
                     time.sleep(1)
-            except KeyboardInterrupt:
-                pass
             self.verbose = False
 
     def __enter__(self):
