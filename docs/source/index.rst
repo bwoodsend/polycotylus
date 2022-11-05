@@ -9,7 +9,9 @@
 
 
 .. toctree::
-    :caption: API Reference
+    :caption: References
+
+    package-managers
 
 
 .. toctree::
