@@ -40,7 +40,7 @@ def test_key_generation(tmp_path, monkeypatch):
 @mirror.decorate
 def test_abuild_lint():
     self = Alpine(Project.from_root(dumb_text_viewer))
-    self.generate(clean=True)
+    self.generate()
     _docker.run(
         "alpine", f"""
         {mirror.install}
@@ -51,7 +51,7 @@ def test_abuild_lint():
 
 def test_dumb_text_viewer():
     self = Alpine(Project.from_root(dumb_text_viewer))
-    self.generate(clean=True)
+    self.generate()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
     assert "arch=noarch" in self.pkgbuild()
 
@@ -84,7 +84,7 @@ def test_dumb_text_viewer():
 
 def test_ubrotli():
     self = Alpine(Project.from_root(ubrotli))
-    self.generate(clean=True)
+    self.generate()
     assert "arch=all" in self.pkgbuild()
 
     apk = self.build()

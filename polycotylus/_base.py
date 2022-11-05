@@ -169,13 +169,12 @@ class BaseDistribution(abc.ABC):
                 f'"{dest}/usr/share/applications/{id}.desktop"', indentation)
         return out
 
-    def generate(self, clean=False):
+    def generate(self):
         """Generate all pragmatically created files."""
-        if clean:
-            try:
-                shutil.rmtree(self.distro_root)
-            except FileNotFoundError:
-                pass
+        try:
+            shutil.rmtree(self.distro_root)
+        except FileNotFoundError:
+            pass
         self.distro_root.mkdir(parents=True, exist_ok=True)
         self.project.write_desktop_files()
         self.project.write_gitignore()

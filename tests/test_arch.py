@@ -34,7 +34,7 @@ class TestCommon(cross_distribution.Base):
 
 def test_dumb_text_viewer():
     self = Arch(Project.from_root(dumb_text_viewer))
-    self.generate(clean=True)
+    self.generate()
 
     pkgbuild = self.pkgbuild()
     assert pkgbuild.startswith(pkgbuild_prefix)
@@ -72,7 +72,7 @@ def test_dumb_text_viewer():
 
 def test_ubrotli():
     self = Arch(Project.from_root(ubrotli))
-    self.generate(clean=True)
+    self.generate()
     assert "arch=(x86_64)" in self.pkgbuild()
 
     package = self.build()
