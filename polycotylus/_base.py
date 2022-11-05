@@ -1,6 +1,7 @@
 import abc
 import shutil
 import re
+import contextlib
 
 import pkg_resources
 
@@ -171,10 +172,8 @@ class BaseDistribution(abc.ABC):
 
     def generate(self):
         """Generate all pragmatically created files."""
-        try:
+        with contextlib.suppress(FileNotFoundError):
             shutil.rmtree(self.distro_root)
-        except FileNotFoundError:
-            pass
         self.distro_root.mkdir(parents=True, exist_ok=True)
         self.project.write_desktop_files()
         self.project.write_gitignore()

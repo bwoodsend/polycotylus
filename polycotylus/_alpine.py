@@ -10,6 +10,7 @@ from functools import lru_cache
 import hashlib
 import platform
 from pathlib import Path
+import contextlib
 
 from polycotylus import _shell, _docker
 from polycotylus._mirror import mirrors
@@ -68,13 +69,11 @@ class Alpine(BaseDistribution):
         name = f"{self.package_name}-{self.project.version}.tar.gz"
         path = self.distro_root / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        try:
+        with contextlib.suppress(OSError):
             # Note that abuild does some rather nasty symlinking rather than
             # copying which breaks an `if path.exists():` check and the open()
             # call below if not removed.
             os.remove(path)
-        except OSError:
-            pass
         with open(path, "wb") as f:
             f.write(self.project.tar())
 
