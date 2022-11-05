@@ -130,6 +130,10 @@ class BaseDistribution(abc.ABC):
     def build_dependencies(self):
         out = [self.python_package("wheel"), self.python_package("pip")]
         out += self._dependencies(self.project.build_dependencies)
+        if not self.project.build_dependencies.get("pip"):
+            # If no build backend is specified by a project, pip defaults to
+            # setuptools.
+            out.append(self.python_package("setuptools>=61.0"))
         if self.icons:
             out.append(self.imagemagick)
             if any(source.endswith(".svg") for (source, _) in self.icons):
