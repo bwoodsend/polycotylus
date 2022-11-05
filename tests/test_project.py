@@ -6,7 +6,7 @@ import pytest
 
 from polycotylus._project import Project, expand_pip_requirements
 from polycotylus._exceptions import PolycotylusYAMLParseError
-from tests import dumb_text_viewer
+from tests import dumb_text_viewer, bare_minimum
 
 
 def test_tar_reproducibility():
@@ -34,8 +34,7 @@ def test_expand_pip_requirements():
 
 
 def test_yaml_error(tmp_path):
-    toml = Path(__file__, "../mock-packages/bare-minimum/pyproject.toml")
-    shutil.copy(toml.resolve(), tmp_path)
+    shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
     polycotylus_yaml = tmp_path / "polycotylus.yaml"
     polycotylus_yaml.write_text("""
 source_url: https://xyz

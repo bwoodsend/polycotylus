@@ -1,0 +1,13 @@
+[project]
+name = "bare-minimum"
+description = "A package with the least possible configuration acceptable to polycotylus"
+authors = [
+    { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+version = "1.2.3"
+license = { file="LICENSE" }
+
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
