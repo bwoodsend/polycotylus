@@ -2,3 +2,103 @@
 .in-red {
   color: darkred;
 }
+
+/* Move padding beneath the last contents entry so that there isn't
+   a silly little black stub poking out under the scrollbar. */
+.wy-nav-side { padding-bottom: unset; }
+.wy-menu-vertical { padding-bottom: 1em; }
+
+/* Inline literals. */
+.rst-content code.literal, .rst-content tt.literal {
+  color: #034040;
+  background: #0000;
+  border: #0000;
+  padding: 2px 2px;
+  font-weight: 100;
+  font-size: 80%;
+}
+.rst-content a code.literal, .rst-content tt.literal {
+  border-bottom: solid 1px #0001;
+  padding: 2px 2px;
+}
+/* Inline literals in tables. */
+.rst-content table.docutils .code.literal {
+  /* Keep the fonts but lose the border box. Enable word wrapping. */
+  border-bottom: #0000;
+  white-space: normal;
+}
+/* Inline literals in admonitions. */
+.rst-content .admonition .code.literal, .rst-content .admonition code {
+  /* These blend into the background too much. Make them more prominent. */
+  background: #FCFCFCA0;
+  border-bottom: none;
+  padding: 2px 5px;
+}
+
+/* Use different color code-blocks. */
+/*div[class*="highlight"] .highlight { background: #fdf1ec; }*/
+
+/* Enable text wrapping in tables. */
+.wy-table-responsive table td, .wy-table-responsive table th {
+  white-space: normal;
+}
+
+/* Enable custom :strikethrough: role. */
+.strikethrough {
+  text-decoration: line-through;
+}
+
+/* Space out bullet point lists in custom `.. rst-class:: spacious` blocks. */
+.rst-content .section ul.spacious li {
+  margin-bottom: 18px;
+}
+
+/* --- Add the underwater image to the side bar. --- */
+.wy-nav-side {
+  /* Add the image itself. */
+  background-image: url("sidebar.jpg");
+  background-position-x: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.wy-side-nav-search > div.version {
+  /* Make the version under the title not transparent. */
+  color: #FFFF;
+}
+.wy-side-nav-search,
+.wy-menu-vertical li.toctree-l1,
+.wy-menu-vertical li.toctree-l2,
+.wy-menu-vertical li.current > a,
+.wy-menu-vertical li.toctree-l2.current > a {
+  /* Make the text on top of it more readable. */
+  background-color: #0000;
+  color: #FFF;
+}
+.wy-menu-vertical a, .wy-menu-vertical li.toctree-l2 a {
+    color: #FFF;
+}
+.wy-menu-vertical p.caption {
+  /* Likewise with the CONTENTS: caption in the side-bar. */
+  color: #76D5FF;
+  background-color: #0000;
+}
+
+/* Disable all sidebar mouse-hover behaviours. */
+.wy-menu-vertical li.toctree-l2.current > a,
+.wy-menu-vertical li.toctree-l1 a:hover,
+.wy-side-nav-search > a:hover,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a { background-color:#0000; }
+
+/* Color the empty space on the right hand side. */
+.wy-body-for-nav { background-color: #BBB; }
+
+.wy-menu-vertical li.toctree-l1.current>a {
+  border-bottom:1px solid #BBB;
+  border-top:1px solid #BBB;
+}
+
+.wy-menu-vertical li.toctree-l1.current > a {
+  border-bottom: #0000;
+  border-top: #0000;
+}
