@@ -228,8 +228,8 @@ class Alpine(BaseDistribution):
 
         return self.abuild_keys()
 
-    def generate(self, clean=False):
-        super().generate(clean=clean)
+    def generate(self):
+        super().generate()
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
     @mirror.decorate
