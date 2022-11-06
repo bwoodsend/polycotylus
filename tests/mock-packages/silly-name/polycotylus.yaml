@@ -1,5 +1,8 @@
 source_top_level: something-unrelated-{version}
 
+spdx:
+  custom:
+
 dependencies:
   test:
     pip: pytest

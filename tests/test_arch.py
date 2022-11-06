@@ -42,7 +42,7 @@ def test_dumb_text_viewer():
 
     subprocess.run(["bash", str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb-text-viewer"
-    package = self.build()
+    package = self.build()["main"]
 
     site_packages = next(
         (sysroot / "usr/lib/").glob("python3.*")) / "site-packages"
@@ -78,7 +78,7 @@ def test_ubrotli():
     self.generate()
     assert "arch=(x86_64)" in self.pkgbuild()
 
-    package = self.build()
+    package = self.build()["main"]
     raw = pyzstd.decompress(package.read_bytes())
     with tarfile.open("", "r", io.BytesIO(raw)) as tar:
         for file in tar.getnames():
@@ -94,7 +94,7 @@ def test_ubrotli():
 def test_silly_named_package():
     self = Arch(Project.from_root(silly_name))
     self.generate()
-    package = self.build()
+    package = self.build()["main"]
     installed = self.test(package).commit()
     script = "pacman -Q --info python-99---s1lly-name--packag3"
     container = _docker.run(installed, script)

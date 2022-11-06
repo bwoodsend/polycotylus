@@ -1,7 +1,7 @@
 import re
 
-from strictyaml import Any, Bool, Map, MapCombined, MapPattern, load, \
-    Optional, OrValidator, Regex, Seq, Str, ScalarValidator, StrictYAMLError
+from strictyaml import Any, Seq, Map, MapCombined, MapPattern, Str, EmptyDict, \
+    Optional, OrValidator, Regex, Bool, load, ScalarValidator, StrictYAMLError
 
 from polycotylus._exceptions import PolycotylusYAMLParseError
 
@@ -63,6 +63,7 @@ polycotylus_yaml = Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
     Optional("gui"): Bool(),
+    Optional("spdx"): MapPattern(Str(), EmptyDict()),
     Optional("prefix_package_name", default=True): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
     Optional("test_files", default=default_test_files): Seq(Str()),

@@ -9,6 +9,7 @@ import mimetypes
 from fnmatch import fnmatch
 from locale import locale_alias
 import gzip
+from importlib import resources
 
 import tomli
 
@@ -48,11 +49,20 @@ class Project:
         project = pyproject_options["project"]
         maintainer, = project["authors"]
 
-        license_names = []
-        for classifier in project.get("classifiers", []):
-            m = re.fullmatch("License :: (?:OSI Approved ::)? (.+)", classifier)
-            if m and m[1] != "OSI Approved":
-                license_names.append(m[1])
+        if polycotylus_options.get("spdx"):
+            license_names = list(polycotylus_options["spdx"])
+        else:
+            license_names = []
+            for classifier in project.get("classifiers", []):
+                if spdx := trove_to_spdx.get(classifier):
+                    if spdx == "ignore":
+                        continue
+                    if isinstance(spdx, list):
+                        raise _exceptions.AmbiguousLicenseError(
+                            classifier, spdx)
+                    license_names.append(spdx)
+            if not license_names:
+                raise _exceptions.NoLicenseSpecifierError()
 
         dependencies = polycotylus_options.get("dependencies", {})
         test_dependencies = []
@@ -235,6 +245,11 @@ def expand_pip_requirements(requirement, cwd, extras=None):
     else:
         yield requirement
 
+
+with resources.open_binary("polycotylus", "trove-spdx-licenses.json") as f:
+    trove_to_spdx = json.load(f)
+with resources.open_binary("polycotylus", "spdx-osi-approval.json") as f:
+    spdx_osi_approval = json.load(f)
 
 if __name__ == "__main__":
     self = Project.from_root(".")

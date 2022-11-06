@@ -60,20 +60,27 @@ class Arch(BaseDistribution):
                 rm -f "$_metadata_dir/direct_url.json"
         """ % top_level)
         license_names = []
-        for license in self.project.licenses:
-            content = _normalize_whitespace(
-                (self.project.root / license).read_bytes())
-            license_name = std_license_path(content)
-            if not license_name:
-                for license_name in unshareable_license_identifiers:
-                    if unshareable_license_identifiers[license_name] in content:
+        sharable = True
+        for spdx in self.project.license_names:
+            for name in available_licenses():
+                if spdx.replace("-", "").startswith(name):
+                    license_names.append(name)
+                    break
+            else:
+                for name in ("MIT", "BSD", "ZLIB"):
+                    if spdx.upper().startswith(name):
+                        license_names.append(name)
+                        sharable = False
                         break
                 else:
-                    license_name = "custom"
+                    sharable = False
+                    license_names.append(spdx)
+        if not sharable:
+            for license in self.project.licenses:
                 package += self._formatter(
                     f'install -Dm644 {shlex.quote(license)} '
                     f'-t "$pkgdir/usr/share/licenses/{self.package_name}"', 1)
-            license_names.append(license_name)
+        for license in self.project.licenses:
             package += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
 
         package += self.install_icons(1)
@@ -156,7 +163,7 @@ class Arch(BaseDistribution):
                     volumes=[(self.distro_root, "/io")], verbosity=verbosity)
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
-        return package
+        return {"main": package}
 
     @mirror.decorate
     def test(self, package, verbosity=None):
@@ -174,41 +181,17 @@ class Arch(BaseDistribution):
 
 @lru_cache()
 def available_licenses():
-    out = {}
+    out = []
     with _docker.run("archlinux:base",
                      verbosity=0)["/usr/share/licenses/common"] as tar:
         for member in tar.getmembers():
             m = re.fullmatch("common/([^/]+)/license.txt", member.name)
             if m:
-                with tar.extractfile(member.name) as f:
-                    out[m[1]] = f.read()
+                out.append(m[1])
     return out
-
-
-unshareable_license_identifiers = {
-    "BSD":
-        b'THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.',
-    "MIT":
-        b'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:',
-    "ZLIB":
-        b"1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required. 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software. 3. This notice may not be removed or altered from any source distribution.",
-}
-
-build_script_name = "PKGBUILD"
-
-
-def _normalize_whitespace(x: bytes):
-    return b" ".join(re.findall(rb"\S+", x))
-
-
-def std_license_path(content: bytes):
-    content = _normalize_whitespace(content)
-    for (name, body) in available_licenses().items():
-        if b" ".join(re.findall(rb"\S+", body)) == content:
-            return name
 
 
 if __name__ == "__main__":
     self = Arch(Project.from_root("."))
     self.generate()
-    self.test(self.build())
+    self.test(self.build()["main"])
