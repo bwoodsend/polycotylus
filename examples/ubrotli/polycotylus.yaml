@@ -1,5 +1,8 @@
 source_url: https://github.com/bwoodsend/ubrotli/archive/refs/tags/{version}.tar.gz
 
+spdx:
+  Apache-2.0:
+
 dependencies:
   build:
     arch: brotli

@@ -37,6 +37,7 @@ test = [
     "pytest-cov",
     "pillow",
     "pyzstd",
+    "tomli_w",
 ]
 
 [project.urls]

@@ -14,7 +14,7 @@ import contextlib
 
 from polycotylus import _shell, _docker
 from polycotylus._mirror import mirrors
-from polycotylus._project import Project
+from polycotylus._project import Project, spdx_osi_approval
 from polycotylus._base import BaseDistribution
 
 
@@ -87,13 +87,17 @@ class Alpine(BaseDistribution):
             architecture = " ".join(self.project.architecture)
         top_level = self.project.source_top_level.format(version="$pkgver")
 
+        license_names = [
+            i if spdx_osi_approval.get(i) else "custom"
+            for i in self.project.license_names
+        ]
         out += _shell.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
             arch=shlex.quote(architecture),
-            license='MIT',
+            license=shlex.quote(" ".join(license_names)),
             url=self.project.url,
             depends=shlex.quote(" ".join(self.dependencies)),
             makedepends=shlex.quote(" ".join(self.build_dependencies)),
@@ -102,6 +106,8 @@ class Alpine(BaseDistribution):
             f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
             builddir='"$srcdir/_build"',
         )
+        if "custom" in license_names:
+            out += _shell.variables(subpackages="$pkgname-doc")
         out += "\n"
         out += self.define_py3ver()
 
@@ -111,11 +117,17 @@ class Alpine(BaseDistribution):
                 rm -rf "$builddir"
         """ % top_level)
         out += self.pip_build_command(1, "$builddir")
+        dist_info_name = re.sub("[-_]+", "_", self.project.name)
         out += self._formatter(
             f"""
-            _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{re.sub("[-_]+", "_", self.project.name)}-$pkgver.dist-info"
+            _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{dist_info_name}-$pkgver.dist-info"
             rm -f "$_metadata_dir/direct_url.json"
         """, 1)
+        if "custom" in license_names:
+            for license in self.project.licenses:
+                out += self._formatter(
+                    f'install -Dm644 {shlex.quote(license)} -t '
+                    f'"$pkgdir-doc/usr/share/licenses/{self.package_name}"', 1)
         for license in self.project.licenses:
             out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
         out += self.install_desktop_files(1, dest="$builddir")
@@ -238,7 +250,11 @@ class Alpine(BaseDistribution):
         _docker.run(base, "abuild", volumes=volumes, verbosity=verbosity)
         _dist = self.distro_root / "dist" / platform.machine()
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
-        return apk
+        doc = apk.with_stem(re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem))
+        apks = {"main": apk}
+        if doc.exists():
+            apks["doc"] = doc
+        return apks
 
     @mirror.decorate
     def test(self, package, verbosity=None):
@@ -256,4 +272,4 @@ class Alpine(BaseDistribution):
 if __name__ == "__main__":
     self = Alpine(Project.from_root("."))
     self.generate()
-    self.test(self.build())
+    self.test(self.build()["main"])
