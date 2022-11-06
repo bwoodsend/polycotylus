@@ -2,12 +2,16 @@ import subprocess
 from pathlib import Path
 import platform
 import tarfile
+import shutil
+
+import tomli
+import tomli_w
 
 from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
-from tests import dumb_text_viewer, ubrotli, cross_distribution
+from tests import dumb_text_viewer, ubrotli, bare_minimum, cross_distribution
 
 mirror = mirrors["alpine"]
 
@@ -64,9 +68,12 @@ def test_dumb_text_viewer():
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
         assert "arch = noarch" in pkginfo
+        assert "license = MIT" in pkginfo
     assert "usr/share/icons/hicolor/128x128/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/icons/hicolor/32x32/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/applications/underwhelming_software-dumb_text_viewer.desktop" in files
+    for file in files:
+        assert "LICENSE" not in file
 
     container = self.test(apk)
     installed = container.commit()
@@ -92,8 +99,41 @@ def test_ubrotli():
         for file in tar.getnames():
             assert ".desktop" not in file
             assert ".png" not in file
+            assert "LICENSE" not in file
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
         assert f"arch = {platform.machine()}" in pkginfo
+        assert "license = Apache-2.0" in pkginfo
 
     self.test(apk)
+
+
+def test_license_handling(tmp_path):
+    subprocess.run(["git", "-C", tmp_path, "init"])
+    (tmp_path / "tests").mkdir()
+    for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE",
+                 "bare_minimum.py", "tests/test_bare_minimum.py"]:
+        shutil.copy(bare_minimum / path, tmp_path / path)
+
+    pyproject_toml = tmp_path / "pyproject.toml"
+    options = tomli.loads(pyproject_toml.read_text())
+
+    def _write_trove(trove):
+        options["project"]["classifiers"] = [trove]
+        pyproject_toml.write_text(tomli_w.dumps(options))
+
+    _write_trove("License :: OSI Approved :: MIT License")
+    self = Alpine(Project.from_root(tmp_path))
+    self.generate()
+    apks = self.build()
+    assert "doc" not in apks
+    with tarfile.open(apks["main"]) as tar:
+        for file in tar.getnames():
+            assert "LICENSE" not in file
+        with tar.extractfile(".PKGINFO") as f:
+            assert "license = MIT" in f.read().decode()
+
+    _write_trove("License :: Aladdin Free Public License (AFPL)")
+    self.inject_source()
+    (self.distro_root / self.build_script_name).write_text(self.pkgbuild(), encoding="utf-8")
+
