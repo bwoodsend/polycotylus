@@ -117,29 +117,29 @@ class Arch(BaseDistribution):
         return out
 
     def dockerfile(self):
-        return self._formatter("""
+        return self._formatter(f"""
             FROM archlinux:base-devel AS build
 
-            RUN echo '%%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+            RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
             RUN useradd -m -g wheel user
-            RUN %s
+            RUN {self.mirror.install}
 
             RUN mkdir /io && chown user /io
             WORKDIR /io
-            COPY .polycotylus/arch/PKGBUILD .
-            RUN source ./PKGBUILD && pacman -Sy --noconfirm ${makedepends[*]} ${checkdepends[*]}
+            RUN pacman -Sy --noconfirm {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
             ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
             CMD ["bash"]
+            COPY .polycotylus/arch/PKGBUILD .
 
             FROM archlinux:base AS test
-            RUN %s
+            RUN {self.mirror.install}
 
             RUN mkdir /io
             WORKDIR /io
+            RUN pacman -Sy --noconfirm {" ".join(self.test_dependencies)}
             COPY .polycotylus/arch/PKGBUILD .
-            RUN source ./PKGBUILD && pacman -Sy --noconfirm ${checkdepends[*]}
-    """ % (self.mirror.install, self.mirror.install))
+    """)
 
     @mirror.decorate
     def build(self, verbosity=None):
