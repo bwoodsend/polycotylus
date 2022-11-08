@@ -161,19 +161,18 @@ class Alpine(BaseDistribution):
             RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
             RUN cp "/etc/apk/keys/{public.name}" /home/user/.abuild/
 
-            COPY .polycotylus/alpine/APKBUILD .
-            RUN source ./APKBUILD && apk add $makedepends $checkdepends $depends
+            RUN apk add {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
             ENTRYPOINT ["sudo", "-u", "user"]
             CMD ["ash"]
+            COPY .polycotylus/alpine/APKBUILD .
 
             FROM alpine as test
             RUN {self.mirror.install}
 
             RUN mkdir /io
             WORKDIR /io
-            COPY .polycotylus/alpine/APKBUILD .
-            RUN source ./APKBUILD && apk add $checkdepends
+            RUN apk add {" ".join(self.test_dependencies)}
             RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
 
             # This seemingly redundant layer of indirection ensures that
@@ -183,6 +182,7 @@ class Alpine(BaseDistribution):
             RUN chmod +x /bin/intermediate
             ENTRYPOINT ["/bin/intermediate"]
             CMD ["ash"]
+            COPY .polycotylus/alpine/APKBUILD .
         """)
 
     def abuild_keys(self):
