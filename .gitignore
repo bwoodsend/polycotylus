@@ -118,3 +118,7 @@ ENV/
 
 # Needed for .dockerignore.
 .git
+
+# Generated
+docs/source/history.rst
+docs/source/schema.rst

@@ -20,6 +20,9 @@
 from pathlib import Path
 from textwrap import indent
 from importlib.metadata import version
+import runpy
+
+runpy.run_path("schema_to_rst.py")
 
 # -- General configuration ---------------------------------------------
 
@@ -147,3 +150,6 @@ html_static_path = ["static"]
 
 def setup(app):
     app.add_css_file("theme-overrides.css")
+
+
+html_favicon = 'static/favicon.png'

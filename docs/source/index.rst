@@ -1,17 +1,20 @@
 .. module:: polycotylus
 
 .. include:: ../../README.rst
-    :end-before: Quickstart
 
 
 .. toctree::
     :caption: Usage
 
+    requirements.rst
+
 
 .. toctree::
     :caption: References
 
+    schema
     package-managers
+    dependency-constraints
 
 
 .. toctree::
