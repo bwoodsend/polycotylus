@@ -102,3 +102,10 @@
   border-bottom: #0000;
   border-top: #0000;
 }
+
+.rst-content dl dd {
+  margin-left: 0px;
+}
+.rst-content section ul {
+  line-height: 12px;
+}

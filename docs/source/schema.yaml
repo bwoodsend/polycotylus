@@ -1,0 +1,191 @@
+# An exhaustive list of all valid options settable in the ``polycotylus.yaml``.
+# Options are grouped into non-front-end and front-end specific categories. Each
+# category is ordered with (almost) mandatory options first and options with
+# relatively all-encompassing defaults last. (Feedback wanted of whether this is
+# actually a helpful structure or if it should stick to conventional
+# alphabetical ordering.)
+
+# Note that, whilst this file's format is still dubbed as *YAML*, its parser is
+# strictyaml_. This means that, amongst other things, implicit typing, embedded
+# JSON and anchors features are all gone. Additionally, `polycotylus` uses a
+# custom *whitespace delimited list* validator for lists of packages (e.g.
+# ``numpy requests pyperclip`` instead of ``["numpy", "requests",
+# "pyperclip"]``).
+
+# .. _strictyaml: https://hitchdev.com/strictyaml/
+
+# ---------------
+# Generic Options
+# ---------------
+
+# Options that are applicable to packages of any type (GUI, CLI or library).
+
+dependencies:
+  # A project's dependencies are divided up into three categories:
+  # `dependencies.build`, `dependencies.run` and `dependencies.test`.
+  # Each of those categories are then in-turn broken down into:
+  #
+  #   - ``pip``: Pip/PyPI packages.
+  #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which are often shipped separately for size or licensing reasons.
+  #   - ``alpine|arch|fedora|manjaro|void``: Linux packages installed by each distribution's native package manager.
+
+  run:
+    # Dependencies needed to run the application/package.
+
+    pip: numpy pip
+      # Runtime dependencies that would normally be installed with ``pip``. This
+      # field automatically includes dependencies declared in the
+      # ``dependencies`` section in your ``pyproject.toml``. In practice, you
+      # should never set this field.
+
+    python: tkinter sqlite3 decimal lzma readline ctypes curses bz2
+      # If you use any of these libraries, list them here. `polycotylus` will
+      # ensure that their Linux distributions' equivalents are installed.
+
+    alpine: ffmpeg-libs xsetroot
+    arch manjaro: ffmpeg xorg-xsetroot
+    fedora: ffmpeg-free xsetroot
+    void: ffmpeg xsetroot
+      # Any external command line tools or runtime libraries used by the
+      # application. Similar distributions with an identical set of dependencies
+      # (e.g. manjaro and arch) may be written as one key-value pair to reduce
+      # duplicity.
+
+  build:
+    # Dependencies needed to compile the package from source. Essentially, anything
+    # needed to run ``pip wheel --no-build-isolation .``.
+
+    pip:
+      # This field is discouraged in favour of the ``[build-system]/requires``
+      # section of the ``pyproject.toml`` where `polycotylus` will automatically
+      # pick them up. ``pip`` and ``wheel`` are also automatically added to this
+      # list on distributions that don't handle this themselves.
+
+    alpine: gcc musl-dev python3-dev
+    arch manjaro: gcc
+    fedora: gcc
+    void: python3-devel gcc
+      # System package build dependencies. Pure Python packages are unlikely to
+      # need this section. Packages containing compiled extension modules will
+      # need to add the appropriate compiler for your chosen programming
+      # language and, for distributions that use them, the ``-dev`` variants of
+      # any C libraries linked against. The example shows the bare minimum
+      # required for any extension module written in C.
+
+  test:
+    # Anything not already in the `dependencies.run` category needed to run your
+    # test suite.
+
+    pip: -r test-requirements.txt .[test]
+      # Test dependencies normally installed with ``pip`` can either be listed
+      # here, or if you already define them in a requirements.txt or as an
+      # optional dependency group, use the usual ``-r requirements.txt`` or
+      # ``.[group-name]`` syntax respectively. You'll likely discover that some
+      # of your favourite pytest plugins aren't available on all Linux
+      # distributions, in which case, you will either have to submit those
+      # plugins yourself or make do without them. Note that some distributions
+      # (particularly Fedora) dislike non-functional test dependencies such as
+      # linters, formatters or coverage tools. If you use these, you're
+      # recommended to banish them to a separate extras group or requirements
+      # file.
+
+source_url:
+  # A URL where the project's source code can be downloaded from. Defaults to
+  # downloading an sdist from PyPI. If your project only puts wheels on PyPI or
+  # isn't on PyPI, you won't be able to use this default. Some examples for
+  # common git hosts assuming an organisation called ``foo`` and project
+  # called ``bar``::
+  #
+  #   https://bitbucket.org/foo/bar/downloads/bar-{version}.tar.xz
+  #   https://downloads.sourceforge.net/foo/bar-{version}.tar.gz
+  #   https://github.com/foo/bar/archive/{version}.tar.gz
+  #   https://gitlab.com/foo/bar/-/archive/v{version}/bar-v{version}.tar.gz
+
+source_top_level: foo-{version}
+
+spdx:
+  MIT:
+  CPL-1.0 WITH LZMA-exception:
+  # The license(s) the project is released under, declared via SPDX_
+  # identifiers. Dual licensed software should use multiple keys. SPDX
+  # exceptions_ can by appended after a ``WITH`` separator. This option does not
+  # need to be set if `polycotylus` detects license `trove classifiers`_ and is
+  # able to map them to SPDX codes without ambiguity.
+  #
+  # .. _SPDX: https://spdx.org/licenses/
+  # .. _exceptions: https://spdx.org/licenses/exceptions-index.html
+  # .. _`trove classifiers`: https://pypi.org/classifiers/
+
+architecture: aarch64 armhf armv7 ppc64le s390x x86 x86_64
+  # The architectures that this package may be installed on. Allowed
+  # values are:
+  #
+  #  - ``noarch``: The package contains no compiled binaries. A build on one
+  #    architecture will run as-is on another.
+  #  - ``any``: The package may run on any architecture but must be recompiled
+  #    for each one.
+  #  - A subset of any of the listed architectures.
+  #
+  # Defaults to ``any`` if ``gcc`` or ``clang`` is found in
+  # `dependencies.build.$distribution`; ``noarch`` otherwise.
+
+test_files: tests test_*.py pytest.ini conftest.py
+  # The files needed to run the test suite. `polycotylus`, when testing the
+  # final package, will mount only these files into the test container so that
+  # tests can't accidentally use your original source code rather than the
+  # installed package. The patterns listed here are the defaults. Setting this
+  # field replaces the defaults so you will have to re-add those if you need
+  # them too.
+
+
+# --------------------
+# CLI/GUI only options
+# --------------------
+
+prefix_package_name: false
+  # Apply the Linux distribution's standard Python package prefix (e.g.
+  # ``numpy`` → ``py3-numpy`` on Alpine). Disable this if your package is not
+  # primarily a library intended to be imported by other packages – rather it's
+  # a standalone CLI tool or GUI application that merely happens to be written
+  # in Python.
+
+gui: true
+  # Set to true if your package contains GUI elements. Defaults to false but
+  # enables itself automatically if the ``gui-scripts`` field in the
+  # ``pyproject.toml`` is non-empty. Setting this field will enable XVFB_
+  # display virtualisation so that GUIs can be ran inside Docker containers.
+
+desktop_entry_points:
+  # Desktop files are the glue between your application and the desktop.
+  # Creating one allows you to attach an icon, localised pretty name, keywords
+  # and summary description to your executable, have the application appear in
+  # each desktop's equivalent of Windows's Start menu or macOS's Dock and
+  # register supported file types so that your application appears in *Open
+  # with* menus when a user opens a supported file from a graphical file manager
+  # application. This reference lists only the more essential keys. If you're
+  # ever unsure what a particular key does, you can normally find examples by
+  # running ``grep KeyName /usr/share/applications/*.desktop`` on any Linux
+  # machine with a desktop installed.
+  #
+  # .. _specification: https://specifications.freedesktop.org/desktop-entry-spec/latest/
+
+  $identifier:
+    # An identifier, which will ultimately become the ``.desktop`` file's
+    # filename, is needed – usually either a sluggified (lowercase characters
+    # and underscores only) version of the application's name or your
+    # organisation and application names, both sluggified and joined by a hyphen
+    # (``-``). The second form is typically only used if you provide a family of
+    # applications (e.g. libreoffice or gnome).
+
+    Name: My Application
+    Exec: my_application %U
+    MimeType: image/*;video/mp4
+
+    icon: icon-source.svg
+    # A path, relative to the directory containing the ``polycotylus.yaml``, to
+    # an icon for the application. The desktop specification promotes using SVG
+    # since it can be scaled to arbitrary sizes but I have yet to encounter a
+    # desktop environment that actually will use SVGs therefore a decent sized
+    # PNG is equally sufficient. The provided icon should be square and either
+    # much larger than 128x128px or an exact multiple in size. `polycotylus`
+    # will handle the image resize and conversions.
