@@ -4,6 +4,7 @@ https://wiki.manjaro.org/index.php/PKGBUILD
 import re
 import shlex
 from functools import lru_cache
+import contextlib
 
 from polycotylus import _shell, _docker
 from polycotylus._project import Project
@@ -50,13 +51,14 @@ class Arch(BaseDistribution):
 
     def pkgbuild(self):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
+        top_level = self.project.source_top_level.format(version="$pkgver")
         package = self._formatter("""
             package() {
-                cd "%s-%s"
+                cd "%s"
                 cp -r _build/* "$pkgdir"
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
-        """ % (self.project.name, self.project.version))
+        """ % top_level)
         license_names = []
         for license in self.project.licenses:
             content = _normalize_whitespace(
@@ -69,10 +71,10 @@ class Arch(BaseDistribution):
                 else:
                     license_name = "custom"
                 package += self._formatter(
-                    f'install -Dm644 "$_metadata_dir/{shlex.quote(license)}" '
+                    f'install -Dm644 {shlex.quote(license)} '
                     f'-t "$pkgdir/usr/share/licenses/{self.package_name}"', 1)
             license_names.append(license_name)
-            package += self._formatter(f'rm "$_metadata_dir/{license}"', 1)
+            package += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
 
         package += self.install_icons(1)
         package += self.install_desktop_files(1)
@@ -100,7 +102,7 @@ class Arch(BaseDistribution):
         out += "\n"
         out += self._formatter(f"""
             build() {{
-                cd "{self.project.name}-{self.project.version}"
+                cd "{top_level}"
         """)
         out += self.pip_build_command(1, into="_build")
         out += self._formatter("}")
@@ -109,7 +111,7 @@ class Arch(BaseDistribution):
         out += "\n"
         out += self._formatter(f"""
             check() {{
-                cd "{self.project.name}-{self.project.version}"
+                cd "{top_level}"
                 PYTHONPATH="$(echo _build/usr/lib/python*/site-packages/)"
                 PYTHONPATH="$PYTHONPATH" {self.project.test_command}
             }}
@@ -123,6 +125,7 @@ class Arch(BaseDistribution):
             RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
             RUN useradd -m -g wheel user
             RUN {self.mirror.install}
+            ENV LANG C
 
             RUN mkdir /io && chown user /io
             WORKDIR /io

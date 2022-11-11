@@ -1,0 +1,14 @@
+[project]
+name = "99...S1Lly-namE-_PACKAG3"
+description = "🚀 🦄 \"quoted\" 'quoted again' $$$"
+authors = [
+    { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+version = "1.2.3"
+license = { file="The license file" }
+
+[project.urls]
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
+
+[tool.setuptools]
+py-modules = ["sIlLy_Nam3"]

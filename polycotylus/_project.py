@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import io
@@ -34,6 +34,7 @@ class Project:
     architecture: object
     gui: bool
     source_url: str
+    source_top_level: str
     prefix_package_name: bool
     url: str
 
@@ -91,7 +92,11 @@ class Project:
         source = polycotylus_options.get("source_url")
         if not source:
             name = project["name"]
-            source = f"https://pypi.io/packages/source/{name[0]}/{name}/{name}-{{version}}.tar.gz"
+            _name = re.sub("[-_.]+", "-", name).lower()
+            source = f"https://pypi.io/packages/source/{_name[0]}/{_name}/{name}-{{version}}.tar.gz"
+        source_top_level = polycotylus_options.get("source_top_level")
+        if not source_top_level:
+            source_top_level = project["name"] + "-{version}"
 
         return cls(
             name=project["name"],
@@ -109,6 +114,7 @@ class Project:
             licenses=[project["license"]["file"]],
             desktop_entry_points=desktop_files,
             source_url=source,
+            source_top_level=source_top_level,
             prefix_package_name=polycotylus_options["prefix_package_name"],
             architecture=architecture,
             gui=gui,
@@ -116,11 +122,11 @@ class Project:
         )
 
     def tar(self):
-        p = subprocess.run(["git", "ls-files", "--exclude-standard", "-oc"],
+        p = subprocess.run(["git", "ls-files", "--exclude-standard", "-ocz"],
                            text=True, cwd=str(self.root),
                            stdout=subprocess.PIPE)
         assert p.returncode == 0
-        files = re.findall("[^\n]+", p.stdout)
+        files = re.findall("[^\x00]+", p.stdout)
         buffer = io.BytesIO()
 
         def _strip_mtime(tar_info):
@@ -128,8 +134,9 @@ class Project:
             return tar_info
 
         with tarfile.TarFile("", mode="w", fileobj=buffer) as tar:
+            top_level = self.source_top_level.format(version=self.version)
             for file in files:
-                tar.add(self.root / file, f"{self.name}-{self.version}/{file}",
+                tar.add(self.root / file, PurePosixPath(top_level, file),
                         filter=_strip_mtime)
         return gzip.compress(buffer.getvalue(), mtime=0)
 

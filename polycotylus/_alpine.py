@@ -85,6 +85,7 @@ class Alpine(BaseDistribution):
             architecture = "all"
         else:
             architecture = " ".join(self.project.architecture)
+        top_level = self.project.source_top_level.format(version="$pkgver")
 
         out += _shell.variables(
             pkgname=shlex.quote(self.package_name),
@@ -106,13 +107,13 @@ class Alpine(BaseDistribution):
 
         out += self._formatter("""
             build() {
-                cd "$srcdir/%s-$pkgver"
+                cd "$srcdir/%s"
                 rm -rf "$builddir"
-        """ % self.project.name)
+        """ % top_level)
         out += self.pip_build_command(1, "$builddir")
         out += self._formatter(
             f"""
-            _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{self.project.name}-$pkgver.dist-info"
+            _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{re.sub("[-_]+", "_", self.project.name)}-$pkgver.dist-info"
             rm -f "$_metadata_dir/direct_url.json"
         """, 1)
         for license in self.project.licenses:

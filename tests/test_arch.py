@@ -2,6 +2,7 @@ import io
 import subprocess
 import platform
 import tarfile
+import re
 
 from PIL import Image
 import pyzstd
@@ -10,7 +11,7 @@ from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
-from tests import dumb_text_viewer, cross_distribution, ubrotli
+from tests import dumb_text_viewer, cross_distribution, ubrotli, silly_name
 
 mirror = mirrors["arch"]
 
@@ -86,3 +87,14 @@ def test_ubrotli():
         assert f"arch = {platform.machine()}" in pkginfo
 
     self.test(package)
+
+
+def test_silly_named_package():
+    self = Arch(Project.from_root(silly_name))
+    self.generate()
+    package = self.build()
+    installed = self.test(package).commit()
+    script = "pacman -Q --info python-99---s1lly-name--packag3"
+    container = _docker.run(installed, script)
+    assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
+                     container.output)

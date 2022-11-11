@@ -1,0 +1,5 @@
+source_top_level: something-unrelated-{version}
+
+dependencies:
+  test:
+    pip: pytest

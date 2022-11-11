@@ -7,7 +7,7 @@ from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
-from tests import dumb_text_viewer, ubrotli, cross_distribution
+from tests import dumb_text_viewer, ubrotli, cross_distribution, silly_name
 
 mirror = mirrors["alpine"]
 
@@ -97,3 +97,13 @@ def test_ubrotli():
         assert f"arch = {platform.machine()}" in pkginfo
 
     self.test(apk)
+
+
+def test_silly_named_package():
+    self = Alpine(Project.from_root(silly_name))
+    self.generate()
+    package = self.build()
+    installed = self.test(package).commit()
+    script = "apk info py3-99---s1lly-name--packag3"
+    container = _docker.run(installed, script)
+    assert """🚀 🦄 "quoted" 'quoted again' $$$""" in container.output
