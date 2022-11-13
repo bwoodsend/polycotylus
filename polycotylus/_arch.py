@@ -145,6 +145,11 @@ class Arch(BaseDistribution):
             COPY .polycotylus/arch/PKGBUILD .
     """)
 
+    def generate(self):
+        with contextlib.suppress(FileNotFoundError):
+            (self.distro_root / "pkg").chmod(0o755)
+        super().generate()
+
     @mirror.decorate
     def build(self, verbosity=None):
         _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
