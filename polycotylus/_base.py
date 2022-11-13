@@ -101,7 +101,7 @@ class BaseDistribution(abc.ABC):
     def pip_build_command(self, indentation, into="$pkgdir"):
         return self._formatter(
             f"""
-            {self.python_prefix}/bin/pip install --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
+            {self.python_prefix}/bin/pip install --disable-pip-version-check --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
             {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "{into}" "{into}{self.python_prefix}/lib/"
         """, indentation)
 
