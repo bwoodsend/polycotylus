@@ -126,6 +126,7 @@ class Arch(BaseDistribution):
             RUN useradd -m -g wheel user
             RUN {self.mirror.install}
             ENV LANG C
+            RUN echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/makepkg.conf
 
             RUN mkdir /io && chown user /io
             WORKDIR /io

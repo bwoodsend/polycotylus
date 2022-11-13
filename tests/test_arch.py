@@ -63,6 +63,8 @@ def test_dumb_text_viewer():
     with mirror:
         script = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
+    info = _docker.run(installed, "pacman -Q --info dumb-text-viewer").output
+    assert "Brénainn" in re.search("Packager *: *(.*)", info)[1]
 
     with container[pycache.relative_to(sysroot)] as tar:
         for pyc in pyc_contents:
