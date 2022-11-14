@@ -7,7 +7,6 @@ from polycotylus._exceptions import PolycotylusYAMLParseError
 
 
 class WhitespaceDelimited(ScalarValidator):
-
     def __init__(self, item_validator):
         self._item_validator = item_validator
         assert isinstance(self._item_validator,
@@ -23,8 +22,6 @@ class WhitespaceDelimited(ScalarValidator):
     def to_yaml(self, data):
         return " ".join([self._item_validator.to_yaml(item) for item in data])
 
-
-# yapf: disable
 
 python_extra = Regex("(tkinter|sqlite3|decimal|lzma|readline|ctypes|curses|bz2)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
@@ -48,10 +45,10 @@ dependencies_group = MapCombined(
 
 architectures = [
     "i386", "aarch64", "aarch64_be", "alpha", "arm", "armeb", "hexagon",
-    "hppa", "m68k", "microblaze", "microblazeel", "mips", "mips64",
-    "mips64el","mipsel", "mipsn32", "mipsn32el", "or1k", "ppc", "ppc64",
-    "ppc64le", "riscv32", "riscv64", "s390x", "sh4", "sh4eb", "sparc",
-    "sparc32plus", "sparc64", "x86_64", "xtensa", "xtensaeb"
+    "hppa", "m68k", "microblaze", "microblazeel", "mips", "mips64", "mips64el",
+    "mipsel", "mipsn32", "mipsn32el", "or1k", "ppc", "ppc64", "ppc64le",
+    "riscv32", "riscv64", "s390x", "sh4", "sh4eb", "sparc", "sparc32plus",
+    "sparc64", "x86_64", "xtensa", "xtensaeb"
 ]
 
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]

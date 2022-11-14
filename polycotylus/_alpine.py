@@ -44,8 +44,7 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def available_packages(cls):
         with cls.mirror:
-            output = _docker.run(
-                "alpine", f"""
+            output = _docker.run("alpine", f"""
                 {mirrors["alpine"].install}
                 apk update -q
                 apk search -q
@@ -102,8 +101,7 @@ class Alpine(BaseDistribution):
             depends=shlex.quote(" ".join(self.dependencies)),
             makedepends=shlex.quote(" ".join(self.build_dependencies)),
             checkdepends=shlex.quote(" ".join(self.test_dependencies)),
-            source=
-            f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
+            source=f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
             builddir='"$srcdir/_build"',
         )
         if "custom" in license_names:
@@ -118,16 +116,15 @@ class Alpine(BaseDistribution):
         """ % top_level)
         out += self.pip_build_command(1, "$builddir")
         dist_info_name = re.sub("[-_]+", "_", self.project.name)
-        out += self._formatter(
-            f"""
+        out += self._formatter(f"""
             _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{dist_info_name}-$pkgver.dist-info"
             rm -f "$_metadata_dir/direct_url.json"
         """, 1)
         if "custom" in license_names:
             for license in self.project.licenses:
-                out += self._formatter(
-                    f'install -Dm644 {shlex.quote(license)} -t '
-                    f'"$pkgdir-doc/usr/share/licenses/{self.package_name}"', 1)
+                out += self._formatter(f"""
+                    install -Dm644 {shlex.quote(license)} -t "$pkgdir-doc/usr/share/licenses/{self.package_name}"
+                """, 1)
         for license in self.project.licenses:
             out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
         out += self.install_desktop_files(1, dest="$builddir")
@@ -213,8 +210,7 @@ class Alpine(BaseDistribution):
                 return public_key, private_key
 
         with self.mirror:
-            container = _docker.run(
-                "alpine", f"""
+            container = _docker.run("alpine", f"""
                 {self.mirror.install}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/abuild.conf
@@ -262,8 +258,7 @@ class Alpine(BaseDistribution):
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        return _docker.run(
-            base, f"""
+        return _docker.run(base, f"""
             apk add /pkg/{package.name}
             {self.project.test_command}
         """, volumes=volumes, verbosity=verbosity)

@@ -13,7 +13,6 @@ def variables(**variables):
 
 
 class Formatter:
-
     def __init__(self, indentation="  "):
         self.indentation = indentation
 

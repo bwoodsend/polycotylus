@@ -47,3 +47,7 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 include = ["polycotylus"]
+
+[tool.autopep8]
+max_line_length = 80
+ignore = "E501,E701,E702,E703,E722,E731"

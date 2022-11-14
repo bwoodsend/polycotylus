@@ -12,7 +12,6 @@ class PolycotylusUsageError(Exception):
 
 
 class InvalidLocale(PolycotylusUsageError):
-
     def __init__(self, locale, location):
         self.locale = locale
         self.location = location
@@ -27,7 +26,6 @@ class InvalidLocale(PolycotylusUsageError):
 
 
 class InvalidMimetypePattern(PolycotylusUsageError):
-
     def __init__(self, mimetype, location):
         self.mimetype = mimetype
         self.location = location
@@ -46,7 +44,6 @@ class PolycotylusYAMLParseError(PolycotylusUsageError):
 
 
 class AmbiguousLicenseError(PolycotylusUsageError):
-
     def __init__(self, classifier, possibilities):
         self.classifier = classifier
         self.possibilities = possibilities
@@ -65,7 +62,6 @@ class AmbiguousLicenseError(PolycotylusUsageError):
 
 
 class NoLicenseSpecifierError(PolycotylusUsageError):
-
     def __str__(self):
         return _unravel("""
             No license classifier specified in the pyproject.toml. Choose a

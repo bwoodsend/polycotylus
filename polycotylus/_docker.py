@@ -10,7 +10,6 @@ import sys
 
 
 class run:
-
     def __init__(self, base, command=None, volumes=(), check=True,
                  interactive=False, verbosity=None):
         if verbosity is None:
@@ -89,7 +88,6 @@ def build(dockerfile, root, target=None, verbosity=None):
 
 
 class Error(Exception):
-
     def __init__(self, command, output):
         self.command = command
         self.output = output
