@@ -48,8 +48,7 @@ def test_key_generation(tmp_path, monkeypatch):
 def test_abuild_lint():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate()
-    _docker.run(
-        "alpine", f"""
+    _docker.run("alpine", f"""
         {mirror.install}
         apk add -q atools
         apkbuild-lint /io/APKBUILD
@@ -87,8 +86,7 @@ def test_dumb_text_viewer():
         script = "apk add py3-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
 
-        assert _docker.run(
-            installed, """
+        assert _docker.run(installed, """
             apk add -q xdg-utils shared-mime-info
             xdg-mime query default text/plain
         """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"

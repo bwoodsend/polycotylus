@@ -32,8 +32,7 @@ class Arch(BaseDistribution):
     @lru_cache()
     def available_packages():
         with mirrors["arch"]:
-            output = _docker.run(
-                "archlinux:base", f"""
+            output = _docker.run("archlinux:base", f"""
                 {mirrors["arch"].install}
                 pacman -Sysq
             """, verbosity=0).output
@@ -171,8 +170,7 @@ class Arch(BaseDistribution):
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        return _docker.run(
-            base, f"""
+        return _docker.run(base, f"""
             pacman -Sy
             pacman -U --noconfirm /pkg/{package.name}
             {self.project.test_command}
@@ -182,8 +180,7 @@ class Arch(BaseDistribution):
 @lru_cache()
 def available_licenses():
     out = []
-    with _docker.run("archlinux:base",
-                     verbosity=0)["/usr/share/licenses/common"] as tar:
+    with _docker.run("archlinux:base", verbosity=0)["/usr/share/licenses/common"] as tar:
         for member in tar.getmembers():
             m = re.fullmatch("common/([^/]+)/license.txt", member.name)
             if m:

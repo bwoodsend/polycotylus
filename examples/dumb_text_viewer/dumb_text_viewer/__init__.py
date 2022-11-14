@@ -7,7 +7,6 @@ favicon = str(Path(__file__).with_name("icon.png").resolve())
 
 
 class TextViewerWidget:
-
     def __init__(self, root, initial=None):
         frame = tkinter.Frame(root)
         frame.grid(row=0, column=0, sticky=W + E)

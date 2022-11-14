@@ -116,5 +116,5 @@ ENV/
 .DS_Store
 .fuse_hidden*
 
-# Needed for .yapfignore and .dockerignore.
+# Needed for .dockerignore.
 .git

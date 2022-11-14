@@ -99,8 +99,7 @@ class BaseDistribution(abc.ABC):
             f.write(self.project.tar())
 
     def pip_build_command(self, indentation, into="$pkgdir"):
-        return self._formatter(
-            f"""
+        return self._formatter(f"""
             {self.python_prefix}/bin/pip install --disable-pip-version-check --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
             {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "{into}" "{into}{self.python_prefix}/lib/"
         """, indentation)
@@ -150,8 +149,7 @@ class BaseDistribution(abc.ABC):
     def install_icons(self, indentation):
         if not self.icons:
             return ""
-        out = self._formatter(
-            f"""
+        out = self._formatter(f"""
             for _size in 16 22 24 32 48 128; do
                 _icon_dir="{self.pkgdir}/usr/share/icons/hicolor/${{_size}}x$_size/apps"
                 mkdir -p "$_icon_dir"

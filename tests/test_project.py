@@ -86,8 +86,7 @@ def test_license_handling(tmp_path):
     # Ambiguous license identifier.
     _write_trove("License :: OSI Approved :: Apache Software License")
     with pytest.raises(
-            AmbiguousLicenseError, match=
-            r".*classifier 'License :: OSI Approved :: Apache Software License' could .* codes \['Apache-1.0', 'Apache-1.1', 'Apache-2.0'\]\. "
+            AmbiguousLicenseError, match=r".*classifier 'License :: OSI Approved :: Apache Software License' could .* codes \['Apache-1.0', 'Apache-1.1', 'Apache-2.0'\]\. "
             "Either .* as:\n    spdx:\n      - Apache-2.0:\n"):
         Project.from_root(tmp_path)
 
