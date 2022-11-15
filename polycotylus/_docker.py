@@ -11,11 +11,24 @@ import sys
 
 class run:
     def __init__(self, base, command=None, volumes=(), check=True,
-                 interactive=False, verbosity=None):
+                 interactive=False, verbosity=None, display=None):
         if verbosity is None:
             verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
         __tracebackhide__ = True
         arguments = ["--network=host"]
+        if display == "host":
+            p = _run(
+                ["xauth", "nlist", str(os.environ["DISPLAY"])], stdout=PIPE,
+                check=True)
+            cookie = b"ffff" + p.stdout[4:]
+            _run(["xauth", "-f", "/tmp/docker-xauth-cookie", "nmerge", "-"],
+                 input=cookie, check=True)
+            arguments += [
+                "-v/tmp/docker-xauth-cookie:/tmp/docker-xauth-cookie",
+                "--env=XAUTHORITY=/tmp/docker-xauth-cookie",
+                f"--env=DISPLAY={os.environ['DISPLAY']}", "--ipc=host",
+                "-v/tmp/.X11-unix/X0:/tmp/.X11-unix/X0"
+            ]
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}")
         if interactive:
