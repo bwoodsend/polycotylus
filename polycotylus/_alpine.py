@@ -246,7 +246,8 @@ class Alpine(BaseDistribution):
         _docker.run(base, "abuild", volumes=volumes, verbosity=verbosity)
         _dist = self.distro_root / "dist" / platform.machine()
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
-        doc = apk.with_stem(re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem))
+        _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
+        doc = apk.with_name(_stem + apk.suffix)
         apks = {"main": apk}
         if doc.exists():
             apks["doc"] = doc
