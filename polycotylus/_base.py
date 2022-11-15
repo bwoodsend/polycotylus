@@ -185,6 +185,7 @@ class BaseDistribution(abc.ABC):
             shutil.rmtree(self.distro_root)
         self.distro_root.mkdir(parents=True, exist_ok=True)
         self.project.write_desktop_files()
+        self.distro_root.chmod(0o777)
         self.project.write_gitignore()
         self.inject_source()
         (self.distro_root / self.build_script_name).write_text(
