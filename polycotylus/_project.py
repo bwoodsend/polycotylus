@@ -131,6 +131,10 @@ class Project:
             root=root,
         )
 
+    @property
+    def maintainer_slug(self):
+        return f"{self.maintainer} <{self.email}>"
+
     def tar(self):
         p = subprocess.run(["git", "ls-files", "--exclude-standard", "-ocz"],
                            text=True, cwd=str(self.root),

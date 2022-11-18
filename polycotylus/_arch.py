@@ -49,7 +49,7 @@ class Arch(BaseDistribution):
         return "python-" + pypi_name
 
     def pkgbuild(self):
-        out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
+        out = f"# Maintainer: {self.project.maintainer_slug}\n"
         top_level = self.project.source_top_level.format(version="$pkgver")
         package = self._formatter("""
             package() {
@@ -132,7 +132,7 @@ class Arch(BaseDistribution):
             RUN useradd -m -g wheel user
             RUN {self.mirror.install}
             ENV LANG C
-            RUN echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/makepkg.conf
+            RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
 
             RUN mkdir /io && chown user /io
             WORKDIR /io

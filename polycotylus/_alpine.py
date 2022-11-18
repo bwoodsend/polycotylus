@@ -76,7 +76,7 @@ class Alpine(BaseDistribution):
             f.write(self.project.tar())
 
     def apkbuild(self):
-        out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
+        out = f"# Maintainer: {self.project.maintainer_slug}\n"
         if self.project.architecture == "none":
             architecture = "noarch"
         elif self.project.architecture == "any":
@@ -156,7 +156,7 @@ class Alpine(BaseDistribution):
             RUN {self.mirror.install}
 
             RUN apk add alpine-sdk shadow sudo
-            RUN echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/abuild.conf
+            RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
             RUN useradd --create-home --uid {os.getuid()} --groups wheel,abuild user
 
@@ -212,7 +212,7 @@ class Alpine(BaseDistribution):
             container = _docker.run("alpine", f"""
                 {self.mirror.install}
                 apk add -q abuild
-                echo 'PACKAGER="{self.project.maintainer} <{self.project.email}>"' >> /etc/abuild.conf
+                echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
                 echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
                 abuild-keygen -nq
             """)
