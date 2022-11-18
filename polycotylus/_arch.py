@@ -155,6 +155,7 @@ class Arch(BaseDistribution):
         with contextlib.suppress(FileNotFoundError):
             (self.distro_root / "pkg").chmod(0o755)
         super().generate()
+        (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
 
     @mirror.decorate
     def build(self, verbosity=None):

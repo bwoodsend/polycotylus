@@ -21,7 +21,6 @@ from polycotylus._base import BaseDistribution
 class Alpine(BaseDistribution):
     name = "alpine"
     mirror = mirrors[name]
-    build_script_name = "APKBUILD"
     python_prefix = "/usr"
     python = "python3"
     python_extras = {
@@ -76,7 +75,7 @@ class Alpine(BaseDistribution):
         with open(path, "wb") as f:
             f.write(self.project.tar())
 
-    def pkgbuild(self):
+    def apkbuild(self):
         out = f"# Maintainer: {self.project.maintainer} <{self.project.email}>\n"
         if self.project.architecture == "none":
             architecture = "noarch"
@@ -232,6 +231,7 @@ class Alpine(BaseDistribution):
 
     def generate(self):
         super().generate()
+        (self.distro_root / "APKBUILD").write_text(self.apkbuild())
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
     @mirror.decorate

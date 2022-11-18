@@ -59,7 +59,7 @@ def test_dumb_text_viewer():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
-    assert "arch=noarch" in self.pkgbuild()
+    assert "arch=noarch" in self.apkbuild()
 
     _docker.run("alpine", ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
@@ -95,7 +95,7 @@ def test_dumb_text_viewer():
 def test_ubrotli():
     self = Alpine(Project.from_root(ubrotli))
     self.generate()
-    assert "arch=all" in self.pkgbuild()
+    assert "arch=all" in self.apkbuild()
 
     apks = self.build()
     with tarfile.open(apks["main"]) as tar:

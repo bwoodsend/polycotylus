@@ -16,7 +16,6 @@ class BaseDistribution(abc.ABC):
     python_extras: dict = abc.abstractproperty()
     _formatter = abc.abstractproperty()
     pkgdir = "$pkgdir"
-    build_script_name = "PKGBUILD"
 
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg"
@@ -79,10 +78,6 @@ class BaseDistribution(abc.ABC):
 
     @abc.abstractmethod
     def dockerfile(self):
-        pass
-
-    @abc.abstractmethod
-    def pkgbuild(self):
         pass
 
     @property
@@ -179,6 +174,7 @@ class BaseDistribution(abc.ABC):
                 f'"{dest}/usr/share/applications/{id}.desktop"', indentation)
         return out
 
+    @abc.abstractmethod
     def generate(self):
         """Generate all pragmatically created files."""
         with contextlib.suppress(FileNotFoundError):
@@ -188,8 +184,6 @@ class BaseDistribution(abc.ABC):
         self.distro_root.chmod(0o777)
         self.project.write_gitignore()
         self.inject_source()
-        (self.distro_root / self.build_script_name).write_text(
-            self.pkgbuild(), encoding="utf-8")
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
 
     def build_builder_image(self, verbosity=None):
