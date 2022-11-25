@@ -83,8 +83,8 @@ def build(dockerfile, root, target=None, verbosity=None):
     returncode, output = _tee_run(command, verbosity, cwd=root)
     if returncode:
         raise Error("$ " + shlex.join(command), output)
-    return next(m for line in output.splitlines()[::-1] if (
-        m := re.search("Successfully built (.*)", line)))[1]  # pragma: no cover
+    pattern = re.compile("(?:writing image|Successfully built) ([^ ]*)")
+    return next(filter(None, map(pattern.search, output.splitlines()[::-1])))[1]
 
 
 class Error(Exception):
