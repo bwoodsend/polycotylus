@@ -31,7 +31,7 @@ class BaseDistribution(abc.ABC):
 
     @abc.abstractmethod
     def available_packages():
-        pass
+        raise NotImplementedError
 
     @classmethod
     def python_package(cls, requirement):
@@ -51,6 +51,7 @@ class BaseDistribution(abc.ABC):
     def fix_package_name(name):
         """Apply the distribution's package naming rules for case folding/
         underscore vs hyphen normalisation."""
+        raise NotImplementedError
 
     @classmethod
     def normalise_package(cls, name):
@@ -66,7 +67,7 @@ class BaseDistribution(abc.ABC):
 
     @abc.abstractmethod
     def python_package_convention(self, pypi_name):
-        pass
+        raise NotImplementedError
 
     @property
     def package_name(self):
@@ -78,7 +79,7 @@ class BaseDistribution(abc.ABC):
 
     @abc.abstractmethod
     def dockerfile(self):
-        pass
+        raise NotImplementedError
 
     @property
     def mirror(self):
@@ -194,7 +195,7 @@ class BaseDistribution(abc.ABC):
 
     @abc.abstractmethod
     def build(self, verbosity=None):
-        pass
+        raise NotImplementedError
 
     def build_test_image(self, verbosity=None):
         with self.mirror:

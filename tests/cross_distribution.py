@@ -17,6 +17,12 @@ awkward_pypi_packages = [
 class Base:
     cls: type
 
+    def test_available_packages(self):
+        packages = self.cls.available_packages()
+        assert len(packages) > 1000
+        for package in packages:
+            assert " " not in package
+
     def test_python_package(self):
         for pypi_name in awkward_pypi_packages:
             self.cls.python_package(pypi_name)
