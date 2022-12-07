@@ -140,7 +140,6 @@ class Arch(BaseDistribution):
 
             ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
             CMD ["bash"]
-            COPY .polycotylus/arch/PKGBUILD .
 
             FROM archlinux:base AS test
             RUN {self.mirror.install}
@@ -148,7 +147,6 @@ class Arch(BaseDistribution):
             RUN mkdir /io
             WORKDIR /io
             RUN pacman -Sy --noconfirm {" ".join(self.test_dependencies)}
-            COPY .polycotylus/arch/PKGBUILD .
     """)
 
     def generate(self):

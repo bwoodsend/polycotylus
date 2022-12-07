@@ -174,7 +174,6 @@ class Alpine(BaseDistribution):
 
             ENTRYPOINT ["sudo", "-u", "user"]
             CMD ["ash"]
-            COPY .polycotylus/alpine/APKBUILD .
 
             FROM alpine as test
             RUN {self.mirror.install}
@@ -191,7 +190,6 @@ class Alpine(BaseDistribution):
             RUN chmod +x /bin/intermediate
             ENTRYPOINT ["/bin/intermediate"]
             CMD ["ash"]
-            COPY .polycotylus/alpine/APKBUILD .
         """)
 
     def abuild_keys(self):
