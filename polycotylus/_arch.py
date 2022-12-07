@@ -28,15 +28,28 @@ class Arch(BaseDistribution):
     xvfb_run = "xorg-server-xvfb"
     _formatter = _shell.Formatter()
 
-    @staticmethod
+    @classmethod
     @lru_cache()
-    def available_packages():
-        with mirrors["arch"]:
-            output = _docker.run("archlinux:base", f"""
+    def _base_image_syncronised(cls):
+        with cls.mirror:
+            return _docker.run("archlinux:base", f"""
                 {mirrors["arch"].install}
-                pacman -Sysq
-            """, verbosity=0).output
-        return set(re.findall("([^\n]+)", output))
+                pacman -Syq --noconfirm base-devel
+            """, verbosity=0).commit()
+
+    @classmethod
+    @lru_cache()
+    def available_packages(cls):
+        container = _docker.run(cls._base_image_syncronised(), "pacman -Ssq",
+                                verbosity=0)
+        return set(re.findall("([^\n]+)", container.output))
+
+    @classmethod
+    @lru_cache()
+    def build_base_packages(cls):
+        container = _docker.run(cls._base_image_syncronised(), "pacman -Qq",
+                                verbosity=0)
+        return set(re.findall("([^\n]+)", container.output))
 
     invalid_package_characters = "[^a-z0-9-]"
 

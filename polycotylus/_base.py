@@ -33,6 +33,12 @@ class BaseDistribution(abc.ABC):
     def available_packages():
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def build_base_packages():
+        """Packages that the distribution considers *too standard* to be given
+        as build dependencies."""
+        raise NotImplementedError
+
     @classmethod
     def python_package(cls, requirement):
         requirement = pkg_resources.Requirement(requirement)
@@ -133,6 +139,8 @@ class BaseDistribution(abc.ABC):
             out.append(self.imagemagick)
             if any(source.endswith(".svg") for (source, _) in self.icons):
                 out.append(self.imagemagick_svg)
+        disallowed = self.build_base_packages()
+        out = [i for i in out if i not in disallowed]
         return _deduplicate(out)
 
     @property

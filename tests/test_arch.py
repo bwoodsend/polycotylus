@@ -77,6 +77,9 @@ def test_ubrotli():
     self = Arch(Project.from_root(ubrotli))
     self.generate()
     assert "arch=(x86_64)" in self.pkgbuild()
+    self.project.build_dependencies["arch"].append("gcc")
+    assert "gcc" not in self.build_dependencies
+    assert "gcc" not in self.pkgbuild()
 
     package = self.build()["main"]
     raw = pyzstd.decompress(package.read_bytes())

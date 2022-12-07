@@ -60,6 +60,7 @@ def test_dumb_text_viewer():
     self.generate()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
     assert "arch=noarch" in self.apkbuild()
+    assert "gcc" not in self.apkbuild()
 
     _docker.run("alpine", ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
