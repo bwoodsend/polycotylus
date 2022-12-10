@@ -42,10 +42,14 @@ def test_interactive():
     assert p.stdout.endswith(b"foo\nhello\n")
 
     pattern = ".*command:\n" \
-        ".*docker run --rm --network=host -it? alpine sh -c 'cat .'\n" \
+        ".*docker run --rm --network=host -it? alpine sh -ec 'cat .'\n" \
         ".*\n.*Is a directory"
     with pytest.raises(_docker.Error, match=pattern):
         _docker.run("alpine", "cat .", interactive=True)
+    with pytest.raises(_docker.Error) as capture:
+        _docker.run("alpine", "cat .\necho do not run me")
+    assert "Is a directory" in capture.value.output
+    assert "do not run me" not in capture.value.output
 
 
 def test_non_interactive():

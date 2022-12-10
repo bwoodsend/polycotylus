@@ -22,7 +22,7 @@ class run:
             arguments.append("-it" if sys.stdin.isatty() else "-i")
         arguments.append(base)
         if isinstance(command, str):
-            arguments += ["sh", "-c", textwrap.dedent(command)]
+            arguments += ["sh", "-ec", textwrap.dedent(command)]
         elif command is not None:
             arguments += command
         human_friendly = "$ docker run --rm " + shlex.join(arguments)
