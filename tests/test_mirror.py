@@ -47,7 +47,7 @@ def test_basic(tmp_path):
     contents = []
 
     def _test():
-        time.sleep(.2)
+        time.sleep(1.5)
         try:
             with urlopen(url) as response:
                 contents.append(response.read())
