@@ -7,7 +7,7 @@ from dumb_text_viewer import TextViewerWidget, favicon
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
-    root = tkinter.Tk()
+    root = tkinter.Tk(className="Dumb Text Viewer")
     root.title("Dumb Text Viewer")
     root.iconphoto(True, tkinter.PhotoImage(file=favicon))
     TextViewerWidget(root, initial=args[0] if args else None)
