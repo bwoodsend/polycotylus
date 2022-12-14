@@ -13,6 +13,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import HTTPError
+import email.utils
 import contextlib
 
 import appdirs
@@ -49,6 +50,8 @@ class CachedMirror:
                 which returns an integer timestamp corresponding to the time
                 the repository was last updated. This is typically stored in a
                 plain text fail at ${base_url}/last-sync.
+                Or the special string "Last-Modified" which uses the
+                "Last-Modified" HTTP header to check if the cache is up to date.
 
         """
         self.base_url = base_url.strip("/")
@@ -64,7 +67,7 @@ class CachedMirror:
         self.install = install
         self._lock = threading.Lock()
         self._listeners = 0
-        self.last_sync_time = lambda: last_sync_time(self)
+        self.last_sync_time = last_sync_time
         self._in_progress = {}
         self.verbose = False
 
@@ -174,9 +177,22 @@ class RequestHandler(BaseHTTPRequestHandler):
             cache = response
             if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
                 timestamp = cache.stat().st_mtime
-                if all(timestamp < i for i in self.parent.last_sync_time()):
-                    cache.unlink()
-                    response = urlopen(self.parent.base_url + self.path)
+                for upstream in self.parent.last_sync_time:
+                    if upstream == "Last-Modified":
+                        _response = urlopen(self.parent.base_url + self.path)
+                        latest = _response.headers["Last-Modified"]
+                        latest = email.utils.parsedate_to_datetime(latest)
+                        upstream = latest.timestamp()
+                        if upstream > timestamp:
+                            cache.unlink()
+                            response = _response
+                            break
+                        else:
+                            _response.close()
+                    elif upstream(self.parent) > timestamp:
+                        cache.unlink()
+                        response = urlopen(self.parent.base_url + self.path)
+                        break
                 else:
                     os.utime(cache)
 
@@ -247,17 +263,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             super().log_message(format, *args)
 
 
-def _arch_sync_time(self):
-    with urlopen(self.base_url + "/lastsync") as _response:
-        yield int(_response.read())
-
-
 def _alpine_sync_time(self):
     # Alpine repositories are only updated at most, once per hour and always on
     # the hour (i.e. at xx:00:00).
-    yield time.time() // 3600 * 3600
-    with urlopen(self.base_url + "/last-updated") as _response:
-        yield int(_response.read())
+    return time.time() // 3600 * 3600
 
 
 mirrors = {
@@ -269,7 +278,7 @@ mirrors = {
             ["*.db.sig", "*.files.sig"],
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
-            _arch_sync_time,
+            ("Last-Modified",),
         ),
     "alpine":
         CachedMirror(
@@ -279,7 +288,7 @@ mirrors = {
             [],
             8901,
             r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/edge/|g' /etc/apk/repositories",
-            _alpine_sync_time,
+            (_alpine_sync_time,),
         ),
 }
 

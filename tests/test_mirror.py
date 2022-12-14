@@ -21,7 +21,7 @@ def _alpine_mirror(tmp_path):
         ["*.penguin"],
         9989,
         _alpine.install.replace("8901", "9989"),
-        _alpine_sync_time,
+        (_alpine_sync_time,),
     )
 
 
