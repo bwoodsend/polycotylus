@@ -98,6 +98,7 @@ class Project:
         test_files = []
         for pattern in polycotylus_options["test_files"]:
             test_files += root.glob(pattern)
+        test_files = [i.relative_to(root) for i in test_files]
 
         source = polycotylus_options.get("source_url")
         if not source:
