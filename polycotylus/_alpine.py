@@ -184,9 +184,6 @@ class Alpine(BaseDistribution):
 
             RUN apk add {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
-            ENTRYPOINT ["sudo", "-u", "user"]
-            CMD ["ash"]
-
             FROM alpine as test
             RUN {self.mirror.install}
 
@@ -253,7 +250,8 @@ class Alpine(BaseDistribution):
             (private_key, f"/home/user/.abuild/{private_key.name}"),
             (self.distro_root / "dist", "/home/user/packages"),
         ]
-        _docker.run(base, "abuild", volumes=volumes, verbosity=verbosity)
+        _docker.run(base, "abuild", root=False, volumes=volumes,
+                    verbosity=verbosity)
         _dist = self.distro_root / "dist" / platform.machine()
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)

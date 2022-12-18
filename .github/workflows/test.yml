@@ -9,6 +9,9 @@ jobs:
       matrix:
         python:
           - 3.8
+        docker:
+          - docker
+          - podman
       fail-fast: false
 
     runs-on: ubuntu-latest
@@ -23,3 +26,5 @@ jobs:
       - run: python -m pip install -U pip setuptools wheel
       - run: pip install -e .[test]
       - run: pytest -sv
+        env:
+          docker: ${{ matrix.docker }}

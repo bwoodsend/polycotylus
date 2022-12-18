@@ -151,9 +151,6 @@ class Arch(BaseDistribution):
             WORKDIR /io
             RUN pacman -Sy --noconfirm {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
-            ENTRYPOINT ["sudo", "--preserve-env", "-H", "-u", "user"]
-            CMD ["bash"]
-
             FROM archlinux:base AS test
             RUN {self.mirror.install}
 
@@ -171,7 +168,8 @@ class Arch(BaseDistribution):
     @mirror.decorate
     def build(self, verbosity=None):
         _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                    volumes=[(self.distro_root, "/io")], verbosity=verbosity)
+                    volumes=[(self.distro_root, "/io")], root=False,
+                    verbosity=verbosity)
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
         return {"main": package}

@@ -9,9 +9,22 @@ from pathlib import Path
 import sys
 
 
+class DockerInfo(str):
+    @staticmethod
+    def __new__(cls):
+        self = super().__new__(cls, os.environ.get("docker", "docker"))
+        p = _run([self, "--version"], stdout=PIPE, stderr=STDOUT, text=True)
+        m = re.match("(docker|podman) version ([^, ]+)", p.stdout.lower())
+        self.variant, self.version = m.groups()
+        return self
+
+
+docker = DockerInfo()
+
+
 class run:
-    def __init__(self, base, command=None, volumes=(), check=True,
-                 interactive=False, verbosity=None):
+    def __init__(self, base, command=None, *flags, volumes=(), check=True,
+                 interactive=False, root=True, verbosity=None):
         if verbosity is None:
             verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
         __tracebackhide__ = True
@@ -20,43 +33,51 @@ class run:
             arguments.append(f"-v{Path(source).resolve()}:{dest}")
         if interactive:
             arguments.append("-it" if sys.stdin.isatty() else "-i")
+        arguments.extend(map(str, flags))
+        if not root:
+            if docker.variant == "podman":
+                arguments += ["--userns", "keep-id"]
+            else:
+                arguments += [f"--user={os.getuid()}"]
+
         arguments.append(base)
         if isinstance(command, str):
             arguments += ["sh", "-ec", textwrap.dedent(command)]
         elif command is not None:
             arguments += command
-        human_friendly = "$ docker run --rm " + shlex.join(arguments)
+        human_friendly = f"$ {docker} run --rm " + shlex.join(arguments)
         if verbosity >= 1:
             print(human_friendly, flush=True)
 
-        p = _run(["docker", "create"] + arguments, stdout=PIPE)
+        p = _run([docker, "create"] + arguments, stdout=PIPE)
         self.id = p.stdout.decode().splitlines()[-1]
         if interactive:
-            _run(["docker", "start", self.id], stdout=DEVNULL)
-            if _run(["docker", "container", "attach", self.id]).returncode:
-                logs = _run(["docker", "logs", self.id], stderr=STDOUT,
+            _run([docker, "start", self.id], stdout=DEVNULL)
+            if _run([docker, "container", "attach", self.id]).returncode:
+                logs = _run([docker, "logs", self.id], stderr=STDOUT,
                             stdout=PIPE, text=True).stdout
                 raise Error(human_friendly, logs)
 
         else:
             self.returncode, self.output = _tee_run(
-                ["docker", "container", "start", "-a", self.id], verbosity)
+                [docker, "container", "start", "-a", self.id], verbosity)
             if check and self.returncode:
                 raise Error(human_friendly, self.output)
 
     def __del__(self):
         try:
-            _run(["docker", "container", "rm", "-f", self.id], stdout=DEVNULL)
+            _run([docker, "container", "rm", "-f", self.id], stdout=DEVNULL)
         except (AttributeError, ImportError, TypeError):  # pragma: no cover
             pass
 
     def __getitem__(self, path):
-        p = _run(["docker", "container", "cp", f"{self.id}:{path}", "-"],
+        path = Path("/", path)
+        p = _run([docker, "container", "cp", f"{self.id}:{path}", "-"],
                  stdout=PIPE)
         return TarFile("", "r", io.BytesIO(p.stdout))
 
     def commit(self):
-        return _run(["docker", "commit", self.id], stdout=PIPE,
+        return _run([docker, "commit", self.id], stdout=PIPE,
                     text=True).stdout.strip()
 
 
@@ -73,7 +94,7 @@ def _tee_run(command, verbosity, **kwargs):
 
 
 def build(dockerfile, root, target=None, verbosity=None):
-    command = ["docker", "build", "-f", str(dockerfile), "--network=host", "."]
+    command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
         verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
     if target:
@@ -83,8 +104,14 @@ def build(dockerfile, root, target=None, verbosity=None):
     returncode, output = _tee_run(command, verbosity, cwd=root)
     if returncode:
         raise Error("$ " + shlex.join(command), output)
-    pattern = re.compile("(?:writing image|Successfully built) ([^ ]*)")
-    return next(filter(None, map(pattern.search, output.splitlines()[::-1])))[1]
+    return _parse_build_output(output)
+
+
+def _parse_build_output(output):
+    match = re.search(r"Successfully built ([a-f0-9]{8,})\n*\Z", output) \
+        or re.search(r"([a-f0-9]{64})\n*\Z", output) \
+        or re.search(r"writing image (sha256:[a-f0-9]{64}) done\n.* DONE .*\n*\Z", output)
+    return match[1]
 
 
 class Error(Exception):
