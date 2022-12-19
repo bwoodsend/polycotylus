@@ -3,6 +3,7 @@ import time
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
 import threading
+import shutil
 import signal
 import os
 
@@ -101,16 +102,25 @@ def test_head(tmp_path):
     with self:
         with urlopen(Request(url, method="HEAD")) as response:
             assert not response.read()
+            length = int(response.headers["Content-Length"])
+            assert length
         cache = tmp_path / "MIRRORS.txt"
         assert not cache.exists()
 
         with urlopen(url) as response:
             assert response.read()
+        assert cache.stat().st_size == length
         with urlopen(Request(url, method="HEAD")) as response:
             assert not response.read()
+            assert int(response.headers["Content-Length"]) == length
 
         with pytest.raises(URLError):
             urlopen(Request(url + "cake", method="HEAD")).close()
+
+        with urlopen(Request("http://0.0.0.0:9989", method="HEAD")) as response:
+            if not response.headers["Transfer-Encoding"] == "chunked":
+                assert int(response.headers["Content-Length"])
+            assert not response.read()
 
 
 @pytest.mark.parametrize("path", [
@@ -135,6 +145,15 @@ def test_index_page_handling(tmp_path):
         assert b"latest-stable" in content
     assert tmp_path.is_dir()
     assert list(tmp_path.iterdir()) == []
+
+    self.base_url = "https://geo.mirror.pkgbuild.com/"
+    with self:
+        with urlopen(Request("http://0.0.0.0:9989",
+                             headers={"Accept-Encoding": "gzip"})) as response:
+            if response.headers["Transfer-Encoding"] == "chunked":
+                return
+            content = gzip.decompress(response.read())
+            assert b"core" in content
 
 
 def test_concurrent(tmp_path):
@@ -172,3 +191,27 @@ def test_tar_integrity(tmp_path):
     for i in range(3):
         with self:
             _docker.run("alpine", f"{self.install} && apk add libbz2")
+
+
+@pytest.mark.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
+def test_abort_cleanup(tmp_path, monkeypatch):
+    self = _alpine_mirror(tmp_path)
+
+    def _bogus_copy(source, dest, length=None):
+        dest.write(source.read(100))
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(shutil, "copyfileobj", _bogus_copy)
+
+    url = "http://0.0.0.0:9989/edge/main/x86_64/APKINDEX.tar.gz"
+    cache = tmp_path / "edge/main/x86_64/APKINDEX.tar.gz"
+    with self:
+        urlopen(url).close()
+        assert any(not cache.exists() or time.sleep(0.1) for _ in range(10))
+
+        monkeypatch.undo()
+        urlopen(url).close()
+        assert cache.exists()
+
+        with urlopen(url) as response:
+            gzip.decompress(response.read())

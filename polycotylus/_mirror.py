@@ -3,7 +3,6 @@ import platform
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http import HTTPStatus
-from http.client import HTTPResponse
 import shutil
 import re
 import threading
@@ -11,7 +10,7 @@ import time
 from functools import wraps
 from fnmatch import fnmatch
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 import email.utils
 import contextlib
@@ -46,12 +45,9 @@ class CachedMirror:
                 A shell command which replaces the distribution's list of
                 mirrors with this mirror.
             last_sync_time:
-                A function, taking this CachedMirror() instance as an argument,
-                which returns an integer timestamp corresponding to the time
-                the repository was last updated. This is typically stored in a
-                plain text fail at ${base_url}/last-sync.
-                Or the special string "Last-Modified" which uses the
-                "Last-Modified" HTTP header to check if the cache is up to date.
+                A sequence of functions, each taking a RequestHandler()
+                instance as an argument and returning an integer timestamp
+                corresponding to the time the requested file was last updated.
 
         """
         self.base_url = base_url.strip("/")
@@ -125,128 +121,144 @@ class CachedMirror:
 class RequestHandler(BaseHTTPRequestHandler):
     """Handle a single request from a package manager."""
     parent: CachedMirror
+    _upstream = None
 
-    def do_HEAD(self):
-        response = self._head()
-        if isinstance(response, HTTPResponse):
-            response.close()
-        self.end_headers()
-
-    def _head(self):
-        """Triage an incoming request for a file.
-
-        Returns:
-            Either:
-            - An open connection to the upstream repository if the request makes
-              sense and isn't already cached.
-            - A path to the local cache if this file is cache-able and already
-              downloaded.
-            - None if there are any errors.
-
-        """
-        path = self.cache
-        if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
-            self.send_response(404)
-            return
-        if ".." in self.path.split("/"):
-            self.send_response(404)
-            return
-        # File is cached - send the cache.
-        if path.is_file():
-            self.send_response(HTTPStatus.OK)
-            return path
-        try:
-            # File is not cached - attempt to download it.
-            response = urlopen(self.parent.base_url + self.path)
-            self.send_response(HTTPStatus.OK)
-            return response
-        except HTTPError as ex:
-            self.send_response(ex.code)
+    @property
+    def upstream(self):
+        """An open response from the original repository archive."""
+        if self._upstream:
+            return self._upstream
+        headers = {}
+        for header in ("Accept-Encoding",):
+            if header in self.headers:
+                headers[header] = self.headers[header]
+        self._upstream = urlopen(Request(self.parent.base_url + self.path,
+                                         headers=headers))
+        return self._upstream
 
     @property
     def cache(self):
+        """The file path where this request should be cached."""
         return self.parent.base_dir / self.path.lstrip("/")
 
     def do_GET(self):
-        response = self._head()
-        self.end_headers()
-        if not response:
+        if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
+            self.send_response(404)
+            self.end_headers()
+            return
+        if ".." in self.path.split("/"):
+            self.send_response(404)
+            self.end_headers()
             return
 
-        if isinstance(response, Path):
-            cache = response
-            if any(fnmatch(cache.name, i) for i in self.parent.index_patterns):
-                timestamp = cache.stat().st_mtime
-                for upstream in self.parent.last_sync_time:
-                    if upstream == "Last-Modified":
-                        _response = urlopen(self.parent.base_url + self.path)
-                        latest = _response.headers["Last-Modified"]
-                        latest = email.utils.parsedate_to_datetime(latest)
-                        upstream = latest.timestamp()
-                        if upstream > timestamp:
-                            cache.unlink()
-                            response = _response
-                            break
-                        else:
-                            _response.close()
-                    elif upstream(self.parent) > timestamp:
-                        cache.unlink()
-                        response = urlopen(self.parent.base_url + self.path)
-                        break
-                else:
-                    os.utime(cache)
-
-        if not isinstance(response, Path):
+        use_cache = True
+        if not self.cache.is_file():
+            use_cache = False
+            try:
+                # File is not cached. Check upstream.
+                self.upstream
+            except HTTPError as ex:
+                # File doesn't exist upstream either. Forward the error.
+                self.send_response(ex.code)
+                self.end_headers()
+                return
             # Don't cache FTP index pages (e.g. /some/directory/) since the
             # upstream server will redirect /some/directory/ to
             # /some/directory/index.html and that would create a local cache
             # file called $cache/some/directory where the directory
             # $cache/some/directory/ is supposed to be.
-            if response.headers["Content-Type"] == "text/html":
-                with response:
-                    shutil.copyfileobj(response, self.wfile)
+            if self.upstream.headers["Content-Type"] == "text/html":
+                with self.upstream:
+                    self.send_response(HTTPStatus.OK)
+                    # Forward any header web browsers needs to interpret the
+                    # potentially compressed HTML response.
+                    for header in ["Content-Encoding", "Content-Type",
+                                   "Content-Length", "Transfer-Encoding"]:
+                        if value := self.upstream.headers[header]:
+                            self.send_header(header, value)
+                    self.end_headers()
+                    if self.command == "GET":
+                        shutil.copyfileobj(self.upstream, self.wfile)
                 return
 
-        with self.parent._lock:
-            if isinstance(response, Path):
-                pass
-            elif self.path not in self.parent._in_progress:
-                t = threading.Thread(target=lambda: self._download(response))
-                self.parent._in_progress[self.path] = t
-                t.start()
+        elif any(fnmatch(self.cache.name, i) for i in self.parent.index_patterns):
+            # File is cached but is one which may be updated in-place upstream
+            # without changing its name. Determine if it needs re-downloading,
+            timestamp = self.cache.stat().st_mtime
+            for get_last_update in self.parent.last_sync_time:
+                if get_last_update(self) > timestamp:
+                    self.cache.unlink()
+                    use_cache = False
+                    break
             else:
-                response.close()
-            if self.path in self.parent._in_progress:
+                os.utime(self.cache)
+
+        self.send_response(HTTPStatus.OK)
+        with self.parent._lock:
+            if self.command != "HEAD":
+                if self.path not in self.parent._in_progress and not use_cache:
+                    t = threading.Thread(target=self._download)
+                    self.parent._in_progress[self.path] = t
+                    t.start()
+
+            if self.path in self.parent._in_progress \
+                    or (self.command == "HEAD" and not use_cache):
                 method = self._in_progress_send
+                for header in ["Content-Length", "Transfer-Encoding"]:
+                    if value := self.upstream.headers[header]:
+                        self.send_header(header, value)
+                self.end_headers()
+                if self.command == "HEAD":
+                    self._upstream and self._upstream.close()
+                    return
             else:
                 method = self._cache_send
+                self._upstream and self._upstream.close()
+
         method()
+
+    do_HEAD = do_GET
 
     def _cache_send(self):
         """Send a file from cache to the client."""
         cache = self.cache
         if range := re.match(r"bytes=(\d*)-(\d*)", self.headers["Range"] or ""):
             start = int(range[1] or 0)
-            length = int(range[2]) - start if range[2] else None
+            length = int(range[2] or self.cache.stat().st_size) - start
+            self.send_header("Content-Length", str(length))
         else:
             length = None
+            self.send_header("Content-Length", str(self.cache.stat().st_size))
+        self.end_headers()
+        self._upstream and self._upstream.close()
+        if self.command == "HEAD":
+            return
+
         with open(cache, "rb") as f:
             if range:
                 f.seek(start)
             shutil.copyfileobj(f, self.wfile, length)
 
-    def _download(self, response):
+    def _download(self):
         cache = self.cache
         cache.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with response:
+            with self.upstream:
                 with open(cache, "wb") as f:
-                    shutil.copyfileobj(response, f)
+                    shutil.copyfileobj(self.upstream, f)
+        except:
+            with contextlib.suppress(FileNotFoundError):
+                cache.unlink()
+            raise
         finally:
-            del self.parent._in_progress[self.path]
+            with self.parent._lock:
+                del self.parent._in_progress[self.path]
 
     def _in_progress_send(self):
         """Send a file from the cache whilst the cache is being written."""
+        for header in ["Content-Length", "Transfer-Encoding"]:
+            if value := self.upstream.headers[header]:
+                self.send_header(header, value)
         while not self.cache.exists():
             time.sleep(0.1)
         with open(self.cache, "rb") as f:
@@ -269,6 +281,12 @@ def _alpine_sync_time(self):
     return time.time() // 3600 * 3600
 
 
+def _use_last_modified_header(self: RequestHandler):
+    latest = self.upstream.headers["Last-Modified"]
+    latest = email.utils.parsedate_to_datetime(latest)
+    return latest.timestamp()
+
+
 mirrors = {
     "arch":
         CachedMirror(
@@ -278,7 +296,7 @@ mirrors = {
             ["*.db.sig", "*.files.sig"],
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
-            ("Last-Modified",),
+            (_use_last_modified_header,),
         ),
     "alpine":
         CachedMirror(
@@ -288,7 +306,7 @@ mirrors = {
             [],
             8901,
             r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/edge/|g' /etc/apk/repositories",
-            (_alpine_sync_time,),
+            (_alpine_sync_time, _use_last_modified_header),
         ),
 }
 
