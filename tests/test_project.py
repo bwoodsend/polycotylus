@@ -64,6 +64,29 @@ def test_mimal_configuration(tmp_path):
         Project.from_root(tmp_path)
 
 
+def test_dockerignore(tmp_path):
+    shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
+    (tmp_path / "polycotylus.yaml").write_bytes(b"")
+    self = Project.from_root(tmp_path)
+    path = tmp_path / ".dockerignore"
+
+    self.write_dockerignore()
+    assert path.read_bytes() == b".polycotylus\n"
+
+    path.write_bytes(b"foo\nbar")
+    self.write_dockerignore()
+    assert path.read_bytes() == b"foo\nbar\n.polycotylus\n"
+
+    path.write_bytes(b"\n\nfoo\nbar\n\n\n")
+    self.write_dockerignore()
+    assert path.read_bytes() == b"\n\nfoo\nbar\n.polycotylus\n"
+
+    path.write_bytes(b"foo\n.polycotylus\nbar\n")
+    old = path.stat()
+    self.write_dockerignore()
+    assert path.stat() == old
+
+
 def test_license_handling(tmp_path):
     for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
         shutil.copy(bare_minimum / path, tmp_path / path)

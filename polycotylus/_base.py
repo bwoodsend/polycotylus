@@ -192,6 +192,7 @@ class BaseDistribution(abc.ABC):
         self.project.write_desktop_files()
         self.distro_root.chmod(0o777)
         self.project.write_gitignore()
+        self.project.write_dockerignore()
         self.inject_source()
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
 

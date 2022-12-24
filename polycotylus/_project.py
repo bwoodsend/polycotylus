@@ -203,6 +203,16 @@ class Project:
         else:
             path.write_text("*\n")
 
+    def write_dockerignore(self):
+        path = self.root / ".dockerignore"
+        try:
+            original = path.read_bytes().rstrip() + b"\n"
+        except FileNotFoundError:
+            original = b""
+        if b".polycotylus" in original:
+            return
+        path.write_bytes(original + b".polycotylus\n")
+
     @property
     def test_command(self):
         return "xvfb-run pytest" if self.gui else "pytest"
