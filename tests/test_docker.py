@@ -35,7 +35,7 @@ def test_interactive():
 
     code = dedent("""
         from polycotylus import _docker
-        _docker.run("alpine", "sleep 0.1 && echo foo && sh", interactive=True)
+        _docker.run("alpine", "echo foo && sh", interactive=True)
     """)
     p = subprocess.run([sys.executable, "-c", code], input=b"echo hello",
                        timeout=10, stdout=subprocess.PIPE)

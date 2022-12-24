@@ -52,8 +52,7 @@ class run:
         p = _run([docker, "create"] + arguments, stdout=PIPE)
         self.id = p.stdout.decode().splitlines()[-1]
         if interactive:
-            _run([docker, "start", self.id], stdout=DEVNULL)
-            if _run([docker, "container", "attach", self.id]).returncode:
+            if _run([docker, "start", "-ia", self.id]).returncode:
                 logs = _run([docker, "logs", self.id], stderr=STDOUT,
                             stdout=PIPE, text=True).stdout
                 raise Error(human_friendly, logs)
