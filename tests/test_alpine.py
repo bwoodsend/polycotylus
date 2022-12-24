@@ -21,7 +21,7 @@ mirror = mirrors["alpine"]
 
 class TestCommon(cross_distribution.Base):
     cls = Alpine
-    base_image = "alpine"
+    base_image = Alpine.base
     package_install = "apk add"
 
 
@@ -48,7 +48,7 @@ def test_key_generation(tmp_path, monkeypatch):
 def test_abuild_lint():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate()
-    _docker.run("alpine", f"""
+    _docker.run(Alpine.base, f"""
         {mirror.install}
         apk add -q atools
         apkbuild-lint /io/APKBUILD
@@ -62,7 +62,7 @@ def test_dumb_text_viewer():
     assert "arch=noarch" in self.apkbuild()
     assert "gcc" not in self.apkbuild()
 
-    _docker.run("alpine", ["ash", "-c", "set -e; source /io/APKBUILD"],
+    _docker.run(Alpine.base, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
     apks = self.build()
     assert len(apks) == 1

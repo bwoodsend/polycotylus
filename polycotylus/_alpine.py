@@ -20,6 +20,7 @@ from polycotylus._base import BaseDistribution
 
 class Alpine(BaseDistribution):
     name = "alpine"
+    base = "alpine:3.17"
     mirror = mirrors[name]
     python_prefix = "/usr"
     python = "python3"
@@ -43,7 +44,7 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def _base_image_syncronised(cls):
         with cls.mirror:
-            return _docker.run("alpine", f"{cls.mirror.install}\napk update",
+            return _docker.run(cls.base, f"{cls.mirror.install}\napk update",
                                verbosity=0).commit()
 
     @classmethod
@@ -164,7 +165,7 @@ class Alpine(BaseDistribution):
     def dockerfile(self):
         public, private = self.abuild_keys()
         return self._formatter(f"""
-            FROM alpine AS build
+            FROM {self.base} AS build
             RUN {self.mirror.install}
 
             RUN apk add alpine-sdk shadow sudo
@@ -184,7 +185,7 @@ class Alpine(BaseDistribution):
 
             RUN apk add {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
-            FROM alpine as test
+            FROM {self.base} as test
             RUN {self.mirror.install}
 
             RUN mkdir /io
@@ -216,7 +217,7 @@ class Alpine(BaseDistribution):
                 return public_key, private_key
 
         with self.mirror:
-            container = _docker.run("alpine", f"""
+            container = _docker.run(self.base, f"""
                 {self.mirror.install}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
