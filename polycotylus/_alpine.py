@@ -165,33 +165,30 @@ class Alpine(BaseDistribution):
     def dockerfile(self):
         public, private = self.abuild_keys()
         return self._formatter(f"""
-            FROM {self.base} AS build
-            RUN {self.mirror.install}
+            FROM {self.base} AS base
 
+            RUN {self.mirror.install}
+            RUN mkdir /io
+            WORKDIR /io
+            RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
+
+            FROM base AS build
             RUN apk add alpine-sdk shadow sudo
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
             RUN useradd --create-home --uid {os.getuid()} --groups wheel,abuild user
 
-            RUN mkdir /io && chown user /io
-            WORKDIR /io
+            RUN chown user /io
             RUN mkdir /home/user/.abuild
             RUN echo 'SRCDEST="/io/"' >> /home/user/.abuild/abuild.conf
             RUN echo 'PACKAGER_PRIVKEY="/home/user/.abuild/{private.name}"' >> /home/user/.abuild/abuild.conf
             RUN touch "/home/user/.abuild/{private.name}"
             RUN chown -R user /home/user/.abuild
-            RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
             RUN cp "/etc/apk/keys/{public.name}" /home/user/.abuild/
-
             RUN apk add {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
-            FROM {self.base} as test
-            RUN {self.mirror.install}
-
-            RUN mkdir /io
-            WORKDIR /io
+            FROM base AS test
             RUN apk add {" ".join(self.test_dependencies)}
-            RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
 
             # This seemingly redundant layer of indirection ensures that
             # xvfb-run (which calls exec) is never the top level process in the

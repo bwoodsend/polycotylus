@@ -139,23 +139,22 @@ class Arch(BaseDistribution):
 
     def dockerfile(self):
         return self._formatter(f"""
-            FROM archlinux:base-devel AS build
+            FROM archlinux:base-devel AS base
 
+            RUN {self.mirror.install}
+            RUN mkdir /io
+            WORKDIR /io
+
+            FROM base as build
             RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
             RUN useradd -m -g wheel user
-            RUN {self.mirror.install}
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
 
-            RUN mkdir /io && chown user /io
-            WORKDIR /io
+            RUN chown user /io
             RUN pacman -Sy --noconfirm {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
-            FROM archlinux:base AS test
-            RUN {self.mirror.install}
-
-            RUN mkdir /io
-            WORKDIR /io
+            FROM base AS test
             RUN pacman -Sy --noconfirm {" ".join(self.test_dependencies)}
     """)
 
