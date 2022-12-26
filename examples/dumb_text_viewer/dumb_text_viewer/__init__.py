@@ -1,6 +1,6 @@
 from pathlib import Path
 import tkinter.filedialog
-import tkinter.scrolledtext
+from tkinter.scrolledtext import ScrolledText
 from tkinter import E, W, S, N
 
 favicon = str(Path(__file__).with_name("icon.png").resolve())
@@ -24,7 +24,7 @@ class TextViewerWidget:
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
 
-        self.textbox = tkinter.Text(frame, width=100, height=30)
+        self.textbox = ScrolledText(frame, width=100, height=30)
         self.textbox.grid(row=0, column=0, sticky=E + W + N + S)
 
         if initial:
