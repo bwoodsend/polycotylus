@@ -30,7 +30,7 @@ class run:
         __tracebackhide__ = True
         arguments = ["--network=host"]
         for (source, dest) in volumes:
-            arguments.append(f"-v{Path(source).resolve()}:{dest}")
+            arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
         if interactive:
             arguments.append("-it" if sys.stdin.isatty() else "-i")
         arguments.extend(map(str, flags))
