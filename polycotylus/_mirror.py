@@ -104,6 +104,7 @@ class CachedMirror:
         while self._in_progress:
             time.sleep(.1)
         self._httpd.shutdown()
+        self._httpd.socket.close()
         del self._httpd
 
     def decorate(self, f):
