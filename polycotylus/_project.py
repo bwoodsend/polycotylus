@@ -9,11 +9,20 @@ import mimetypes
 from fnmatch import fnmatch
 from locale import locale_alias
 import gzip
+import warnings
 from importlib import resources
 
 import tomli
 
 from polycotylus import _exceptions, _yaml_schema
+
+
+# When dropping support for Python 3.8, replace
+# importlib.resources.read_bytes("polycotylus", "xyz") with
+# (importlib.resources.files("polycotylus") / "xyz").read_bytes().
+warnings.filterwarnings(
+    "ignore", r":(read|open)_(text|binary) is deprecated. Use files\(\) instead.",
+    DeprecationWarning)
 
 
 @dataclass
