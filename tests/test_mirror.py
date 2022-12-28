@@ -48,8 +48,8 @@ def test_basic(tmp_path):
     contents = []
 
     def _test():
-        time.sleep(1.5)
         try:
+            assert any(hasattr(self, "_httpd") or time.sleep(0.1) for i in range(50))
             with urlopen(url) as response:
                 contents.append(response.read())
         finally:
