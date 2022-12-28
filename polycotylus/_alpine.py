@@ -44,8 +44,10 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def _base_image_syncronised(cls):
         with cls.mirror:
-            return _docker.run(cls.base, f"{cls.mirror.install}\napk update",
-                               verbosity=0).commit()
+            return _docker.run(cls.base, f"""
+                {cls.mirror.install}
+                apk add alpine-sdk
+            """, tty=True).commit()
 
     @classmethod
     @lru_cache()
@@ -59,8 +61,7 @@ class Alpine(BaseDistribution):
     def build_base_packages(cls):
         with cls.mirror:
             container = _docker.run(cls._base_image_syncronised(),
-                                    "apk add -qqq alpine-sdk && apk info",
-                                    verbosity=0)
+                                    "apk info", verbosity=0)
             return set(re.findall("([^\n]+)", container.output))
 
     @staticmethod
@@ -248,7 +249,7 @@ class Alpine(BaseDistribution):
             (private_key, f"/home/user/.abuild/{private_key.name}"),
             (self.distro_root / "dist", "/home/user/packages"),
         ]
-        _docker.run(base, "abuild", root=False, volumes=volumes)
+        _docker.run(base, "abuild", root=False, volumes=volumes, tty=True)
         _dist = self.distro_root / "dist" / platform.machine()
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
@@ -267,7 +268,7 @@ class Alpine(BaseDistribution):
         return _docker.run(base, f"""
             apk add /pkg/{package.name}
             {self.project.test_command}
-        """, volumes=volumes)
+        """, volumes=volumes, tty=True)
 
 
 if __name__ == "__main__":

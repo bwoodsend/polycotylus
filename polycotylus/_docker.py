@@ -24,7 +24,8 @@ docker = DockerInfo()
 
 class run:
     def __init__(self, base, command=None, *flags, volumes=(), check=True,
-                 interactive=False, root=True, verbosity=None):
+                 interactive=False, tty=False, root=True, verbosity=None):
+        tty = tty and sys.stdin.isatty()
         if verbosity is None:
             verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
         __tracebackhide__ = True
@@ -32,7 +33,9 @@ class run:
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
         if interactive:
-            arguments.append("-it" if sys.stdin.isatty() else "-i")
+            arguments.append("-it" if tty else "-i")
+        elif tty:
+            arguments.append("-t")
         arguments.extend(map(str, flags))
         if not root:
             if docker.variant == "podman":
@@ -58,10 +61,17 @@ class run:
                 raise Error(human_friendly, logs)
 
         else:
-            self.returncode, self.output = _tee_run(
-                [docker, "container", "start", "-a", self.id], verbosity)
+            p = _run([docker, "container", "start", "-a", self.id],
+                     stdout=None if verbosity >= 2 else DEVNULL,
+                     stderr=STDOUT if verbosity >= 2 else DEVNULL)
+            self.returncode = p.returncode
             if check and self.returncode:
                 raise Error(human_friendly, self.output)
+
+    @property
+    def output(self):
+        return _run([docker, "logs", self.id],
+                    stdout=PIPE, stderr=STDOUT).stdout.decode()
 
     def __del__(self):
         try:
@@ -81,15 +91,15 @@ class run:
 
 
 def _tee_run(command, verbosity, **kwargs):
-    with Popen(command, stderr=STDOUT, stdout=PIPE, text=True, **kwargs) as p:
+    with Popen(command, stderr=STDOUT, stdout=PIPE, **kwargs) as p:
         chunks = []
         while (chunk := p.stdout.readline()) or p.poll() is None:
             chunks.append(chunk)
             if verbosity >= 2:
-                sys.stdout.write(chunk)
+                sys.stdout.buffer.write(chunk)
         if verbosity >= 2:
             print()
-    return p.returncode, "".join(chunks)
+    return p.returncode, b"".join(chunks).decode()
 
 
 def build(dockerfile, root, target=None, verbosity=None):

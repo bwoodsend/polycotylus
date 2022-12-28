@@ -296,7 +296,7 @@ mirrors = {
             ["*.db", "*.files"],
             ["*.db.sig", "*.files.sig"],
             8900,
-            "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist",
+            "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
             (_use_last_modified_header,),
         ),
     "alpine":

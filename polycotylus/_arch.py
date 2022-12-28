@@ -34,8 +34,8 @@ class Arch(BaseDistribution):
         with cls.mirror:
             return _docker.run("archlinux:base", f"""
                 {mirrors["arch"].install}
-                pacman -Syq --noconfirm base-devel
-            """, verbosity=0).commit()
+                pacman -Syq --noconfirm --needed base-devel
+            """, tty=True).commit()
 
     @classmethod
     @lru_cache()
@@ -167,7 +167,7 @@ class Arch(BaseDistribution):
     @mirror.decorate
     def build(self):
         _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                    volumes=[(self.distro_root, "/io")], root=False)
+                    volumes=[(self.distro_root, "/io")], root=False, tty=True)
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
         return {"main": package}
@@ -182,7 +182,7 @@ class Arch(BaseDistribution):
             pacman -Sy
             pacman -U --noconfirm /pkg/{package.name}
             {self.project.test_command}
-        """, volumes=volumes)
+        """, volumes=volumes, tty=True)
 
 
 @lru_cache()
