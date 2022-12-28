@@ -165,17 +165,16 @@ class Arch(BaseDistribution):
         (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
 
     @mirror.decorate
-    def build(self, verbosity=None):
+    def build(self):
         _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                    volumes=[(self.distro_root, "/io")], root=False,
-                    verbosity=verbosity)
+                    volumes=[(self.distro_root, "/io")], root=False)
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
         return {"main": package}
 
     @mirror.decorate
-    def test(self, package, verbosity=None):
-        base = self.build_test_image(verbosity=verbosity)
+    def test(self, package):
+        base = self.build_test_image()
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
@@ -183,7 +182,7 @@ class Arch(BaseDistribution):
             pacman -Sy
             pacman -U --noconfirm /pkg/{package.name}
             {self.project.test_command}
-        """, volumes=volumes, verbosity=verbosity)
+        """, volumes=volumes)
 
 
 @lru_cache()

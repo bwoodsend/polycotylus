@@ -196,24 +196,22 @@ class BaseDistribution(abc.ABC):
         self.inject_source()
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
 
-    def build_builder_image(self, verbosity=None):
+    def build_builder_image(self):
         with self.mirror:
             return _docker.build(self.distro_root / "Dockerfile",
-                                 self.project.root, target="build",
-                                 verbosity=verbosity)
+                                 self.project.root, target="build")
 
     @abc.abstractmethod
-    def build(self, verbosity=None):
+    def build(self):
         raise NotImplementedError
 
-    def build_test_image(self, verbosity=None):
+    def build_test_image(self):
         with self.mirror:
             return _docker.build(self.distro_root / "Dockerfile",
-                                 self.project.root, target="test",
-                                 verbosity=verbosity)
+                                 self.project.root, target="test")
 
     @abc.abstractmethod
-    def test(self, package, verbosity=None):
+    def test(self, package):
         pass
 
 
