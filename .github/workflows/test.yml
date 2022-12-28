@@ -12,6 +12,9 @@ jobs:
         docker:
           - docker
           - podman
+        include:
+          - python: 3.11
+            docker: docker
       fail-fast: false
 
     runs-on: ubuntu-latest
