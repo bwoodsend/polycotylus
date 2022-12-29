@@ -180,13 +180,13 @@ def test_silly_named_package():
     self.generate()
     apks = self.build()
     installed = self.test(apks["main"]).commit()
-    script = "apk info -a py3-99---s1lly-name--packag3"
+    script = "apk info -a py3-99---s1lly---name---packag3--x--y--z"
     container = _docker.run(installed, script)
     assert """🚀 🦄 "quoted" 'quoted again' $$$""" in container.output
     assert "license:\ncustom" in container.output
 
     with tarfile.open(apks["doc"]) as tar:
-        path = "usr/share/licenses/py3-99---s1lly-name--packag3/The license file"
+        path = "usr/share/licenses/py3-99---s1lly---name---packag3--x--y--z/The license file"
         assert path in tar.getnames()
         with tar.extractfile(path) as f:
             assert "🦄" in f.read().decode()

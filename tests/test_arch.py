@@ -99,7 +99,7 @@ def test_silly_named_package():
     self.generate()
     package = self.build()["main"]
     installed = self.test(package).commit()
-    script = "pacman -Q --info python-99---s1lly-name--packag3"
+    script = "pacman -Q --info python-99---s1lly---name---packag3--x--y--z"
     container = _docker.run(installed, script)
     assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
                      container.output)
