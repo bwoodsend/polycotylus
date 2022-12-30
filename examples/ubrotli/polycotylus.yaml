@@ -7,8 +7,10 @@ dependencies:
   build:
     arch: brotli
     alpine: brotli-dev python3-dev gcc musl-dev
+    void: brotli-devel python3-devel
   run:
     arch: brotli
     alpine: brotli-libs
+    void: brotli
   test:
     pip: pytest

@@ -25,7 +25,7 @@ class Base:
 
     def test_python_package(self):
         for pypi_name in awkward_pypi_packages:
-            self.cls.python_package(pypi_name)
+            assert self.cls.python_package(pypi_name) in self.cls.available_packages()
 
         with pytest.raises(ValueError):
             self.cls.python_package("hello world")

@@ -27,7 +27,7 @@ class run:
                  interactive=False, tty=False, root=True, verbosity=None):
         tty = tty and sys.stdin.isatty()
         if verbosity is None:
-            verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
+            verbosity = _verbosity()
         __tracebackhide__ = True
         arguments = ["--network=host"]
         for (source, dest) in volumes:
@@ -105,7 +105,7 @@ def _tee_run(command, verbosity, **kwargs):
 def build(dockerfile, root, target=None, verbosity=None):
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
-        verbosity = int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
+        verbosity = _verbosity()
     if target:
         command += ["--target", target]
     if verbosity >= 1:
@@ -121,6 +121,10 @@ def _parse_build_output(output):
         or re.search(r"([a-f0-9]{64})\n*\Z", output) \
         or re.search(r"writing image (sha256:[a-f0-9]{64}) done\n.* DONE .*\n*\Z", output)
     return match[1]
+
+
+def _verbosity():
+    return int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
 
 
 class Error(Exception):

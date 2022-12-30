@@ -309,6 +309,16 @@ mirrors = {
             r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/v3.17/|g' /etc/apk/repositories",
             (_alpine_sync_time, _use_last_modified_header),
         ),
+    "void":
+        CachedMirror(
+            "https://repo-default.voidlinux.org/",
+            cache_root / "void",
+            ["*-repodata"],
+            [],
+            8902,
+            "echo 'repository=http://0.0.0.0:8902/current/musl' > /etc/xbps.d/00-repository-main.conf",
+            (_use_last_modified_header,),
+        ),
 }
 
 if __name__ == "__main__":
