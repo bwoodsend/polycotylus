@@ -34,7 +34,7 @@ class Arch(BaseDistribution):
         with cls.mirror:
             return _docker.run("archlinux:base", f"""
                 {mirrors["arch"].install}
-                pacman -Syq --noconfirm --needed base-devel
+                pacman -Sy
             """, tty=True).commit()
 
     @classmethod
@@ -47,9 +47,14 @@ class Arch(BaseDistribution):
     @classmethod
     @lru_cache()
     def build_base_packages(cls):
-        container = _docker.run(cls._base_image_syncronised(), "pacman -Qq",
-                                verbosity=0)
-        return set(re.findall("([^\n]+)", container.output))
+        container = _docker.run(cls._base_image_syncronised(), """
+            pacman -Qq
+            printf '\\0'
+            pacman -Sp --needed base-devel
+        """, verbosity=0)
+        preinstalled, devel = container.output.split("\n\x00")
+        return set(re.findall("([^\n]+)", preinstalled) +
+                   re.findall(r".*/(.+?)(?:-[^-]+){3}\.pkg\.tar\.zst", devel))
 
     invalid_package_characters = "[^a-z0-9-]"
 

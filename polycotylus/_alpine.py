@@ -46,7 +46,7 @@ class Alpine(BaseDistribution):
         with cls.mirror:
             return _docker.run(cls.base, f"""
                 {cls.mirror.install}
-                apk add alpine-sdk
+                apk update
             """, tty=True).commit()
 
     @classmethod
@@ -60,9 +60,14 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def build_base_packages(cls):
         with cls.mirror:
-            container = _docker.run(cls._base_image_syncronised(),
-                                    "apk info", verbosity=0)
-            return set(re.findall("([^\n]+)", container.output))
+            container = _docker.run(cls._base_image_syncronised(), """
+                apk info -q
+                printf '\\0'
+                apk add --simulate alpine-sdk
+            """, verbosity=0)
+            preinstalled, sdk = container.output.split("\n\x00")
+            return set(re.findall("([^\n]+)", preinstalled)
+                       + re.findall("Installing ([^ ]+)", sdk))
 
     @staticmethod
     def python_package_convention(pypi_name):
