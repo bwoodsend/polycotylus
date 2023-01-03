@@ -1,5 +1,6 @@
 import textwrap
 import shlex
+import re
 
 
 def array(*items):
@@ -17,5 +18,6 @@ class Formatter:
         self.indentation = indentation
 
     def __call__(self, text, level=0):
-        text = textwrap.dedent(text).strip().replace("    ", self.indentation)
+        text = textwrap.dedent(text).strip()
+        text = re.sub("^ +", lambda m: len(m[0]) // 4 * self.indentation, text, flags=re.M)
         return textwrap.indent(text, self.indentation * level) + "\n"
