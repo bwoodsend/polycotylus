@@ -14,10 +14,12 @@ from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 import email.utils
 import contextlib
+from xml.etree import ElementTree
 
 import appdirs
 
 cache_root = Path(appdirs.user_cache_dir("polycotylus"))
+cache_root.mkdir(parents=True, exist_ok=True)
 
 
 class CachedMirror:
@@ -71,7 +73,7 @@ class CachedMirror:
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
             host = "localhost" if os.name == "nt" else "0.0.0.0"
-            print("http://{}:{}".format(host, self.port))
+            print("http://{}:{}".format(host, self.port), "=>", self.base_url)
             print(f"Install via:\n{self.install}")
             self.verbose = True
             with contextlib.suppress(KeyboardInterrupt):
@@ -168,7 +170,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             # /some/directory/index.html and that would create a local cache
             # file called $cache/some/directory where the directory
             # $cache/some/directory/ is supposed to be.
-            if self.upstream.headers["Content-Type"] == "text/html":
+            if "text/html" in self.upstream.headers["Content-Type"].split(";"):
                 with self.upstream:
                     self.send_response(HTTPStatus.OK)
                     # Forward any header web browsers needs to interpret the
@@ -288,6 +290,19 @@ def _use_last_modified_header(self: RequestHandler):
     return latest.timestamp()
 
 
+def _fedora_preffered_mirror():
+    cache = cache_root / "fedora-37-preferred-mirror.txt"
+    if cache.exists():
+        return cache.read_text()
+    with urlopen(f"https://mirrors.fedoraproject.org/metalink?arch={platform.machine()}&repo=fedora-37") as response:
+        raw = response.read()
+    urls = ElementTree.fromstring(raw)[0][0].find("{http://www.metalinker.org/}resources").findall("{http://www.metalinker.org/}url")
+    best = max((i for i in urls if i.get("protocol") == "https"), key=lambda u: int(u.get("preference"))).text
+    root = re.match("(.*)/fedora/linux/", best)[1]
+    cache.write_text(root)
+    return _fedora_preffered_mirror()
+
+
 mirrors = {
     "arch":
         CachedMirror(
@@ -317,6 +332,16 @@ mirrors = {
             [],
             8902,
             "echo 'repository=http://0.0.0.0:8902/current/musl' > /etc/xbps.d/00-repository-main.conf",
+            (_use_last_modified_header,),
+        ),
+    "fedora":
+        CachedMirror(
+            _fedora_preffered_mirror(),
+            cache_root / "fedora-37",
+            ["repomd.xml"],
+            [],
+            8903,
+            r"echo zchunk=False >> /etc/dnf/dnf.conf && sed -i -e 's|#baseurl=http://download.example/pub|baseurl=http://0.0.0.0:8903|g' -e '\|^metalink=|d' $(grep -lr baseurl /etc/yum.repos.d)",
             (_use_last_modified_header,),
         ),
 }
