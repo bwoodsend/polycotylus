@@ -134,4 +134,4 @@ class Error(Exception):
 
     def __str__(self):
         return f"Docker command:\n    {self.command}\n" \
-            "returned an error:\n" + textwrap.indent(self.output, "    ")
+            "returned an error:\n" + self.output
