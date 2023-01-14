@@ -17,8 +17,8 @@ desktop_entry_points:
       text/*;application/x-php;application/x-httpd-php3;
       application/x-httpd-php4;application/x-httpd-php5;application/xml
     Comment:
-      : Text Viewer
-      es: Visor de Texto
-      ar: عارض النص
-      zh_tw: 文本查看器
+      : Read plain text files
+      es: Leer archivos de texto sin formato
+      ar: اقرأ ملفات النص العادي
+      zh_tw: 讀取純文本文件
     icon: icon-source.svg

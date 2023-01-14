@@ -1,8 +1,8 @@
 [Desktop Entry]
-Comment=Text Viewer
-Comment[ar]=عارض النص
-Comment[es]=Visor de Texto
-Comment[zh_tw]=文本查看器
+Comment=Read plain text files
+Comment[ar]=اقرأ ملفات النص العادي
+Comment[es]=Leer archivos de texto sin formato
+Comment[zh_tw]=讀取純文本文件
 Exec=dumb_text_viewer %U
 GenericName=Text Viewer
 Icon=underwhelming_software-dumb_text_viewer
