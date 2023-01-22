@@ -26,12 +26,6 @@ class Alpine(BaseDistribution):
     python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
-        "sqlite3": ["sqlite"],
-        "decimal": ["mpdecimal"],
-        "lzma": ["xz"],
-        "zlib": ["zlib"],
-        "readline": ["readline"],
-        "bz2": ["bzip2"],
     }
     _formatter = _shell.Formatter("\t")
     pkgdir = "$builddir"

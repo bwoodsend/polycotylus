@@ -1,4 +1,5 @@
 import shlex
+import collections
 
 import pytest
 
@@ -12,6 +13,16 @@ awkward_pypi_packages = [
     "cython",  # Ignores the standard Python package prefix on all distributions
     "urllib3",  # Contains a number
 ]
+
+
+def _group_python_extras(dependencies):
+    extras = ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline",
+              "bz2", "curses", "ctypes"]
+    grouped = collections.defaultdict(list)
+    for extra in extras:
+        # ~ yield dependencies.get(extra, ()), (extra,)
+        grouped[tuple(dependencies.get(extra, ()))].append(extra)
+    return grouped.items()
 
 
 class Base:
@@ -33,17 +44,13 @@ class Base:
     base_image: str
     package_install: str
 
-    @pytest.mark.parametrize("name", [
-        "tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline", "bz2",
-        "curses", "ctypes"
-    ])
-    def test_python_extras(self, name, ids=str):
-        extras = self.cls.python_extras.get(name, [])
-        mirror = mirrors[self.cls.name]
-        script = self.cls._formatter(f"""
-            {mirror.install}
-            {self.package_install} python3 {shlex.join(extras)}
-            python3 -c 'import {name}'
-        """)
-        with mirror:
-            _docker.run(self.base_image, script)
+    def test_python_extras(self):
+        for (packages, imports) in _group_python_extras(self.cls.python_extras):
+            mirror = mirrors[self.cls.name]
+            script = self.cls._formatter(f"""
+                {mirror.install}
+                {self.package_install} python3 {shlex.join(packages)}
+                python3 -c 'import {", ".join(imports)}'
+            """)
+            with mirror:
+                _docker.run(self.base_image, script)
