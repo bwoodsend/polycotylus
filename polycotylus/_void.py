@@ -143,8 +143,8 @@ class Void(BaseDistribution):
                 out += self._formatter(f"""
                     convert -background "#00000000" -size $size \\
                         "{source}" "{dest}.png"
-                        vmkdir usr/share/icons/hicolor/${{size}}x${{size}}/apps
-                        vcopy "{dest}.png" usr/share/icons/hicolor/${{size}}x${{size}}/apps/
+                    vmkdir usr/share/icons/hicolor/${{size}}x${{size}}/apps
+                    vcopy "{dest}.png" usr/share/icons/hicolor/${{size}}x${{size}}/apps/
                 """, 2)
             out += self._formatter("done", 1)
         for id in self.project.desktop_entry_points:
