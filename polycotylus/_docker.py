@@ -65,9 +65,11 @@ class run:
         else:
             p = _run([docker, "container", "start", "-a", self.id],
                      stdout=None if verbosity >= 2 else DEVNULL,
-                     stderr=STDOUT if verbosity >= 2 else DEVNULL)
+                     stderr=STDOUT if verbosity >= 2 else PIPE)
             self.returncode = p.returncode
             if check and self.returncode:
+                if not self.output and p.stderr:
+                    raise Error(human_friendly, p.stderr.decode())
                 raise Error(human_friendly, self.output)
 
     @property

@@ -54,7 +54,7 @@ def test_interactive():
     assert "do not run me" not in capture.value.output
 
 
-def test_non_interactive():
+def test_non_interactive(monkeypatch, capsys):
     self = _docker.run("alpine", "echo 'hello\nworld\n' > /etc/foo")
 
     with self["/etc"] as tar:
@@ -68,6 +68,16 @@ def test_non_interactive():
 
     with pytest.raises(_docker.Error, match="File exists"):
         _docker.run("alpine", ["mkdir", "/etc"])
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "0")
+    with pytest.raises(_docker.Error, match="spaghetti.*not found"):
+        _docker.run("alpine", ["spaghetti"])
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "2")
+    capsys.readouterr()
+    with pytest.raises(_docker.Error):
+        _docker.run("alpine", ["spaghetti"])
+    assert re.match(capsys.readouterr().err, "spaghetti.*not found")
 
 
 docker_build_outputs = {
