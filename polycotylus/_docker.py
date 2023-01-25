@@ -6,6 +6,8 @@ import shlex
 import textwrap
 from tarfile import TarFile
 from pathlib import Path
+import json
+import time
 import sys
 
 
@@ -126,6 +128,23 @@ def _parse_build_output(output):
         or re.search(r"([a-f0-9]{64})\n*\Z", output) \
         or re.search(r"writing image (sha256:[a-f0-9]{64}) done\n.* DONE .*\n*\Z", output)
     return match[1]
+
+
+def lazy_run(base, command, **kwargs):
+    assert isinstance(command, list)
+    base_info = json.loads(_run([docker, "image", "inspect", base], stdout=PIPE).stdout)
+    base = base_info[0]["Id"]
+    _images = _run([docker, "images", "-q"], stdout=PIPE).stdout.decode().split()
+    images = json.loads(_run([docker, "image", "inspect"] + _images, stdout=PIPE).stdout)
+    for image in images:
+        _time = time.strptime(image["Created"].split(".")[0].rstrip("Z"),
+                              "%Y-%m-%dT%H:%M:%S")
+        if image["Parent"].startswith((base, "sha256:" + base)):
+            if (image.get("ContainerConfig") or image["Config"])["Cmd"] == command:
+                if time.time() - time.mktime(_time) < 3600 * 24 * 3:
+                    return image["Id"]
+    container = run(base, command, **kwargs)
+    return container.commit()
 
 
 def _verbosity():

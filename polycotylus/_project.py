@@ -159,6 +159,18 @@ class Project:
         with tarfile.TarFile("", mode="w", fileobj=buffer) as tar:
             top_level = self.source_top_level.format(version=self.version)
             for file in files:
+                if str(file) == "pyproject.toml":
+                    options = toml.load(self.root / file)
+                    if not options.get("build-system"):
+                        options["build-system"] = {
+                            "build-backend": "setuptools.build_meta",
+                            "requires": ["setuptools>=61.0"],
+                        }
+                        patched = toml.dumps(options).encode()
+                        info = tarfile.TarInfo(str(PurePosixPath(top_level, file)))
+                        info.size = len(patched)
+                        tar.addfile(info, io.BytesIO(patched))
+                        continue
                 tar.add(self.root / file, PurePosixPath(top_level, file),
                         filter=_strip_mtime)
         return gzip.compress(buffer.getvalue(), mtime=0)

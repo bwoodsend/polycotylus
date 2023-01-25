@@ -4,6 +4,7 @@ import re
 from textwrap import dedent
 import json
 import os
+import time
 
 import pytest
 
@@ -165,3 +166,15 @@ def test_verbosity(monkeypatch, capsys, tmp_path):
     out = capsys.readouterr().out
     assert command_re.findall(out)
     assert not output_re.findall(out)
+
+
+def test_lazy_run_timeout(monkeypatch):
+    command = ["ash", "-c", "date +%s > /timestamp"]
+    old = _docker.lazy_run("alpine", command)
+    assert _docker.lazy_run("alpine", command.copy()) == old
+    assert _docker.lazy_run("alpine", ["sh"] + command[1:]) != old
+    assert _docker.lazy_run("alpine", command.copy()) == old
+
+    next_week = time.time() + 3600 * 24 * 7
+    monkeypatch.setattr(time, "time", lambda: next_week)
+    assert _docker.lazy_run("alpine", command) != old

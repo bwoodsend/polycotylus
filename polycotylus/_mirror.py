@@ -18,6 +18,7 @@ import contextlib
 import appdirs
 
 cache_root = Path(appdirs.user_cache_dir("polycotylus"))
+cache_root.mkdir(parents=True, exist_ok=True)
 
 
 class CachedMirror:
@@ -71,7 +72,7 @@ class CachedMirror:
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
             host = "localhost" if os.name == "nt" else "0.0.0.0"
-            print("http://{}:{}".format(host, self.port))
+            print("http://{}:{}".format(host, self.port), "=>", self.base_url)
             print(f"Install via:\n{self.install}")
             self.verbose = True
             with contextlib.suppress(KeyboardInterrupt):
@@ -168,7 +169,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             # /some/directory/index.html and that would create a local cache
             # file called $cache/some/directory where the directory
             # $cache/some/directory/ is supposed to be.
-            if self.upstream.headers["Content-Type"] == "text/html":
+            if "text/html" in self.upstream.headers["Content-Type"].split(";"):
                 with self.upstream:
                     self.send_response(HTTPStatus.OK)
                     # Forward any header web browsers needs to interpret the

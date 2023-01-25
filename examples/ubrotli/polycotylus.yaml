@@ -8,9 +8,11 @@ dependencies:
     arch: brotli
     alpine: brotli-dev python3-dev gcc musl-dev
     void: brotli-devel python3-devel
+    fedora: brotli-devel python3-devel gcc
   run:
     arch: brotli
     alpine: brotli-libs
     void: brotli
+    fedora: brotli
   test:
     pip: pytest
