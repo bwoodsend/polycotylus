@@ -85,6 +85,11 @@ class run:
                  stdout=PIPE)
         return TarFile("", "r", io.BytesIO(p.stdout))
 
+    def file(self, path):
+        with self[path] as tar:
+            with tar.extractfile(Path(path).name) as f:
+                return f.read()
+
     def commit(self):
         return _run([docker, "commit", self.id], stdout=PIPE,
                     text=True).stdout.strip()

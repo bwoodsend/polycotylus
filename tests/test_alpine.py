@@ -76,6 +76,7 @@ def test_dumb_text_viewer():
         assert "license = MIT" in pkginfo
     assert "usr/share/icons/hicolor/128x128/apps/underwhelming_software-dumb_text_viewer.png" in files
     assert "usr/share/icons/hicolor/32x32/apps/underwhelming_software-dumb_text_viewer.png" in files
+    assert "usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg" in files
     assert "usr/share/applications/underwhelming_software-dumb_text_viewer.desktop" in files
     for file in files:
         assert "LICENSE" not in file

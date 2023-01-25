@@ -71,6 +71,9 @@ def test_dumb_text_viewer():
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
+    assert container.file(
+        "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg"
+    ).startswith(b"<svg")
 
 
 def test_ubrotli():
