@@ -12,7 +12,7 @@ import gzip
 import warnings
 from importlib import resources
 
-import tomli
+import toml
 
 from polycotylus import _exceptions, _yaml_schema
 
@@ -51,8 +51,7 @@ class Project:
     @classmethod
     def from_root(cls, root):
         root = Path(root)
-        with (root / "pyproject.toml").open("rb") as f:
-            pyproject_options = tomli.load(f)
+        pyproject_options = toml.load(str(root / "pyproject.toml"))
         polycotylus_options = _yaml_schema.read(root / "polycotylus.yaml")
 
         project = pyproject_options["project"]

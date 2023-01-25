@@ -2,8 +2,7 @@ import gzip
 from pathlib import Path
 import shutil
 
-import tomli
-import tomli_w
+import toml
 import pytest
 
 from polycotylus._project import Project, expand_pip_requirements
@@ -92,11 +91,11 @@ def test_license_handling(tmp_path):
         shutil.copy(bare_minimum / path, tmp_path / path)
 
     pyproject_toml = tmp_path / "pyproject.toml"
-    options = tomli.loads(pyproject_toml.read_text())
+    options = toml.load(pyproject_toml)
 
     def _write_trove(trove):
         options["project"]["classifiers"] = [trove]
-        pyproject_toml.write_text(tomli_w.dumps(options))
+        pyproject_toml.write_text(toml.dumps(options))
 
     self = Project.from_root(tmp_path)
     assert self.license_names == ["MIT"]

@@ -17,7 +17,7 @@ classifiers = [
 dependencies = [
     "strictyaml",
     "appdirs",
-    "tomli",
+    "toml",
     "setuptools",
 ]
 description = """\
@@ -38,7 +38,6 @@ test = [
     "pytest-cov",
     "pillow",
     "pyzstd",
-    "tomli_w",
 ]
 
 [project.urls]

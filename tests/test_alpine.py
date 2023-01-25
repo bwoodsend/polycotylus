@@ -6,8 +6,7 @@ import shutil
 import re
 
 import pytest
-import tomli
-import tomli_w
+import toml
 
 from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
@@ -123,11 +122,11 @@ def test_license_handling(tmp_path):
         shutil.copy(bare_minimum / path, tmp_path / path)
 
     pyproject_toml = tmp_path / "pyproject.toml"
-    options = tomli.loads(pyproject_toml.read_text())
+    options = toml.load(pyproject_toml)
 
     def _write_trove(trove):
         options["project"]["classifiers"] = [trove]
-        pyproject_toml.write_text(tomli_w.dumps(options))
+        pyproject_toml.write_text(toml.dumps(options))
 
     # An SPDX recognised, OSI approved license.
     _write_trove("License :: OSI Approved :: MIT License")
