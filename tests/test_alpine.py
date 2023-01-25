@@ -5,10 +5,9 @@ import tarfile
 import shutil
 import re
 
-import pytest
 import toml
 
-from polycotylus import _docker, _exceptions
+from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
