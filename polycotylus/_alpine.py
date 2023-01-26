@@ -168,17 +168,19 @@ class Alpine(BaseDistribution):
             FROM {self.base} AS base
 
             RUN {self.mirror.install}
-            RUN mkdir /io
-            WORKDIR /io
             RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
 
-            FROM base AS build
-            RUN apk add alpine-sdk shadow sudo
-            RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
-            RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
+            RUN apk add shadow sudo
             {self._install_user("abuild")}
 
-            RUN chown user /io
+            RUN mkdir /io && chown user /io
+            WORKDIR /io
+
+            FROM base AS build
+            RUN apk add alpine-sdk
+            RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
+            RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
+
             RUN mkdir /home/user/.abuild
             RUN echo 'SRCDEST="/io/"' >> /home/user/.abuild/abuild.conf
             RUN echo 'PACKAGER_PRIVKEY="/home/user/.abuild/{private.name}"' >> /home/user/.abuild/abuild.conf
@@ -265,9 +267,9 @@ class Alpine(BaseDistribution):
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         return _docker.run(base, f"""
-            apk add /pkg/{package.name}
+            sudo apk add /pkg/{package.name}
             {self.project.test_command}
-        """, volumes=volumes, tty=True)
+        """, volumes=volumes, tty=True, root=False)
 
 
 if __name__ == "__main__":

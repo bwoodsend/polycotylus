@@ -249,9 +249,9 @@ class Fedora(BaseDistribution):
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(f"python3dist({package})")
         return _docker.run(self.build_test_image(), f"""
-            dnf install -y /pkg/{rpm.name}
+            sudo dnf install -y /pkg/{rpm.name}
             {self.project.test_command}
-        """, volumes=volumes, tty=True)
+        """, volumes=volumes, tty=True, root=False)
 
 
 if __name__ == "__main__":

@@ -83,11 +83,11 @@ def test_dumb_text_viewer():
     installed = container.commit()
 
     with mirror:
-        script = "apk add py3-pip && pip show dumb_text_viewer"
+        script = "sudo apk add py3-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
 
         assert _docker.run(installed, """
-            apk add -q xdg-utils shared-mime-info
+            sudo apk add -q xdg-utils shared-mime-info
             xdg-mime query default text/plain
         """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
 

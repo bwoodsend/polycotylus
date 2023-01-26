@@ -100,20 +100,18 @@ class Void(BaseDistribution):
         dependencies = _deduplicate(self.dependencies + self.build_dependencies
                                     + self.test_dependencies)
         return self._formatter(f"""
-            FROM {self.image} AS root
+            FROM {self.image} AS base
             RUN {self.mirror.install}
-            RUN xbps-install -ySu xbps bash
-            RUN mkdir /io
-            WORKDIR /io
+            RUN xbps-install -ySu xbps bash shadow sudo
             CMD ["/bin/bash"]
-
-            FROM root as build
-            RUN xbps-install -ySu xbps shadow sudo
             {self._install_user()}
+            RUN mkdir /io && chown user /io
+            WORKDIR /io
 
+            FROM base as build
             RUN xbps-install -ySu xbps git bash util-linux {" ".join(dependencies)}
 
-            FROM root AS test
+            FROM base AS test
             RUN xbps-install -ySu xbps {" ".join(self.test_dependencies)}
         """)
 
@@ -210,9 +208,9 @@ class Void(BaseDistribution):
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         return _docker.run(base, f"""
-            xbps-install -ySu -R /pkg/ xbps {self.package_name}
+            sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
             {self.project.test_command}
-        """, volumes=volumes, tty=True)
+        """, volumes=volumes, tty=True, root=False)
 
     @classmethod
     def void_packages_repo(cls):

@@ -147,16 +147,13 @@ class Arch(BaseDistribution):
             FROM archlinux:base-devel AS base
 
             RUN {self.mirror.install}
-            RUN mkdir /io
+            {self._install_user()}
+            RUN mkdir /io && chown user /io
             WORKDIR /io
 
             FROM base as build
-
-            {self._install_user()}
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-
-            RUN chown user /io
             RUN pacman -Sy --noconfirm {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
             FROM base AS test
@@ -184,10 +181,10 @@ class Arch(BaseDistribution):
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         return _docker.run(base, f"""
-            pacman -Sy
-            pacman -U --noconfirm /pkg/{package.name}
+            sudo pacman -Sy
+            sudo pacman -U --noconfirm /pkg/{package.name}
             {self.project.test_command}
-        """, volumes=volumes, tty=True)
+        """, volumes=volumes, tty=True, root=False)
 
 
 @lru_cache()

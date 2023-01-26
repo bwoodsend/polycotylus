@@ -61,7 +61,7 @@ def test_dumb_text_viewer():
     installed = container.commit()
 
     with mirror:
-        script = "bash -c 'pacman -S --noconfirm python-pip && pip show dumb_text_viewer'"
+        script = "sudo pacman -S --noconfirm python-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
     info = _docker.run(installed, "pacman -Q --info dumb-text-viewer").output
     assert "Brénainn" in re.search("Packager *: *(.*)", info)[1]
