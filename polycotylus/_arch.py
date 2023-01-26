@@ -151,8 +151,8 @@ class Arch(BaseDistribution):
             WORKDIR /io
 
             FROM base as build
-            RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-            RUN useradd -m -g wheel user
+
+            {self._install_user()}
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
 

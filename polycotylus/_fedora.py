@@ -8,7 +8,6 @@ Examples: https://src.fedoraproject.org/rpms/python-pyperclip/blob/rawhide/f/pyt
 
 import re
 import platform
-import os
 import contextlib
 import shlex
 
@@ -175,9 +174,10 @@ class Fedora(BaseDistribution):
     def dockerfile(self):
         return self._formatter(f"""
             FROM fedora:37 AS base
-            RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-            RUN useradd --create-home --gid wheel --uid {os.getuid()} user
+
+            {self._install_user()}
             RUN groupadd --users user mock
+
             RUN {self.dnf_config_install}
 
             RUN mkdir /io && chown user /io

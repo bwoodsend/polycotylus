@@ -2,6 +2,7 @@ import abc
 import shutil
 import re
 import contextlib
+import os
 
 import pkg_resources
 
@@ -38,6 +39,11 @@ class BaseDistribution(abc.ABC):
         """Packages that the distribution considers *too standard* to be given
         as build dependencies."""
         raise NotImplementedError
+
+    def _install_user(self, *groups):
+        return f"""\
+            RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+            RUN useradd --create-home --uid {os.getuid()} --groups {",".join(("wheel", *groups))} user"""
 
     @classmethod
     def python_package(cls, requirement):

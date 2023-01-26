@@ -108,8 +108,9 @@ class Void(BaseDistribution):
             CMD ["/bin/bash"]
 
             FROM root as build
-            RUN xbps-install -ySu xbps shadow
-            RUN useradd --create-home --uid 1000 --user-group --groups root user
+            RUN xbps-install -ySu xbps shadow sudo
+            {self._install_user()}
+
             RUN xbps-install -ySu xbps git bash util-linux {" ".join(dependencies)}
 
             FROM root AS test

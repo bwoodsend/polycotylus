@@ -176,7 +176,7 @@ class Alpine(BaseDistribution):
             RUN apk add alpine-sdk shadow sudo
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
-            RUN useradd --create-home --uid {os.getuid()} --groups wheel,abuild user
+            {self._install_user("abuild")}
 
             RUN chown user /io
             RUN mkdir /home/user/.abuild

@@ -111,6 +111,19 @@ def test_ubrotli():
     self.test(apks["main"])
 
 
+def test_user_privilidge_escalation():
+    self = Alpine(Project.from_root(ubrotli))
+    self.generate()
+    base = self.build_builder_image()
+
+    user = _docker.run(base, ["whoami"], root=False).output.strip()
+    assert user == "user"
+
+    # sudo should not require a password.
+    user = _docker.run(base, ["sudo", "whoami"], root=False).output.strip()
+    assert user == "root"
+
+
 def test_license_handling(tmp_path):
     subprocess.run(["git", "-C", tmp_path, "init"])
     (tmp_path / "tests").mkdir()
