@@ -11,8 +11,6 @@ import platform
 import shlex
 import textwrap
 
-import pkg_resources
-
 from polycotylus import _shell, _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors, cache_root
@@ -83,6 +81,7 @@ class Void(BaseDistribution):
 
     @classmethod
     def python_package(cls, requirement):
+        import pkg_resources
         requirement = pkg_resources.Requirement(requirement)
         normalised = re.sub("[._-]+", "-", requirement.name.lower())
         with_prefix = cls.python_package_convention(normalised)

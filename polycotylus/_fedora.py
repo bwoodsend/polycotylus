@@ -12,7 +12,6 @@ import contextlib
 import shlex
 
 import toml
-import pkg_resources
 
 from polycotylus import _shell, _docker
 from polycotylus._project import Project
@@ -55,6 +54,7 @@ class Fedora(BaseDistribution):
 
     @classmethod
     def python_package(cls, requirement):
+        import pkg_resources
         requirement = pkg_resources.Requirement(requirement)
         requirement.name = "python3dist({})".format(requirement.name)
         return str(requirement).replace(">=", " >= ")

@@ -4,8 +4,6 @@ import re
 import contextlib
 import os
 
-import pkg_resources
-
 from polycotylus import _docker
 from polycotylus._mirror import mirrors
 
@@ -47,6 +45,7 @@ class BaseDistribution(abc.ABC):
 
     @classmethod
     def python_package(cls, requirement):
+        import pkg_resources
         requirement = pkg_resources.Requirement(requirement)
         name = cls.normalise_package(requirement.key)
         if cls.python_package_convention(name) in cls.available_packages():
