@@ -42,15 +42,15 @@ def test_key_generation(tmp_path, monkeypatch):
     assert config.read_text().startswith("eggs=foo\nPACKAGER_PRIVKEY=")
 
 
-@mirror.decorate
 def test_abuild_lint():
     self = Alpine(Project.from_root(dumb_text_viewer))
     self.generate()
-    _docker.run(Alpine.base, f"""
-        {mirror.install}
-        apk add -q atools
-        apkbuild-lint /io/APKBUILD
-    """, volumes=[(self.distro_root, "/io")])
+    with self.mirror:
+        _docker.run(Alpine.base, f"""
+            {mirror.install}
+            apk add -q atools
+            apkbuild-lint /io/APKBUILD
+        """, volumes=[(self.distro_root, "/io")])
 
 
 def test_dumb_text_viewer():

@@ -225,12 +225,11 @@ class Fedora(BaseDistribution):
                                 volumes=self._mounted_caches)
 
     def build(self):
-        mock_cache = cache_root / "fedora-mock"
-        mock_cache.mkdir(parents=True, exist_ok=True)
-        _docker.run(self.build_builder_image(),
-                    ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
-                    tty=True, root=False,
-                    volumes=[(self.distro_root, "/io")] + self._mounted_caches)
+        with self.mirror:
+            _docker.run(self.build_builder_image(),
+                        ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
+                        tty=True, root=False,
+                        volumes=[(self.distro_root, "/io")] + self._mounted_caches)
         rpms = {}
         machine = "noarch" if self.project.architecture == "none" else platform.machine()
         pattern = re.compile(
@@ -248,10 +247,11 @@ class Fedora(BaseDistribution):
         test_dependencies = []
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(f"python3dist({package})")
-        return _docker.run(self.build_test_image(), f"""
-            sudo dnf install -y /pkg/{rpm.name}
-            {self.project.test_command}
-        """, volumes=volumes, tty=True, root=False)
+        with self.mirror:
+            return _docker.run(self.build_test_image(), f"""
+                sudo dnf install -y /pkg/{rpm.name}
+                {self.project.test_command}
+            """, volumes=volumes, tty=True, root=False)
 
 
 if __name__ == "__main__":

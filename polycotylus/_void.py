@@ -175,14 +175,14 @@ class Void(BaseDistribution):
         (package_root / "template").write_text(self.template())
         self.inject_source()
 
-    @mirror.decorate
     def build(self):
         try:
-            for command in [["./xbps-src", "-1", "binary-bootstrap"],
-                            ["./xbps-src", "-1", "pkg", self.package_name]]:
-                _docker.run(self.build_builder_image(), command,
-                            "--privileged", root=False,
-                            volumes=[(self.distro_root, "/io")], tty=True)
+            with self.mirror:
+                for command in [["./xbps-src", "-1", "binary-bootstrap"],
+                                ["./xbps-src", "-1", "pkg", self.package_name]]:
+                    _docker.run(self.build_builder_image(), command,
+                                "--privileged", root=False,
+                                volumes=[(self.distro_root, "/io")], tty=True)
         except _docker.Error as ex:
             # If a dependency has been updated since the last sync of the
             # void-packages repo, xbps-src will, by default, build that
@@ -200,16 +200,16 @@ class Void(BaseDistribution):
         name = f"{self.package_name}-{self.project.version}_1.{platform.machine()}-musl.xbps"
         return {"main": self.distro_root / "hostdir/binpkgs" / name}
 
-    @mirror.decorate
     def test(self, package):
         base = self.build_test_image()
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        return _docker.run(base, f"""
-            sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
-            {self.project.test_command}
-        """, volumes=volumes, tty=True, root=False)
+        with self.mirror:
+            return _docker.run(base, f"""
+                sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
+                {self.project.test_command}
+            """, volumes=volumes, tty=True, root=False)
 
     @classmethod
     def void_packages_repo(cls):

@@ -166,36 +166,25 @@ class Arch(BaseDistribution):
         super().generate()
         (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
 
-    @mirror.decorate
     def build(self):
-        _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                    volumes=[(self.distro_root, "/io")], root=False, tty=True)
+        with self.mirror:
+            _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
+                        volumes=[(self.distro_root, "/io")], root=False, tty=True)
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
         return {"main": package}
 
-    @mirror.decorate
     def test(self, package):
-        base = self.build_test_image()
-        volumes = [(package.parent, "/pkg")]
-        for path in self.project.test_files:
-            volumes.append((self.project.root / path, f"/io/{path}"))
-        return _docker.run(base, f"""
-            sudo pacman -Sy
-            sudo pacman -U --noconfirm /pkg/{package.name}
-            {self.project.test_command}
-        """, volumes=volumes, tty=True, root=False)
-
-
-@lru_cache()
-def available_licenses():
-    out = []
-    with _docker.run("archlinux:base", verbosity=0)["/usr/share/licenses/common"] as tar:
-        for member in tar.getmembers():
-            m = re.fullmatch("common/([^/]+)/license.txt", member.name)
-            if m:
-                out.append(m[1])
-    return out
+        with self.mirror:
+            base = self.build_test_image()
+            volumes = [(package.parent, "/pkg")]
+            for path in self.project.test_files:
+                volumes.append((self.project.root / path, f"/io/{path}"))
+            return _docker.run(base, f"""
+                sudo pacman -Sy
+                sudo pacman -U --noconfirm /pkg/{package.name}
+                {self.project.test_command}
+            """, volumes=volumes, tty=True, root=False)
 
 
 if __name__ == "__main__":

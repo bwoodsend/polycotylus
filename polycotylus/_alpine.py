@@ -241,7 +241,6 @@ class Alpine(BaseDistribution):
         (self.distro_root / "APKBUILD").write_text(self.apkbuild())
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
-    @mirror.decorate
     def build(self):
         public_key, private_key = self.abuild_keys()
         base = self.build_builder_image()
@@ -250,7 +249,8 @@ class Alpine(BaseDistribution):
             (private_key, f"/home/user/.abuild/{private_key.name}"),
             (self.distro_root / "dist", "/home/user/packages"),
         ]
-        _docker.run(base, "abuild", root=False, volumes=volumes, tty=True)
+        with self.mirror:
+            _docker.run(base, "abuild", root=False, volumes=volumes, tty=True)
         _dist = self.distro_root / "dist" / platform.machine()
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
@@ -260,16 +260,16 @@ class Alpine(BaseDistribution):
             apks["doc"] = doc
         return apks
 
-    @mirror.decorate
     def test(self, package):
         base = self.build_test_image()
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        return _docker.run(base, f"""
-            sudo apk add /pkg/{package.name}
-            {self.project.test_command}
-        """, volumes=volumes, tty=True, root=False)
+        with self.mirror:
+            return _docker.run(base, f"""
+                sudo apk add /pkg/{package.name}
+                {self.project.test_command}
+            """, volumes=volumes, tty=True, root=False)
 
 
 if __name__ == "__main__":
