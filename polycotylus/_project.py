@@ -83,6 +83,12 @@ class Project:
             pyproject_options.get("build-system", {}).get("requires", [])
         dependencies.setdefault("run", {})["pip"] = \
             project.get("dependencies", [])
+        for group in dependencies:
+            unpacked = {}
+            for (distros, packages) in dependencies[group].items():
+                for distro in distros.split():
+                    unpacked.setdefault(distro, []).extend(packages)
+            dependencies[group] = unpacked
 
         if "gui" in polycotylus_options:
             gui = polycotylus_options["gui"]

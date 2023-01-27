@@ -39,9 +39,10 @@ class BaseDistribution(abc.ABC):
         raise NotImplementedError
 
     def _install_user(self, *groups):
+        groups = ",".join(("wheel", *groups))
         return f"""\
             RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-            RUN useradd --create-home --uid {os.getuid()} --groups {",".join(("wheel", *groups))} user"""
+            RUN useradd --create-home --non-unique --uid {os.getuid()} --groups {groups} user"""
 
     @classmethod
     def python_package(cls, requirement):

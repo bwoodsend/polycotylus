@@ -17,6 +17,8 @@ import contextlib
 
 import appdirs
 
+from polycotylus import _docker
+
 cache_root = Path(appdirs.user_cache_dir("polycotylus"))
 cache_root.mkdir(parents=True, exist_ok=True)
 
@@ -51,7 +53,7 @@ class CachedMirror:
                 corresponding to the time the requested file was last updated.
 
         """
-        self.base_url = base_url.strip("/")
+        self._base_url = base_url
         self.base_dir = Path(base_dir)
         self.index_patterns = index_patterns
         self.ignore_patterns = ignore_patterns
@@ -67,6 +69,12 @@ class CachedMirror:
         self.last_sync_time = last_sync_time
         self._in_progress = {}
         self.verbose = False
+
+    @property
+    def base_url(self):
+        if callable(self._base_url):
+            self._base_url = self._base_url()
+        return self._base_url.strip("/")
 
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
@@ -88,6 +96,7 @@ class CachedMirror:
             if self._listeners:
                 self._listeners += 1
                 return
+        self.base_url
         handler = type("Handler", (RequestHandler,), {"parent": self})
         self._httpd = ThreadingHTTPServer(("", self.port), handler)
         thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
@@ -169,7 +178,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             # /some/directory/index.html and that would create a local cache
             # file called $cache/some/directory where the directory
             # $cache/some/directory/ is supposed to be.
-            if "text/html" in self.upstream.headers["Content-Type"].split(";"):
+            if self.upstream.headers["Content-Type"] and \
+                    "text/html" in self.upstream.headers["Content-Type"].split(";"):
                 with self.upstream:
                     self.send_response(HTTPStatus.OK)
                     # Forward any header web browsers needs to interpret the
@@ -289,6 +299,24 @@ def _use_last_modified_header(self: RequestHandler):
     return latest.timestamp()
 
 
+def _manjaro_preffered_mirror():
+    with contextlib.suppress(Exception):
+        url = (cache_root / "manjaro-mirror").read_text()
+        urlopen(Request(url, method="HEAD")).close()
+        return url
+
+    container = _docker.run("manjarolinux/base", "pacman-mirrors --geoip",
+                            tty=True)
+    mirrorlist = container.file("/etc/pacman.d/mirrorlist").decode()
+    mirrors = re.findall("^Server = (.*?/stable)", mirrorlist, flags=re.M)
+    assert mirrors
+    for url in mirrors:
+        with contextlib.suppress(HTTPError):
+            urlopen(Request(url, method="HEAD")).close()
+            (cache_root / "manjaro-mirror").write_text(url)
+            return url
+
+
 mirrors = {
     "arch":
         CachedMirror(
@@ -298,6 +326,16 @@ mirrors = {
             ["*.db.sig", "*.files.sig"],
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
+            (_use_last_modified_header,),
+        ),
+    "manjaro":
+        CachedMirror(
+            _manjaro_preffered_mirror,
+            cache_root / "manjaro",
+            ["*.db", "*.files"],
+            ["*.db.sig", "*.files.sig"],
+            8903,
+            "echo 'Server = http://0.0.0.0:8903/$repo/$arch' > /etc/pacman.d/mirrorlist && sed -i 's/#Color/Color/' /etc/pacman.conf",
             (_use_last_modified_header,),
         ),
     "alpine":
