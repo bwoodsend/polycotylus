@@ -15,6 +15,7 @@ from polycotylus._base import BaseDistribution
 class Arch(BaseDistribution):
     name = "arch"
     mirror = mirrors[name]
+    image = "archlinux:base-devel"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["tk"],
@@ -32,8 +33,8 @@ class Arch(BaseDistribution):
     @lru_cache()
     def _base_image_syncronised(cls):
         with cls.mirror:
-            return _docker.run("archlinux:base", f"""
-                {mirrors["arch"].install}
+            return _docker.run(cls.image, f"""
+                {cls.mirror.install}
                 pacman -Sy
             """, tty=True).commit()
 
@@ -79,7 +80,7 @@ class Arch(BaseDistribution):
         license_names = []
         sharable = True
         for spdx in self.project.license_names:
-            for name in available_licenses():
+            for name in self.available_licenses():
                 if spdx.replace("-", "").startswith(name):
                     license_names.append(name)
                     break
@@ -143,8 +144,9 @@ class Arch(BaseDistribution):
         return out
 
     def dockerfile(self):
+        dependencies = self.dependencies + self.build_dependencies + self.test_dependencies
         return self._formatter(f"""
-            FROM archlinux:base-devel AS base
+            FROM {self.image} AS base
 
             RUN {self.mirror.install}
             {self._install_user()}
@@ -154,7 +156,7 @@ class Arch(BaseDistribution):
             FROM base as build
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-            RUN pacman -Sy --noconfirm {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
+            RUN pacman -Sy --noconfirm base-devel {" ".join(dependencies)}
 
             FROM base AS test
             RUN pacman -Sy --noconfirm {" ".join(self.test_dependencies)}
@@ -185,6 +187,18 @@ class Arch(BaseDistribution):
                 sudo pacman -U --noconfirm /pkg/{package.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False)
+
+    @classmethod
+    @lru_cache()
+    def available_licenses(cls):
+        out = []
+        container = _docker.run(cls.image, verbosity=0)
+        with container["/usr/share/licenses/common"] as tar:
+            for member in tar.getmembers():
+                m = re.fullmatch("common/([^/]+)/license.txt", member.name)
+                if m:
+                    out.append(m[1])
+        return out
 
 
 if __name__ == "__main__":

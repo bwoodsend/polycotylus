@@ -146,7 +146,7 @@ def test_index_page_handling(tmp_path):
     assert tmp_path.is_dir()
     assert list(tmp_path.iterdir()) == []
 
-    self.base_url = "https://geo.mirror.pkgbuild.com/"
+    self._base_url = "https://geo.mirror.pkgbuild.com/"
     with self:
         with urlopen(Request("http://0.0.0.0:9989",
                              headers={"Accept-Encoding": "gzip"})) as response:
