@@ -18,6 +18,13 @@ class DockerInfo(str):
         p = _run([self, "--version"], stdout=PIPE, stderr=STDOUT, text=True)
         m = re.match("(docker|podman) version ([^, ]+)", p.stdout.lower())
         self.variant, self.version = m.groups()
+        if self.variant == "podman":  # pragma: no cover
+            if tuple(map(int, re.findall(r"\d+", self.verion))) < (4, 3, 1):
+                # Note that there may be versions after 3.4.4 which also work.
+                # If ``podman run echo -n hello > /dev/null && podman logs -l``
+                # prints hello, this version is usable.
+                raise SystemExit("This version of podman is unsupported. "
+                                 "At least 4.3.1 is needed")
         return self
 
 
