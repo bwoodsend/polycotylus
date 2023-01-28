@@ -5,11 +5,11 @@ import re
 from functools import lru_cache
 import hashlib
 import contextlib
-import time
 import shutil
 import platform
 import shlex
-import textwrap
+from urllib.request import urlopen
+import json
 
 from polycotylus import _shell, _docker
 from polycotylus._project import Project
@@ -176,27 +176,12 @@ class Void(BaseDistribution):
         self.inject_source()
 
     def build(self):
-        try:
-            with self.mirror:
-                for command in [["./xbps-src", "-1", "binary-bootstrap"],
-                                ["./xbps-src", "-1", "pkg", self.package_name]]:
-                    _docker.run(self.build_builder_image(), command,
-                                "--privileged", root=False,
-                                volumes=[(self.distro_root, "/io")], tty=True)
-        except _docker.Error as ex:
-            # If a dependency has been updated since the last sync of the
-            # void-packages repo, xbps-src will, by default, build that
-            # dependency from source which could take ages. The -1 flags above
-            # make xbps-src raise an error instead if this happens. If that
-            # error is triggered, catch it, resyncronise the cached
-            # void-packages clone then start the build again.
-            if not re.search("=> ERROR: .* not found: -1 passed: instructed not to build",
-                             ex.output, flags=re.M):  # pragma: no cover
-                raise
-            shutil.rmtree(self.void_packages_repo())
-            self.generate()
-            return self.build()
-
+        with self.mirror:
+            for command in [["./xbps-src", "-1", "binary-bootstrap"],
+                            ["./xbps-src", "-1", "pkg", self.package_name]]:
+                _docker.run(self.build_builder_image(), command,
+                            "--privileged", root=False,
+                            volumes=[(self.distro_root, "/io")], tty=True)
         name = f"{self.package_name}-{self.project.version}_1.{platform.machine()}-musl.xbps"
         return {"main": self.distro_root / "hostdir/binpkgs" / name}
 
@@ -211,30 +196,42 @@ class Void(BaseDistribution):
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False)
 
-    @classmethod
-    def void_packages_repo(cls):
+    def _void_packages_head(self):
+        """Fetch the commit SHA1 correspsonding to the latest completed build
+        from https://build.voidlinux.org/builders/aarch64-musl_builder
+        (replacing aarch64 with the current architecture)."""
+        url = f"https://build.voidlinux.org/json/builders/{platform.machine()}-musl_builder/builds?"
+        for j in range(-1, -10, -3):
+            _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
+            with urlopen(_url) as response:
+                builds = json.loads(response.read())
+            for j in map(str, range(j, j - 3, -1)):
+                if not builds[j].get("currentStep"):
+                    return builds[j]["sourceStamps"][0]["revision"]
+        raise StopIteration
+
+    def void_packages_repo(self):
         """Clone/cache Void Linux's package build recipes repo."""
         # Void Linux's package building tools are unhelpfully part of the same
         # repo that houses the build scripts for every package on their
         # repositories so to build anything, we need to clone everything.
         # Currently, a shallow clone is about 12MB whereas a conventional clone
         # is 558MB.
+        from subprocess import run, PIPE, DEVNULL
         cache = cache_root / "void-packages"
-        with contextlib.suppress(FileNotFoundError):
-            if time.time() - cache.stat().st_mtime < 7 * 24 * 60 * 60:
-                return cache
-            else:
-                # Updating a shallow git clone is so inefficient that it's
-                # quicker to start from scratch each time.
-                shutil.rmtree(cache)
-        command = ["git", "clone", "--depth=1", "--progress",
-                   "https://github.com/void-linux/void-packages", str(cache)]
-        status, output = _docker._tee_run(command, _docker._verbosity())
-        if status:  # pragma: no cover
-            raise RuntimeError(
-                f"Git command:\n    {shlex.join(command)}\n"
-                "returned an error:\n" + textwrap.indent(output, "    "))
-        cls._void_packages_inject_mirror(cache)
+        commit = self._void_packages_head()
+        if not (cache / ".git").is_dir():
+            run(["git", "init", "-q", str(cache)], stderr=PIPE, check=True)
+        if run(["git", "-C", str(cache), "log", "-n1", "--pretty=%H"],
+               stdout=PIPE, stderr=DEVNULL).stdout.strip().decode() == commit:
+            return cache
+        if run(["git", "show", commit], stdout=DEVNULL, stderr=DEVNULL).returncode:
+            command = ["git", "-C", str(cache), "fetch", "--depth=1", "--progress",
+                       "https://github.com/void-linux/void-packages", commit]
+            run(command, stdout=None if _docker._verbosity() >= 2 else PIPE, check=True)
+        run(["git", "-C", str(cache), "reset", "--hard"], stdout=DEVNULL, stderr=DEVNULL)
+        run(["git", "-C", str(cache), "checkout", commit], stdout=DEVNULL, stderr=DEVNULL)
+        self._void_packages_inject_mirror(cache)
         return cache
 
     @staticmethod

@@ -26,13 +26,13 @@ def test_dumb_text_viewer():
 def test_silly_named_package():
     # Mimic the local cache of the void-packages repo being out of date so that
     # some dependencies will no longer be available.
-    cache = Void.void_packages_repo()
-    hash = "f9bf46d6376a467b5f7dc21018f7a6dc9e6a3f2b"
-    for command in [["fetch", "--depth=1", "origin", hash], ["reset", "--hard"], ["checkout", hash]]:
-        subprocess.run(["git", "-C", str(cache)] + command, check=True)
-    Void._void_packages_inject_mirror(cache)
-
     self = Void(Project.from_root(silly_name))
+    cache = self.void_packages_repo()
+    hash = "f9bf46d6376a467b5f7dc21018f7a6dc9e6a3f2b"
+    for command in [["fetch", "--depth=1", "https://github.com/void-linux/void-packages", hash],
+                    ["reset", "--hard"], ["checkout", hash]]:
+        subprocess.run(["git", "-C", str(cache)] + command, check=True)
+
     self.generate()
     self.test(self.build()["main"])
 
