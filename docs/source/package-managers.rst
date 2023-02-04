@@ -70,3 +70,62 @@ This reference should answer those questions.
 
         # List a package's files:
         pacman -Qlq python
+
+
+.. tab:: Fedora
+
+    ::
+
+        # Install packages:
+        yum install -y python3-numpy python3-pip
+
+        # Uninstall packages:
+        yum remove -y python3-numpy python3-pip
+
+        # Search packages by name+description:
+        yum search substring
+
+        # Search by file:
+        yum whatprovides /usr/bin/python
+        yum whatprovides '*/libgmp.so'
+
+        # List all available packages:
+        yum list
+
+        # List all installed packages:
+        yum list --installed
+
+        # Show a package's metadata:
+        yum info python3
+
+        # List a package's files:
+        yum repoquery -l python3
+
+
+.. tab:: Void
+
+    ::
+
+        # Install packages:
+        xbps-install -ySu python3-numpy python3-pip
+
+        # Uninstall packages:
+        xbps-remove -y python3-numpy python3-pip
+
+        # Search packages by name+description:
+        xbps-query -Rs substring
+
+        # Search by file (requires first running ``xbps-install xtools; xlocate -S``):
+        xlocate libgmp.so
+
+        # List all available packages:
+        xbps-query -Rs ''
+
+        # List all installed packages:
+        xbps-query -l
+
+        # Show a package's metadata:
+        xbps-query -R python3
+
+        # List a package's files:
+        xbps-query -Rf python3
