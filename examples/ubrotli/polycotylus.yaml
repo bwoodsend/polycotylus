@@ -8,7 +8,7 @@ dependencies:
     arch manjaro: brotli
     alpine: brotli-dev python3-dev gcc musl-dev
     void: brotli-devel python3-devel
-    fedora: brotli-devel python3-devel gcc
+    fedora rhel: brotli-devel python3-devel gcc
   run:
     arch manjaro: brotli
     alpine: brotli-libs

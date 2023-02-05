@@ -21,6 +21,7 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 class Fedora(BaseDistribution):
     name = "fedora"
+    image = "fedora:37"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tkinter"],
@@ -173,10 +174,10 @@ class Fedora(BaseDistribution):
 
     def dockerfile(self):
         return self._formatter(f"""
-            FROM fedora:37 AS base
+            FROM {self.image} AS base
 
-            {self._install_user()}
-            RUN groupadd --users user mock
+            RUN groupadd mock
+            {self._install_user("mock")}
 
             RUN {self.dnf_config_install}
 
@@ -205,9 +206,9 @@ class Fedora(BaseDistribution):
 
     @property
     def _mounted_caches(self):
-        mock_cache = cache_root / ("fedora-mock-" + _docker.docker.variant)
+        mock_cache = cache_root / (self.name + "-mock-" + _docker.docker.variant)
         mock_cache.mkdir(parents=True, exist_ok=True)
-        dnf_cache = cache_root / ("fedora-dnf-" + _docker.docker.variant)
+        dnf_cache = cache_root / (self.name + "-dnf-" + _docker.docker.variant)
         dnf_cache.mkdir(parents=True, exist_ok=True)
         return [(mock_cache, "/var/cache/mock"), (dnf_cache, "/var/cache/dnf")]
 
