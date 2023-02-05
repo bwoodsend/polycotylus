@@ -129,6 +129,12 @@ architecture: aarch64 armhf armv7 ppc64le s390x x86 x86_64
   # Defaults to ``any`` if ``gcc`` or ``clang`` is found in
   # `dependencies.build.$distribution`; ``noarch`` otherwise.
 
+maintainer: Your Name <your.email@address.com>
+  # Contact details for whoever's job it will be to fix it if there are issues.
+  # This must be a real human being – not an organization. If non-ambiguous,
+  # `polycotylus` will default to the ``project.maintainer`` field in the
+  # ``pyproject.toml``.
+
 test_files: tests test_*.py pytest.ini conftest.py
   # The files needed to run the test suite. `polycotylus`, when testing the
   # final package, will mount only these files into the test container so that

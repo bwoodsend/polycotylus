@@ -52,6 +52,7 @@ architectures = [
 ]
 
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]
+maintainer_slug_re = r"\s*([^<>@]+)\b\s*<\s*([^<>@ ]+@[^<>@ ]+)\s*>\s*"
 
 polycotylus_yaml = Map({
     Optional("source_url"): Str(),
@@ -59,6 +60,7 @@ polycotylus_yaml = Map({
     Optional("dependencies"): Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
+    Optional("maintainer"): Regex(maintainer_slug_re),
     Optional("gui"): Bool(),
     Optional("spdx"): MapPattern(Str(), EmptyDict()),
     Optional("prefix_package_name", default=True): Bool(),
