@@ -5,9 +5,10 @@ import shutil
 import toml
 import pytest
 
-from polycotylus._project import Project, expand_pip_requirements
+from polycotylus._project import Project, expand_pip_requirements, \
+    check_maintainer
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
-    AmbiguousLicenseError, NoLicenseSpecifierError
+    AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
 from tests import dumb_text_viewer, bare_minimum
 
 
@@ -116,3 +117,59 @@ def test_license_handling(tmp_path):
     yaml.write_text(yaml.read_text() + "spdx:\n  kittens:\n")
     self = Project.from_root(tmp_path)
     assert self.license_names == ["kittens"]
+
+
+def test_check_maintainer():
+    for name in ["Bob", "Theodore", "Brett Alex"]:
+        check_maintainer(name)
+    for name in ["Bob and contributors", "The NumPy development team",
+                 "Poncy Titles Inc."]:
+        with pytest.raises(PolycotylusUsageError):
+            check_maintainer(name)
+
+
+def test_maintainer(tmp_path):
+    for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
+        shutil.copy(bare_minimum / path, tmp_path / path)
+
+    pyproject_toml = tmp_path / "pyproject.toml"
+    polycotylus_yaml = tmp_path / "polycotylus.yaml"
+    options = toml.load(pyproject_toml)
+    self = Project.from_root(tmp_path)
+    assert self.maintainer_slug == "Brénainn Woodsend <bwoodsend@gmail.com>"
+
+    options["project"]["maintainers"] = [dict(name="Sausage Roll",
+                                              email="s.roll@pastries.com")]
+    pyproject_toml.write_text(toml.dumps(options))
+    self = Project.from_root(tmp_path)
+    assert self.maintainer_slug == "Sausage Roll <s.roll@pastries.com>"
+
+    del options["project"]["maintainers"]
+    del options["project"]["authors"]
+    pyproject_toml.write_text(toml.dumps(options))
+    with pytest.raises(PolycotylusUsageError, match="exactly one"):
+        self = Project.from_root(tmp_path)
+
+    options["project"]["authors"] = [dict(name="bob", email="bob@mail.com"),
+                                     dict(name="foo", email="foo@mail.com")]
+    pyproject_toml.write_text(toml.dumps(options))
+    with pytest.raises(PolycotylusUsageError, match="exactly one"):
+        self = Project.from_root(tmp_path)
+
+    options["project"]["maintainer"] = [dict(name="Bob and his friends",
+                                             email="some@mailing-list.com")]
+    pyproject_toml.write_text(toml.dumps(options))
+    with pytest.raises(PolycotylusUsageError, match=""):
+        self = Project.from_root(tmp_path)
+
+    polycotylus_yaml.write_text("maintainer: The maintainers <foo@mail.com>")
+    with pytest.raises(PolycotylusUsageError, match="generic"):
+        self = Project.from_root(tmp_path)
+
+    polycotylus_yaml.write_text("maintainer: Mr Hippo < hippo@mail.com  > \n")
+    self = Project.from_root(tmp_path)
+    assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
+
+    polycotylus_yaml.write_text("maintainer: Mr Hippo<hippo@mail.com>")
+    self = Project.from_root(tmp_path)
+    assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"

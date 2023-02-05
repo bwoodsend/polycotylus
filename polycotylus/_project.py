@@ -55,7 +55,19 @@ class Project:
         polycotylus_options = _yaml_schema.read(root / "polycotylus.yaml")
 
         project = pyproject_options["project"]
-        maintainer, = project["authors"]
+        if maintainer_slug := polycotylus_options.get("maintainer"):
+            match = re.fullmatch(_yaml_schema.maintainer_slug_re, maintainer_slug)
+            maintainer = dict(zip(["name", "email"], match.groups()))
+        else:
+            try:
+                maintainer, = project.get("maintainers", []) or project["authors"]
+            except (KeyError, ValueError):
+                raise _exceptions.PolycotylusUsageError(
+                    "Linux repositories require exactly one maintainer of the "
+                    "Linux package. Nominate who that should be and specify "
+                    "their contact details in the polycotylus.yaml.\n"
+                    "    maintainer: your name <your@email.org>") from None
+        check_maintainer(maintainer["name"])
 
         if polycotylus_options.get("spdx"):
             license_names = list(polycotylus_options["spdx"])
@@ -285,6 +297,17 @@ def expand_pip_requirements(requirement, cwd, extras=None):
 
     else:
         yield requirement
+
+
+def check_maintainer(name):
+    if re.search(r"\b(the|team|et al\.?|contributors|and|development|developers"
+                 r"|llc|inc\.?|limited)\b", name.lower()):
+        raise _exceptions.PolycotylusUsageError(
+            f'Maintainer "{name}" appears to be a generic team or organization '
+            'name. Linux repositories require personal contact details. '
+            "Set them in the polycotylus.yaml.\n"
+            "    maintainer: your name <your@email.org>"
+        )
 
 
 with resources.open_binary("polycotylus", "trove-spdx-licenses.json") as f:
