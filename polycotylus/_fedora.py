@@ -14,7 +14,6 @@ import shlex
 import toml
 
 from polycotylus import _shell, _docker
-from polycotylus._project import Project
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -252,9 +251,3 @@ class Fedora(BaseDistribution):
                 sudo dnf install -y /pkg/{rpm.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False)
-
-
-if __name__ == "__main__":
-    self = Fedora(Project.from_root("."))
-    self.generate()
-    self.test(self.build()["main"])

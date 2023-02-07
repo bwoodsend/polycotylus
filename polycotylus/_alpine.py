@@ -14,7 +14,7 @@ import contextlib
 
 from polycotylus import _shell, _docker
 from polycotylus._mirror import mirrors
-from polycotylus._project import Project, spdx_osi_approval
+from polycotylus._project import spdx_osi_approval
 from polycotylus._base import BaseDistribution
 
 
@@ -270,9 +270,3 @@ class Alpine(BaseDistribution):
                 sudo apk add /pkg/{package.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False)
-
-
-if __name__ == "__main__":
-    self = Alpine(Project.from_root("."))
-    self.generate()
-    self.test(self.build()["main"])

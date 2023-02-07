@@ -7,7 +7,6 @@ from functools import lru_cache
 import contextlib
 
 from polycotylus import _shell, _docker
-from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._base import BaseDistribution
 
@@ -199,9 +198,3 @@ class Arch(BaseDistribution):
                 if m:
                     out.append(m[1])
         return out
-
-
-if __name__ == "__main__":
-    self = Arch(Project.from_root("."))
-    self.generate()
-    self.test(self.build()["main"])

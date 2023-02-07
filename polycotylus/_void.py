@@ -12,7 +12,6 @@ from urllib.request import urlopen
 import json
 
 from polycotylus import _shell, _docker
-from polycotylus._project import Project
 from polycotylus._mirror import mirrors, cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -239,9 +238,3 @@ class Void(BaseDistribution):
         for path in (root / "etc/xbps.d").glob("repos-*"):
             path.write_bytes(path.read_bytes().replace(
                 b"https://repo-default.voidlinux.org", b"http://0.0.0.0:8902"))
-
-
-if __name__ == "__main__":
-    self = Void(Project.from_root("."))
-    self.generate()
-    self.test(self.build()["main"])
