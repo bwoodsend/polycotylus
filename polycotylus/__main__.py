@@ -1,12 +1,27 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action
 import os
+from importlib import resources
 
 import polycotylus
+
+
+class CompletionAction(Action):
+    files = {
+        "fish": "polycotylus.fish",
+    }
+
+    def __call__(self, parser, namespace, shell, option_string=None):
+        with resources.open_text("polycotylus._completions", self.files[shell]) as f:
+            print(f.read())
+        parser.exit()
+
 
 parser = ArgumentParser("polycotylus",
                         description="Convert Python packages to Linux ones.")
 parser.add_argument("distribution", choices=sorted(polycotylus.distributions))
 parser.add_argument("--quiet", "-q", action="count", default=-2)
+parser.add_argument("--completion", action=CompletionAction,
+                    choices=sorted(CompletionAction.files))
 
 
 def cli(argv=None):
