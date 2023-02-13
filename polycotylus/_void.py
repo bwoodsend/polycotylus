@@ -11,7 +11,7 @@ import shlex
 from urllib.request import urlopen
 import json
 
-from polycotylus import _shell, _docker
+from polycotylus import _misc, _docker
 from polycotylus._mirror import mirrors, cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -33,7 +33,7 @@ class Void(BaseDistribution):
     imagemagick = "ImageMagick"
     xvfb_run = "xvfb-run util-linux"
     font = "dejavu-fonts-ttf"
-    _formatter = _shell.Formatter()
+    _formatter = _misc.Formatter()
     image = "ghcr.io/void-linux/void-linux:latest-mini-x86_64-musl"
     invalid_package_characters = "[^a-zA-Z0-9_+.-]"
 
@@ -116,7 +116,7 @@ class Void(BaseDistribution):
     def template(self):
         out = f"# Template file for '{self.package_name}'\n"
         quote = lambda x: f'"{x}"'
-        out += _shell.variables(
+        out += _misc.variables(
             pkgname=self.package_name,
             version=self.project.version,
             revision=1,

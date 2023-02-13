@@ -12,7 +12,7 @@ import platform
 from pathlib import Path
 import contextlib
 
-from polycotylus import _shell, _docker
+from polycotylus import _misc, _docker
 from polycotylus._mirror import mirrors
 from polycotylus._project import spdx_osi_approval
 from polycotylus._base import BaseDistribution
@@ -27,7 +27,7 @@ class Alpine(BaseDistribution):
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
-    _formatter = _shell.Formatter("\t")
+    _formatter = _misc.Formatter("\t")
     pkgdir = "$builddir"
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg"
@@ -102,7 +102,7 @@ class Alpine(BaseDistribution):
             i if spdx_osi_approval.get(i) else "custom"
             for i in self.project.license_names
         ]
-        out += _shell.variables(
+        out += _misc.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
@@ -117,7 +117,7 @@ class Alpine(BaseDistribution):
             builddir='"$srcdir/_build"',
         )
         if "custom" in license_names:
-            out += _shell.variables(subpackages="$pkgname-doc")
+            out += _misc.variables(subpackages="$pkgname-doc")
         out += "\n"
         out += self.define_py3ver()
 

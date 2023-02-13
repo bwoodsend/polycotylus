@@ -13,7 +13,7 @@ import shlex
 
 import toml
 
-from polycotylus import _shell, _docker
+from polycotylus import _misc, _docker
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -33,7 +33,7 @@ class Fedora(BaseDistribution):
     xvfb_run = "/usr/bin/xvfb-run"
     imagemagick = "ImageMagick"
     imagemagick_svg = "librsvg2-tools"
-    _formatter = _shell.Formatter("    ")
+    _formatter = _misc.Formatter("    ")
     mirror = contextlib.nullcontext()
     font = "dejavu-fonts-all"
     pkgdir = "%{buildroot}"

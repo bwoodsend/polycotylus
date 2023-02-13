@@ -6,7 +6,7 @@ import shlex
 from functools import lru_cache
 import contextlib
 
-from polycotylus import _shell, _docker
+from polycotylus import _misc, _docker
 from polycotylus._mirror import mirrors
 from polycotylus._base import BaseDistribution
 
@@ -26,7 +26,7 @@ class Arch(BaseDistribution):
         "bz2": [],
     }
     xvfb_run = "xorg-server-xvfb"
-    _formatter = _shell.Formatter()
+    _formatter = _misc.Formatter()
 
     @classmethod
     @lru_cache()
@@ -109,7 +109,7 @@ class Arch(BaseDistribution):
         else:
             architecture = "x86_64"
 
-        out += _shell.variables(
+        out += _misc.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
