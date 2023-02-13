@@ -1,1 +1,2 @@
 include polycotylus/*.json
+include polycotylus/_completions/*
