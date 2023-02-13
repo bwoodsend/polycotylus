@@ -57,7 +57,7 @@ Required key(s) 'Name' not found while parsing a mapping.
 """
 
 
-def test_mimal_configuration(tmp_path):
+def test_minimal_configuration(tmp_path):
     shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
     for contents in ["", "\n", "  \n   \n # hello \n\n", "\n\n---\n\n"]:
         (tmp_path / "polycotylus.yaml").write_text(contents)

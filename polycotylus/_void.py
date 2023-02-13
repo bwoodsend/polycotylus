@@ -196,7 +196,7 @@ class Void(BaseDistribution):
             """, volumes=volumes, tty=True, root=False)
 
     def _void_packages_head(self):
-        """Fetch the commit SHA1 correspsonding to the latest completed build
+        """Fetch the commit SHA1 corresponding to the latest completed build
         from https://build.voidlinux.org/builders/aarch64-musl_builder
         (replacing aarch64 with the current architecture)."""
         url = f"https://build.voidlinux.org/json/builders/{platform.machine()}-musl_builder/builds?"

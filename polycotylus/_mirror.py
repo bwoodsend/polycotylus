@@ -299,7 +299,7 @@ def _use_last_modified_header(self: RequestHandler):
     return latest.timestamp()
 
 
-def _manjaro_preffered_mirror():
+def _manjaro_preferred_mirror():
     with contextlib.suppress(Exception):
         url = (cache_root / "manjaro-mirror").read_text()
         urlopen(Request(url, method="HEAD")).close()
@@ -330,7 +330,7 @@ mirrors = {
         ),
     "manjaro":
         CachedMirror(
-            _manjaro_preffered_mirror,
+            _manjaro_preferred_mirror,
             cache_root / "manjaro",
             ["*.db", "*.files"],
             ["*.db.sig", "*.files.sig"],

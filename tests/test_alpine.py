@@ -111,7 +111,7 @@ def test_ubrotli():
     self.test(apks["main"])
 
 
-def test_user_privilidge_escalation():
+def test_user_privilege_escalation():
     self = Alpine(Project.from_root(ubrotli))
     self.generate()
     base = self.build_builder_image()

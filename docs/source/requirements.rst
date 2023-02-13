@@ -11,7 +11,7 @@ Prerequisites checklist
 #.  Your project should be a ``pip install``-able Python distribution as if it were
     going to be uploaded to PyPI -- certainly not the usual assortment of
     ``.py`` files arranged in some imitation of a Java or C++ project layout
-    with a ``requirements.txt`` that is so often misasumned to be proper Python
+    with a ``requirements.txt`` that is so often misassumed to be proper Python
     packaging! See the `Python packaging tutorial
     <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`_ for
     how this is done.
