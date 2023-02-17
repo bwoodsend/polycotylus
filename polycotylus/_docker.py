@@ -6,6 +6,7 @@ import shlex
 import textwrap
 from tarfile import TarFile
 from pathlib import Path
+import platform
 import json
 import time
 import sys
@@ -33,12 +34,13 @@ docker = DockerInfo()
 
 class run:
     def __init__(self, base, command=None, *flags, volumes=(), check=True,
-                 interactive=False, tty=False, root=True, verbosity=None):
+                 interactive=False, tty=False, root=True,
+                 architecture=platform.machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
         if verbosity is None:
             verbosity = _verbosity()
         __tracebackhide__ = True
-        arguments = ["--network=host"]
+        arguments = ["--network=host", "--platform=linux/" + architecture]
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
         if interactive:
@@ -48,7 +50,7 @@ class run:
         arguments.extend(map(str, flags))
         if not root:
             if docker.variant == "podman":
-                arguments += ["--userns", "keep-id"]
+                arguments += ["--userns", "keep-id", "--user=user:wheel"]
             else:
                 arguments += [f"--user={os.getuid()}"]
 
@@ -118,12 +120,13 @@ def _tee_run(command, verbosity, **kwargs):
     return p.returncode, b"".join(chunks).decode()
 
 
-def build(dockerfile, root, target=None, verbosity=None):
+def build(dockerfile, root, target=None, architecture=platform.machine(), verbosity=None):
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
         verbosity = _verbosity()
     if target:
         command += ["--target", target]
+    command += ["--pull", "--platform=linux/" + architecture]
     if verbosity >= 1:
         print("$", shlex.join(command))
     returncode, output = _tee_run(command, verbosity, cwd=root)
@@ -168,3 +171,14 @@ class Error(Exception):
     def __str__(self):
         return f"Docker command:\n    {self.command}\n" \
             "returned an error:\n" + self.output
+
+
+def setup_binfmt():
+    if docker.variant == "podman":
+        return
+    if _run([docker, "image", "inspect", "docker.io/multiarch/qemu-user-static"],
+            stderr=DEVNULL, stdout=DEVNULL).returncode:  # pragma: no cover
+        _run([docker, "pull", "docker.io/multiarch/qemu-user-static"])
+    p = _run([docker, "run", "--rm", "--privileged", "docker.io/multiarch/qemu-user-static",
+              "--reset", "-p", "yes", "--credential", "yes"], stderr=STDOUT, stdout=PIPE)
+    assert p.returncode == 0, p.stdout.decode()

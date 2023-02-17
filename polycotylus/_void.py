@@ -34,8 +34,18 @@ class Void(BaseDistribution):
     xvfb_run = "xvfb-run util-linux"
     font = "dejavu-fonts-ttf"
     _formatter = _misc.Formatter()
-    image = "ghcr.io/void-linux/void-linux:latest-mini-x86_64-musl"
     invalid_package_characters = "[^a-zA-Z0-9_+.-]"
+    supported_architectures = {
+        "x86_64": "x86_64",
+        # "aarch64": "aarch64",  # unshare barfs out on these. I don't
+        # "armv6l": "arm/v6",    # understand why. Void on non-x86_64 seems
+        # "armv7l": "arm/v7",    # unpopular anyway.
+    }
+
+    @_misc.classproperty
+    def image(self):
+        architecture = "x86_64" if self is None else self.architecture
+        return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}-musl"
 
     @classmethod
     @lru_cache()
@@ -180,7 +190,8 @@ class Void(BaseDistribution):
                             ["./xbps-src", "-1", "pkg", self.package_name]]:
                 _docker.run(self.build_builder_image(), command,
                             "--privileged", root=False,
-                            volumes=[(self.distro_root, "/io")], tty=True)
+                            volumes=[(self.distro_root, "/io")], tty=True,
+                            architecture=self.docker_architecture)
         name = f"{self.package_name}-{self.project.version}_1.{platform.machine()}-musl.xbps"
         return {"main": self.distro_root / "hostdir/binpkgs" / name}
 
@@ -193,7 +204,8 @@ class Void(BaseDistribution):
             return _docker.run(base, f"""
                 sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False)
+            """, volumes=volumes, tty=True, root=False,
+                               architecture=self.docker_architecture)
 
     def _void_packages_head(self):
         """Fetch the commit SHA1 corresponding to the latest completed build

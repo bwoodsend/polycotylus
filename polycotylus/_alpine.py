@@ -8,7 +8,6 @@ import re
 import shlex
 from functools import lru_cache
 import hashlib
-import platform
 from pathlib import Path
 import contextlib
 
@@ -28,6 +27,14 @@ class Alpine(BaseDistribution):
         "tkinter": ["python3-tkinter"],
     }
     _formatter = _misc.Formatter("\t")
+    supported_architectures = {
+        "aarch64": "aarch64",
+        "armv7": "arm",
+        "ppc64le": "ppc64le",
+        "s390x": "s390x",
+        "x86": "i386",
+        "x86_64": "x86_64",
+    }
     pkgdir = "$builddir"
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg"
@@ -250,8 +257,9 @@ class Alpine(BaseDistribution):
             (self.distro_root / "dist", "/home/user/packages"),
         ]
         with self.mirror:
-            _docker.run(base, "abuild", root=False, volumes=volumes, tty=True)
-        _dist = self.distro_root / "dist" / platform.machine()
+            _docker.run(base, "abuild -f", root=False, volumes=volumes, tty=True,
+                        architecture=self.docker_architecture)
+        _dist = self.distro_root / "dist" / self.architecture
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
         doc = apk.with_name(_stem + apk.suffix)
@@ -269,4 +277,5 @@ class Alpine(BaseDistribution):
             return _docker.run(base, f"""
                 sudo apk add /pkg/{package.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False)
+            """, volumes=volumes, tty=True, root=False,
+                               architecture=self.docker_architecture)
