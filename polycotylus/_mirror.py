@@ -308,7 +308,7 @@ def _manjaro_preferred_mirror():
     container = _docker.run("manjarolinux/base", "pacman-mirrors --geoip",
                             tty=True)
     mirrorlist = container.file("/etc/pacman.d/mirrorlist").decode()
-    mirrors = re.findall("^Server = (.*?/stable)", mirrorlist, flags=re.M)
+    mirrors = re.findall("^Server = (.*?)/(?:arm-)?stable", mirrorlist, flags=re.M)
     assert mirrors
     for url in mirrors:
         with contextlib.suppress(HTTPError):
@@ -335,7 +335,7 @@ mirrors = {
             ["*.db", "*.files"],
             ["*.db.sig", "*.files.sig"],
             8903,
-            "echo 'Server = http://0.0.0.0:8903/$repo/$arch' > /etc/pacman.d/mirrorlist && sed -i 's/#Color/Color/' /etc/pacman.conf",
+            "if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
             (_use_last_modified_header,),
         ),
     "alpine":
@@ -355,7 +355,7 @@ mirrors = {
             ["*-repodata"],
             [],
             8902,
-            "echo 'repository=http://0.0.0.0:8902/current/musl' > /etc/xbps.d/00-repository-main.conf",
+            "sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf",
             (_use_last_modified_header,),
         ),
 }

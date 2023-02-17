@@ -5,6 +5,7 @@ import re
 import shlex
 from functools import lru_cache
 import contextlib
+import shutil
 
 from polycotylus import _misc, _docker
 from polycotylus._mirror import mirrors
@@ -27,6 +28,9 @@ class Arch(BaseDistribution):
     }
     xvfb_run = "xorg-server-xvfb"
     _formatter = _misc.Formatter()
+    supported_architectures = {
+        "x86_64": "x86_64",
+    }
 
     @classmethod
     @lru_cache()
@@ -105,16 +109,19 @@ class Arch(BaseDistribution):
 
         package += "}\n"
         if self.project.architecture == "none":
-            architecture = "any"
+            architecture = ["any"]
+        elif self.project.architecture == "any":
+            architecture = sorted(self.supported_architectures)
         else:
-            architecture = "x86_64"
+            architecture = sorted(i for i in self.supported_architectures
+                                  if i in self.project.architecture)
 
         out += _misc.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
-            arch=[architecture],
+            arch=architecture,
             url=self.project.url,
             license=license_names,
             depends=self.dependencies,
@@ -164,15 +171,21 @@ class Arch(BaseDistribution):
     def generate(self):
         with contextlib.suppress(FileNotFoundError):
             (self.distro_root / "pkg").chmod(0o755)
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(self.distro_root / "src")
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(self.distro_root / "pkg")
         super().generate()
         (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
 
     def build(self):
         with self.mirror:
             _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                        volumes=[(self.distro_root, "/io")], root=False, tty=True)
+                        volumes=[(self.distro_root, "/io")], root=False,
+                        architecture=self.docker_architecture, tty=True)
+        architecture = self.architecture if self.project.architecture != "none" else "any"
         package, = self.distro_root.glob(
-            f"{self.package_name}-{self.project.version}-*-*.pkg.tar.zst")
+            f"{self.package_name}-{self.project.version}-*-{architecture}.pkg.tar.zst")
         return {"main": package}
 
     def test(self, package):
@@ -185,7 +198,8 @@ class Arch(BaseDistribution):
                 sudo pacman -Sy
                 sudo pacman -U --noconfirm /pkg/{package.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False)
+            """, volumes=volumes, tty=True, root=False,
+                               architecture=self.docker_architecture)
 
     @classmethod
     @lru_cache()

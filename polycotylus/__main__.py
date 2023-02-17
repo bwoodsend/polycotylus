@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, Action
 import os
+import platform
 from importlib import resources
 
 import polycotylus
@@ -22,6 +23,7 @@ parser.add_argument("distribution", choices=sorted(polycotylus.distributions))
 parser.add_argument("--quiet", "-q", action="count", default=-2)
 parser.add_argument("--completion", action=CompletionAction,
                     choices=sorted(CompletionAction.files))
+parser.add_argument("--architecture", default=platform.machine())
 
 
 def cli(argv=None):
@@ -30,7 +32,7 @@ def cli(argv=None):
 
     cls = polycotylus.distributions[options.distribution]
     try:
-        self = cls(polycotylus.Project.from_root("."))
+        self = cls(polycotylus.Project.from_root("."), options.architecture)
         self.generate()
         artifacts = self.build()
         self.test(artifacts["main"])
