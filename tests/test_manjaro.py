@@ -13,3 +13,6 @@ def test_dumb_text_viewer():
     self = Manjaro(Project.from_root(dumb_text_viewer))
     self.generate()
     self.test(self.build()["main"])
+
+
+test_multiarch = cross_distribution.qemu(Manjaro)

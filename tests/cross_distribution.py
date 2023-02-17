@@ -1,10 +1,13 @@
 import shlex
 import collections
+from fnmatch import fnmatch
 
 import pytest
 
 from polycotylus import _docker
 from polycotylus._mirror import mirrors
+from polycotylus._project import Project
+from tests import ubrotli
 
 awkward_pypi_packages = [
     "zope.deferredimport",  # Contains a '.'
@@ -54,3 +57,33 @@ class Base:
             """)
             with mirror:
                 _docker.run(self.base_image, script)
+
+
+def qemu(cls):
+    packages = {}
+
+    @pytest.mark.parametrize("architecture", cls.supported_architectures, ids=str)
+    def test_multiarch(architecture):
+        self = cls(Project.from_root(ubrotli), architecture)
+        self.generate()
+        package = self.build()["main"]
+        packages[architecture] = package
+        for (_architecture, _package) in packages.items():
+            assert _package.is_file()
+        container = self.test(package)
+        with container[self.python_prefix] as tar:
+            files = tar.getnames()
+        binaries = [i for i in files if fnmatch(i, "**/ubrotli*.so*")]
+        assert len(binaries) == 1
+        binary, = binaries
+
+        if architecture == "armv7":
+            assert "arm" in binary
+        elif architecture.startswith("ppc"):
+            assert architecture.replace("ppc", "powerpc") in binary
+        elif architecture == "x86":
+            "i386" in binary
+        else:
+            architecture in binary
+
+    return test_multiarch

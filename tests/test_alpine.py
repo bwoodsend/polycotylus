@@ -6,8 +6,9 @@ import shutil
 import re
 
 import toml
+import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
@@ -202,3 +203,17 @@ def test_silly_named_package():
         assert path in tar.getnames()
         with tar.extractfile(path) as f:
             assert "🦄" in f.read().decode()
+
+
+test_multiarch = cross_distribution.qemu(Alpine)
+
+
+def test_architecture_errors(monkeypatch):
+    with pytest.raises(_exceptions.PolycotylusUsageError,
+                       match='Architecture "donkey" is not available on Alpine Linux.'):
+        Alpine(Project.from_root(ubrotli), "donkey")
+
+    monkeypatch.setattr(shutil, "which", lambda x: None)
+    with pytest.raises(_exceptions.PolycotylusUsageError,
+                       match='Emulating "aarch64" requires the "qemu-aarch64-static" command'):
+        Alpine(Project.from_root(ubrotli), "aarch64")

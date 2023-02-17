@@ -7,7 +7,6 @@ Examples: https://src.fedoraproject.org/rpms/python-pyperclip/blob/rawhide/f/pyt
 """
 
 import re
-import platform
 import contextlib
 import shlex
 
@@ -37,6 +36,10 @@ class Fedora(BaseDistribution):
     mirror = contextlib.nullcontext()
     font = "dejavu-fonts-all"
     pkgdir = "%{buildroot}"
+    supported_architectures = {
+        "x86_64": "x86_64",
+        "aarch64": "aarch64",
+    }
 
     available_packages = NotImplemented
     fix_package_name = NotImplemented
@@ -214,23 +217,26 @@ class Fedora(BaseDistribution):
         base = super().build_builder_image()
         command = ["yum", "install", "-y", "fedpkg", "python3dist(wheel)"] + \
             self.build_dependencies + self.dependencies + self.test_dependencies
-        return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches)
+        return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
+                                architecture=self.docker_architecture)
 
     def build_test_image(self):
         command = ["yum", "install", "-y"] + self.test_dependencies
         if self.project.gui:
             command.append("util-linux")
         return _docker.lazy_run(super().build_test_image(), command, tty=True,
-                                volumes=self._mounted_caches)
+                                volumes=self._mounted_caches,
+                                architecture=self.docker_architecture)
 
     def build(self):
         with self.mirror:
             _docker.run(self.build_builder_image(),
                         ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
                         tty=True, root=False,
-                        volumes=[(self.distro_root, "/io")] + self._mounted_caches)
+                        volumes=[(self.distro_root, "/io")] + self._mounted_caches,
+                        architecture=self.docker_architecture)
         rpms = {}
-        machine = "noarch" if self.project.architecture == "none" else platform.machine()
+        machine = "noarch" if self.project.architecture == "none" else self.architecture
         pattern = re.compile(
             fr"{re.escape(self.package_name)}(?:-([^-]+))?-{self.project.version}.*\.{machine}\.rpm")
         for path in (self.distro_root / machine).glob("*.fc37.*.rpm"):
@@ -250,4 +256,5 @@ class Fedora(BaseDistribution):
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False)
+            """, volumes=volumes, tty=True, root=False,
+                               architecture=self.docker_architecture)

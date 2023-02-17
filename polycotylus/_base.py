@@ -3,8 +3,9 @@ import shutil
 import re
 import contextlib
 import os
+import platform
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._mirror import mirrors
 
 
@@ -15,14 +16,32 @@ class BaseDistribution(abc.ABC):
     python_extras: dict = abc.abstractproperty()
     _formatter = abc.abstractproperty()
     pkgdir = "$pkgdir"
+    supported_architectures = abc.abstractproperty()
 
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg"
     xvfb_run = abc.abstractproperty()
     font = "ttf-dejavu"
 
-    def __init__(self, project):
+    def __init__(self, project, architecture=None):
         self.project = project
+        self.architecture = architecture or platform.machine()
+        if self.architecture not in self.supported_architectures:
+            raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+                Architecture "{self.architecture}" is not available on
+                {type(self).__name__} Linux. Valid architectures are
+                {sorted(self.supported_architectures)}.
+            """))
+        self.docker_architecture = self.supported_architectures[self.architecture]
+        if self.architecture != platform.machine():
+            qemu = f"qemu-{self.docker_architecture}-static"
+            if not shutil.which(qemu):
+                raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+                    Missing qemu emulator: Emulating "{self.architecture}"
+                    requires the "{qemu}" command. Install it with your native
+                    package manager.
+                """))
+            _docker.setup_binfmt()
 
     @property
     def distro_root(self):
@@ -200,8 +219,6 @@ class BaseDistribution(abc.ABC):
     @abc.abstractmethod
     def generate(self):
         """Generate all pragmatically created files."""
-        with contextlib.suppress(FileNotFoundError):
-            shutil.rmtree(self.distro_root)
         self.distro_root.mkdir(parents=True, exist_ok=True)
         self.project.write_desktop_files()
         self.distro_root.chmod(0o777)
@@ -213,7 +230,8 @@ class BaseDistribution(abc.ABC):
     def build_builder_image(self):
         with self.mirror:
             return _docker.build(self.distro_root / "Dockerfile",
-                                 self.project.root, target="build")
+                                 self.project.root, target="build",
+                                 architecture=self.docker_architecture)
 
     @abc.abstractmethod
     def build(self):
@@ -222,7 +240,8 @@ class BaseDistribution(abc.ABC):
     def build_test_image(self):
         with self.mirror:
             return _docker.build(self.distro_root / "Dockerfile",
-                                 self.project.root, target="test")
+                                 self.project.root, target="test",
+                                 architecture=self.docker_architecture)
 
     @abc.abstractmethod
     def test(self, package):

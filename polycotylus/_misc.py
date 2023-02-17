@@ -21,3 +21,11 @@ class Formatter:
         text = textwrap.dedent(text).strip()
         text = re.sub("^ +", lambda m: len(m[0]) // 4 * self.indentation, text, flags=re.M)
         return textwrap.indent(text, self.indentation * level) + "\n"
+
+
+class classproperty:
+    def __init__(self, method):
+        self.method = method
+
+    def __get__(self, instance, cls):
+        return self.method(instance)
