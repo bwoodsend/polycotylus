@@ -355,7 +355,8 @@ mirrors = {
             ["*-repodata"],
             [],
             8902,
-            "sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf",
+            r"sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
+            r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
             (_use_last_modified_header,),
         ),
 }
