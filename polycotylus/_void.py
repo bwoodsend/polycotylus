@@ -77,6 +77,8 @@ class Void(BaseDistribution):
     def build_dependencies(self):
         out = super().build_dependencies
         out.remove(self.python_package("pip"))
+        # Build dependencies aren't allowed any version constraints.
+        out = [re.split(" *[<>~=]", i)[0] for i in out]
         return out
 
     @classmethod
