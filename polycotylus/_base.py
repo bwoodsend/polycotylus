@@ -42,6 +42,7 @@ class BaseDistribution(abc.ABC):
                     package manager.
                 """))
             _docker.setup_binfmt()
+        _docker.disk_usage()
 
     @property
     def distro_root(self):

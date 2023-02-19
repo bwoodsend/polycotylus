@@ -173,6 +173,33 @@ class Error(Exception):
             "returned an error:\n" + self.output
 
 
+def _df():
+    try:
+        return _run(["df", "--output=size,avail", "-B1G", "/"], text=True,
+                    stdout=PIPE, check=True).stdout
+    except:
+        return ""
+
+
+def _images():
+    return _run([docker, "images", "--no-trunc", "--format", "{{.Repository}},{{.Tag}},{{.Size}}"],
+                stdout=PIPE, text=True).stdout
+
+
+def disk_usage():
+    _, row = _df().strip().split("\n")
+    total, free = map(int, row.split())
+    in_cache = 0
+    for (size, unit) in re.findall(r"<none>,<none>,([\d.]+) *([MG])B", _images()):
+        in_cache += float(size) * [0.001, 1][unit == "G"]
+    if in_cache > free:
+        print(f"WARNING: Docker cache is using {in_cache} GB of storage.",
+              "You may wish to clear it out:\n    ",
+              f"{docker} system prune",
+              file=sys.stderr)
+    return in_cache, free, total
+
+
 def setup_binfmt():
     if docker.variant == "podman":
         return
