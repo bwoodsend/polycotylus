@@ -8,13 +8,10 @@ import contextlib
 import shutil
 
 from polycotylus import _misc, _docker
-from polycotylus._mirror import mirrors
 from polycotylus._base import BaseDistribution
 
 
 class Arch(BaseDistribution):
-    name = "arch"
-    mirror = mirrors[name]
     image = "archlinux:base-devel"
     python_prefix = "/usr"
     python_extras = {

@@ -4,12 +4,11 @@ import re
 import os
 import platform
 
-from polycotylus import _docker, _exceptions
+from polycotylus import _docker, _exceptions, _misc
 from polycotylus._mirror import mirrors
 
 
 class BaseDistribution(abc.ABC):
-    name = abc.abstractproperty()
     python_prefix = abc.abstractproperty()
     python = "python"
     python_extras: dict = abc.abstractproperty()
@@ -111,9 +110,13 @@ class BaseDistribution(abc.ABC):
     def dockerfile(self):
         raise NotImplementedError
 
-    @property
-    def mirror(self):
-        return mirrors[self.name]
+    @_misc.classproperty
+    def name(_, cls):
+        return cls.__name__.lower()
+
+    @_misc.classproperty
+    def mirror(_, cls):
+        return mirrors[cls.name]
 
     def inject_source(self):
         from urllib.parse import urlparse

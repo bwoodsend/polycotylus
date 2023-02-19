@@ -12,13 +12,11 @@ from urllib.request import urlopen
 import json
 
 from polycotylus import _misc, _docker
-from polycotylus._mirror import mirrors, cache_root
+from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
 
 class Void(BaseDistribution):
-    name = "void"
-    mirror = mirrors[name]
     python_prefix = "/usr"
     python = "python3"
     python_extras = {
@@ -43,7 +41,7 @@ class Void(BaseDistribution):
     }
 
     @_misc.classproperty
-    def image(self):
+    def image(self, _):
         architecture = "x86_64" if self is None else self.architecture
         return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}-musl"
 
