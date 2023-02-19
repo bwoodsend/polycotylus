@@ -28,4 +28,4 @@ class classproperty:
         self.method = method
 
     def __get__(self, instance, cls):
-        return self.method(instance)
+        return self.method(instance, cls)

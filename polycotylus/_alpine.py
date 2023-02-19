@@ -12,15 +12,12 @@ from pathlib import Path
 import contextlib
 
 from polycotylus import _misc, _docker
-from polycotylus._mirror import mirrors
 from polycotylus._project import spdx_osi_approval
 from polycotylus._base import BaseDistribution
 
 
 class Alpine(BaseDistribution):
-    name = "alpine"
     base = "alpine:3.17"
-    mirror = mirrors[name]
     python_prefix = "/usr"
     python = "python3"
     python_extras = {

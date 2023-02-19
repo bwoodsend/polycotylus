@@ -18,7 +18,6 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 
 class Fedora(BaseDistribution):
-    name = "fedora"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tkinter"],
