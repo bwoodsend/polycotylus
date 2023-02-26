@@ -100,7 +100,7 @@ class BaseDistribution(abc.ABC):
 
     @property
     def package_name(self):
-        """The distro-normalized/slugified version of this project's name,"""
+        """The distro-normalized/sluggified version of this project's name,"""
         name = self.fix_package_name(self.project.name)
         if self.project.prefix_package_name:
             name = self.python_package_convention(name)
