@@ -31,7 +31,7 @@ class Arch(BaseDistribution):
 
     @classmethod
     @lru_cache()
-    def _base_image_syncronised(cls):
+    def _base_image_synchronised(cls):
         with cls.mirror:
             return _docker.run(cls.image, f"""
                 {cls.mirror.install}
@@ -41,14 +41,14 @@ class Arch(BaseDistribution):
     @classmethod
     @lru_cache()
     def available_packages(cls):
-        container = _docker.run(cls._base_image_syncronised(), "pacman -Ssq",
+        container = _docker.run(cls._base_image_synchronised(), "pacman -Ssq",
                                 verbosity=0)
         return set(re.findall("([^\n]+)", container.output))
 
     @classmethod
     @lru_cache()
     def build_base_packages(cls):
-        container = _docker.run(cls._base_image_syncronised(), """
+        container = _docker.run(cls._base_image_synchronised(), """
             pacman -Qq
             printf '\\0'
             pacman -Sp --needed base-devel
@@ -78,7 +78,7 @@ class Arch(BaseDistribution):
                 rm -f "$_metadata_dir/direct_url.json"
         """ % top_level)
         license_names = []
-        sharable = True
+        shareable = True
         for spdx in self.project.license_names:
             for name in self.available_licenses():
                 if spdx.replace("-", "").startswith(name):
@@ -88,12 +88,12 @@ class Arch(BaseDistribution):
                 for name in ("MIT", "BSD", "ZLIB"):
                     if spdx.upper().startswith(name):
                         license_names.append(name)
-                        sharable = False
+                        shareable = False
                         break
                 else:
-                    sharable = False
+                    shareable = False
                     license_names.append(spdx)
-        if not sharable:
+        if not shareable:
             for license in self.project.licenses:
                 package += self._formatter(
                     f'install -Dm644 {shlex.quote(license)} '

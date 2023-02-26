@@ -40,7 +40,7 @@ class Alpine(BaseDistribution):
 
     @classmethod
     @lru_cache()
-    def _base_image_syncronised(cls):
+    def _base_image_synchronised(cls):
         with cls.mirror:
             return _docker.run(cls.base, f"""
                 {cls.mirror.install}
@@ -50,7 +50,7 @@ class Alpine(BaseDistribution):
     @classmethod
     @lru_cache()
     def available_packages(cls):
-        container = _docker.run(cls._base_image_syncronised(), "apk search -q",
+        container = _docker.run(cls._base_image_synchronised(), "apk search -q",
                                 verbosity=0)
         return set(re.findall("([^\n]+)", container.output))
 
@@ -58,7 +58,7 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def build_base_packages(cls):
         with cls.mirror:
-            container = _docker.run(cls._base_image_syncronised(), """
+            container = _docker.run(cls._base_image_synchronised(), """
                 apk info -q
                 printf '\\0'
                 apk add --simulate alpine-sdk

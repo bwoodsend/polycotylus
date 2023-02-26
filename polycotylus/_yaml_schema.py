@@ -50,7 +50,7 @@ class Locale(ScalarValidator):
         if not match:
             raise YAMLValidationError(
                 "See polycotylus --list-localizations={language|region|modifier} for a list of valid codes for each part",
-                f'Invalid localization "{chunk.contents}" should be in the format "language_COUNTRY@modifer" where the "_COUNTRY" and "@modifer" parts are optional.',
+                f'Invalid localization "{chunk.contents}" should be in the format "language_COUNTRY@modifier" where the "_COUNTRY" and "@modifier" parts are optional.',
                 chunk)
         parsed = dict(zip(["language", "region", "modifier"], match.groups()))
         for (key, value) in parsed.items():
