@@ -5,8 +5,6 @@ import subprocess
 import io
 import tarfile
 import json
-import mimetypes
-from fnmatch import fnmatch
 import gzip
 import warnings
 from importlib import resources
@@ -199,10 +197,7 @@ class Project:
         for (key, value) in options.items():
             value = _list_join(value)
             if key == "MimeType":
-                mimes = []
-                for pattern in re.findall(r"[^;\s]+", value):
-                    mimes += expand_mimetype(pattern, id)
-                value = ";".join(mimes)
+                value = re.sub(r"\s", "", value)
             if key in ("Comment", "GenericName", "Keywords",
                        "Name") and isinstance(value, dict):
                 for (locale, translation) in value.items():
@@ -255,23 +250,6 @@ def _list_join(x):
     if isinstance(x, dict):
         return {i: _list_join(j) for (i, j) in x.items()}
     return x
-
-
-known_mimes = set(mimetypes.types_map.values())
-
-
-def expand_mimetype(x, id):
-    out = []
-    if "*" not in x:
-        return [x]
-    for type in known_mimes:
-        if fnmatch(type, x):
-            out.append(type)
-    if not out:
-        raise _exceptions.InvalidMimetypePattern(
-            x, f"desktop_entry_points->{id}->MimeType in the polycotylus.yaml")
-    out.sort()
-    return out
 
 
 def expand_pip_requirements(requirement, cwd, extras=None):
