@@ -104,6 +104,15 @@ Successfully built 2f119b7e8237
 #12 DONE 0.0s
 """, "sha256:9314a15e8b1efbfe3c67426cd30d91fa1a36e072e904a401427b9a0ad9a161b8"),
 
+    "new": ("""
+=> exporting to image                                                                                                                                                                                                                   0.0s
+ => => exporting layers                                                                                                                                                                                                                  0.0s
+ => => writing image sha256:3ba522314faf4cca2a82cdc891e9f7945fd14d9ab5cc5ee7b3a6336551f37b15                                                                                                                                             0.0s
+WARNING: failed to get git commit: fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+""", "sha256:3ba522314faf4cca2a82cdc891e9f7945fd14d9ab5cc5ee7b3a6336551f37b15"),
+
     "podman": ("""
 [2/2] STEP 9/10: ENTRYPOINT ["/bin/intermediate"]
 --> Using cache 9b06c6add543248f1d1efe7666769f80b6522fc7e5d906277fc1b89699568884
