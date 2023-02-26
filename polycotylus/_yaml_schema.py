@@ -1,7 +1,10 @@
 import re
+import json
+from importlib import resources
 
 from strictyaml import Any, Seq, Map, MapCombined, MapPattern, Str, EmptyDict, \
-    Optional, OrValidator, Regex, Bool, load, ScalarValidator, StrictYAMLError
+    Optional, OrValidator, Regex, Bool, load, ScalarValidator, \
+    StrictYAMLError, YAMLValidationError
 
 from polycotylus._exceptions import PolycotylusYAMLParseError
 
@@ -23,10 +26,50 @@ class WhitespaceDelimited(ScalarValidator):
         return " ".join([self._item_validator.to_yaml(item) for item in data])
 
 
+class Locale(ScalarValidator):
+    """"
+    https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s05.html
+    https://unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers
+    https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+
+    Equivalent terms:
+
+    freedesktop  unicode.org
+    ===========  ===================
+    lang         language or extlang
+    country      region
+    modifier     script or variant
+
+    """
+    pattern = re.compile(r"([a-z]+)(?:_([A-Z]+|[0-9]+))?(?:@([A-Za-z0-9]+))?")
+
+    def validate_scalar(self, chunk):
+        if not chunk.contents:
+            return chunk.contents
+        match = self.pattern.fullmatch(chunk.contents)
+        if not match:
+            raise YAMLValidationError(
+                "See polycotylus --list-localizations={language|region|modifier} for a list of valid codes for each part",
+                f'Invalid localization "{chunk.contents}" should be in the format "language_COUNTRY@modifer" where the "_COUNTRY" and "@modifer" parts are optional.',
+                chunk)
+        parsed = dict(zip(["language", "region", "modifier"], match.groups()))
+        for (key, value) in parsed.items():
+            if not value:
+                continue
+            if value not in localizations[key]:
+                raise YAMLValidationError(
+                    f"See polycotylus --list-localizations={key} for a list of valid {key} codes",
+                    f'Unknown {key} identifier "{value}".', chunk)
+        return chunk.contents
+
+
+with resources.open_binary("polycotylus", "localizations.json") as f:
+    localizations = json.load(f)
+
 python_extra = Regex("(tkinter|sqlite3|decimal|lzma|readline|ctypes|curses|bz2)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
 icon = OrValidator(Map({"id": desktop_file_id, "source": Str()}), Str())
-locale_string = OrValidator(Str(), MapPattern(Str(), Str()))
+locale_string = OrValidator(Str(), MapPattern(Locale(), Str()))
 
 desktop_file = MapCombined({
     "Name": locale_string,
@@ -86,9 +129,13 @@ def yaml_error(ex):
     raise PolycotylusYAMLParseError(out) from None
 
 
-def read(path):
+def _read_text(path):
     with open(path, "r") as f:
-        raw = f.read()
+        return f.read()
+
+
+def read(path):
+    raw = _read_text(path)
     if not re.sub(r"#.*|\s|^---$|^\.\.\.$", "", raw, flags=re.M):
         # Strictyaml raises a parse error if the YAML is empty - even when all
         # fields are optional. Replace empty YAMLs.

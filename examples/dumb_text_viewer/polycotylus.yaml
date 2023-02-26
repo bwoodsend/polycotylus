@@ -20,5 +20,5 @@ desktop_entry_points:
       : Read plain text files
       es: Leer archivos de texto sin formato
       ar: اقرأ ملفات النص العادي
-      zh_tw: 讀取純文本文件
+      zh_CN: 讀取純文本文件
     icon: icon-source.svg

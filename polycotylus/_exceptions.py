@@ -11,20 +11,6 @@ class PolycotylusUsageError(Exception):
     pass
 
 
-class InvalidLocale(PolycotylusUsageError):
-    def __init__(self, locale, location):
-        self.locale = locale
-        self.location = location
-
-    def __str__(self):
-        return _unravel(f"""
-            Locale '{self.locale}', specified at {self.location}, is not a valid
-            locale identifier. Run:
-                python -c "import locale; print(*locale.locale_alias)"
-            to see a list of valid locales.
-        """)
-
-
 class InvalidMimetypePattern(PolycotylusUsageError):
     def __init__(self, mimetype, location):
         self.mimetype = mimetype
