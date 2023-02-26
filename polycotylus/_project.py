@@ -7,7 +7,6 @@ import tarfile
 import json
 import mimetypes
 from fnmatch import fnmatch
-from locale import locale_alias
 import gzip
 import warnings
 from importlib import resources
@@ -207,14 +206,8 @@ class Project:
             if key in ("Comment", "GenericName", "Keywords",
                        "Name") and isinstance(value, dict):
                 for (locale, translation) in value.items():
-                    locale = locale.lower()
                     if locale == "":
                         out[key] = translation
-                    elif locale not in locale_alias:
-                        raise _exceptions.InvalidLocale(
-                            locale,
-                            f"desktop_entry_points->{id}->{key}->{locale} "
-                            "in the polycotylus.yaml")
                     else:
                         out[f"{key}[{locale}]"] = translation
             elif key == "icon":

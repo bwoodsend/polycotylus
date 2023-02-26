@@ -11,3 +11,4 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void"
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'
 
 complete -c polycotylus -x -l completion -a 'fish'
+complete -c polycotylus -x -l list-localizations -a 'language region modifier'
