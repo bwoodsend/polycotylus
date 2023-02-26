@@ -11,20 +11,6 @@ class PolycotylusUsageError(Exception):
     pass
 
 
-class InvalidMimetypePattern(PolycotylusUsageError):
-    def __init__(self, mimetype, location):
-        self.mimetype = mimetype
-        self.location = location
-
-    def __str__(self):
-        return _unravel(f"""
-            Mimetype '{self.mimetype}', specified at {self.location}, does not
-            match any known mimetypes. Run:
-                python -c "import mimetypes; print(*mimetypes.types_map.values())"
-            to see a list of valid mimetypes.
-        """)
-
-
 class PolycotylusYAMLParseError(PolycotylusUsageError):
     pass
 
