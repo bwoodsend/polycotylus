@@ -138,7 +138,7 @@ def build(dockerfile, root, target=None, architecture=platform.machine(), verbos
 def _parse_build_output(output):
     match = re.search(r"Successfully built ([a-f0-9]{8,})\n*\Z", output) \
         or re.search(r"([a-f0-9]{64})\n*\Z", output) \
-        or re.search(r"writing image (sha256:[a-f0-9]{64}) done\n.* DONE .*\n*\Z", output)
+        or re.search(r".*writing image (sha256:[a-f0-9]{64})", output, re.DOTALL)
     return match[1]
 
 
