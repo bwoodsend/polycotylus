@@ -3,6 +3,7 @@ import shutil
 import re
 import os
 import platform
+from functools import lru_cache
 
 from polycotylus import _docker, _exceptions, _misc
 from polycotylus._mirror import mirrors
@@ -49,6 +50,11 @@ class BaseDistribution(abc.ABC):
     def available_packages():
         raise NotImplementedError
 
+    @classmethod
+    @lru_cache()
+    def available_packages_normalized(cls):
+        return {re.sub("[._-]+", "-", i.lower()): i for i in cls.available_packages()}
+
     @abc.abstractmethod
     def build_base_packages():
         """Packages that the distribution considers *too standard* to be given
@@ -65,13 +71,20 @@ class BaseDistribution(abc.ABC):
     def python_package(cls, requirement):
         import pkg_resources
         requirement = pkg_resources.Requirement(requirement)
-        name = cls.normalise_package(requirement.key)
-        if cls.python_package_convention(name) in cls.available_packages():
-            requirement.name = cls.python_package_convention(name)
-        elif name in cls.available_packages():
-            requirement.name = name
+        name = re.sub("[._-]+", "-", requirement.key.lower())
+        available = cls.available_packages_normalized()
+
+        if cls.python_package_convention(name) in available:
+            requirement.name = available[cls.python_package_convention(name)]
+        elif name in available:
+            requirement.name = available[name]
+        elif m := re.match("(python|py)3?-?(.*)", name.lower()):
+            try:
+                requirement.name = cls.python_package(m[2])
+            except _exceptions.PackageUnavailableError:
+                raise _exceptions.PackageUnavailableError(requirement.name, cls.name) from None
         else:
-            assert 0
+            raise _exceptions.PackageUnavailableError(requirement.name, cls.name)
         return str(requirement)
 
     invalid_package_characters = abc.abstractproperty()
@@ -81,18 +94,6 @@ class BaseDistribution(abc.ABC):
         """Apply the distribution's package naming rules for case folding/
         underscore vs hyphen normalisation."""
         raise NotImplementedError
-
-    @classmethod
-    def normalise_package(cls, name):
-        """Fix up a package name to make it compatible with this Linux
-        Distribution, raise an error if there any unfixable invalid characters.
-        """
-        normalised = cls.fix_package_name(name)
-        if invalid := re.findall(cls.invalid_package_characters, normalised):
-            raise ValueError(
-                f"'{name} is an invalid {cls.name} package name because it "
-                f"contains the characters {invalid}.")
-        return normalised
 
     @abc.abstractmethod
     def python_package_convention(self, pypi_name):
