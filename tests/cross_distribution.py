@@ -11,10 +11,18 @@ from tests import ubrotli
 
 awkward_pypi_packages = [
     "zope.deferredimport",  # Contains a '.'
+    "ruamel.yaml",
+    "jaraco.classes",
     "flit_core",  # Contains a '_'
+    "prompt_toolkit",
+    "nest_asyncio",
+    "setuptools_scm",
     "GitPython",  # Contains uppercase letters
     "cython",  # Ignores the standard Python package prefix on all distributions
     "urllib3",  # Contains a number
+    "python-dateutil",  # Already has py/python prefix.
+    "PyQt5",
+    "pyyaml",
 ]
 
 

@@ -88,22 +88,6 @@ class Void(BaseDistribution):
         wheel_packaged_name = re.sub("-+", "-", pypi_name.replace("_", "-"))
         return "python3-" + wheel_packaged_name
 
-    @classmethod
-    def python_package(cls, requirement):
-        import pkg_resources
-        requirement = pkg_resources.Requirement(requirement)
-        normalised = re.sub("[._-]+", "-", requirement.name.lower())
-        with_prefix = cls.python_package_convention(normalised)
-
-        for package in cls.available_packages():
-            _package = re.sub("[._-]+", "-", package.lower())
-            if _package == normalised or _package == with_prefix:
-                break
-        else:
-            assert 0
-        requirement.name = package
-        return str(requirement)
-
     def dockerfile(self):
         dependencies = _deduplicate(self.dependencies + self.build_dependencies
                                     + self.test_dependencies)

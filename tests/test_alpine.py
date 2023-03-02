@@ -125,6 +125,27 @@ def test_user_privilege_escalation():
     assert user == "root"
 
 
+def test_unknown_package(polycotylus_yaml):
+    polycotylus_yaml("""
+        dependencies:
+            test:
+                pip: Hippos_can_fly
+    """)
+    self = Alpine(Project.from_root(dumb_text_viewer))
+    with pytest.raises(_exceptions.PolycotylusUsageError,
+                       match="Dependency \"Hippos_can_fly\" is not .* on Alpine Linux. "
+                       ".* submit Hippos_can_fly to Alpine Linux\'s package"):
+        self.apkbuild()
+    polycotylus_yaml("""
+        dependencies:
+            test:
+                pip: python_Hippos_can_fly
+    """)
+    self = Alpine(Project.from_root(dumb_text_viewer))
+    with pytest.raises(_exceptions.PolycotylusUsageError, match="python_Hippos_can_fly"):
+        self.apkbuild()
+
+
 def test_license_handling(tmp_path):
     subprocess.run(["git", "-C", tmp_path, "init"])
     (tmp_path / "tests").mkdir()

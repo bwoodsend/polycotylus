@@ -48,3 +48,17 @@ class NoLicenseSpecifierError(PolycotylusUsageError):
                 spdx:
                   - MIT:
         """)
+
+
+class PackageUnavailableError(PolycotylusUsageError):
+    def __init__(self, package, distribution):
+        self.package = package
+        self.distribution = distribution
+
+    def __str__(self):
+        return _unravel(f"""
+            Dependency "{self.package}" is not available on
+            {self.distribution.title()} Linux. You will need to submit
+            {self.package} to {self.distribution.title()} Linux's package
+            repositories before you can build your own project.
+        """)
