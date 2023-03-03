@@ -74,6 +74,9 @@ while i < len(lines):
             yaml[key] += line
 
     if value:
+        if isinstance(yaml.get(path[-1]), str):
+            if yaml[path[-1]].startswith("|"):
+                yaml[path[-1]] = textwrap.dedent(yaml[path[-1]][1:])
         for key in path[::-1][1:]:
             yaml = {key: yaml}
         body += [

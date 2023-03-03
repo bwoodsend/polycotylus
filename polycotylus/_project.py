@@ -195,9 +195,13 @@ class Project:
         out["Comment"] = self.description
 
         for (key, value) in options.items():
-            value = _list_join(value)
-            if key == "MimeType":
-                value = re.sub(r"\s", "", value)
+            _normalize_multistring = lambda x: ";".join(re.findall(r"[^\n;]+", x) + [""])
+            if key in ("Actions", "Categories", "MimeType", "NotShowIn", "OnlyShowIn",
+                       "X-XFCE-MimeType", "Implements"):
+                value = _normalize_multistring(value)
+            if key in ("Keywords", "X-AppInstall-Keywords", "X-GNOME-Keywords",
+                       "X-Purism-FormFactor", "X-XFCE-MimeType"):
+                value = {i: _normalize_multistring(j) for (i, j) in value.items()}
             if key in ("Comment", "GenericName", "Keywords",
                        "Name") and isinstance(value, dict):
                 for (locale, translation) in value.items():
@@ -242,14 +246,6 @@ class Project:
     @property
     def test_command(self):
         return "xvfb-run pytest" if self.gui else "pytest"
-
-
-def _list_join(x):
-    if isinstance(x, list):
-        return ";".join(x)
-    if isinstance(x, dict):
-        return {i: _list_join(j) for (i, j) in x.items()}
-    return x
 
 
 def expand_pip_requirements(requirement, cwd, extras=None):
