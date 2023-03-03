@@ -185,7 +185,13 @@ desktop_entry_points:
 
     Name: My Application
     Exec: my_application %U
-    MimeType: image/*;video/mp4
+    MimeType: |
+      image/bmp
+      image/gif
+      image/jpeg
+      image/png
+      image/tiff
+      video/mp4
 
     icon: icon-source.svg
     # A path, relative to the directory containing the ``polycotylus.yaml``, to

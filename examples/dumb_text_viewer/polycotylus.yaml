@@ -13,7 +13,7 @@ desktop_entry_points:
     Name: Dumb Text Viewer
     Exec: dumb_text_viewer %U
     GenericName: Text Viewer
-    MimeType: >
+    MimeType: |
       text/css;text/csv;text/html;text/plain;text/richtext;
       text/tab-separated-values;text/x-python;text/x-setext;
       text/x-sgml;text/x-vcard;text/xml;application/x-php;

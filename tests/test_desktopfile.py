@@ -48,21 +48,32 @@ def test_all_available_localizers_are_valid():
         assert Locale.pattern.fullmatch("es@" + key)
 
 
-def test_yaml_parse(polycotylus_yaml):
+def test_localized_parse(polycotylus_yaml):
     polycotylus_yaml("""
         desktop_entry_points:
             foo:
                 Exec: do something
                 Name:
+                    '': hello
                     es: holá
                     en_GB: hello
                     en_US: Yo
                     be@tarask: Выйсьці
+                Keywords:
+                    '': |
+                        blah blah blah
+                        x y z
+                    es: bla bla bla;foo bar
+                    zh: 我不听;我不听;;;
     """)
     self = polycotylus.Project.from_root(bare_minimum)
     content = self._desktop_file("foo", self.desktop_entry_points["foo"])
-    assert "Name[es]=holá" in content
-    assert "Name[be@tarask]=Выйсьці"
+    assert "Name=hello\n" in content
+    assert "Name[es]=holá\n" in content
+    assert "Name[be@tarask]=Выйсьці\n" in content
+    assert "Keywords=blah blah blah;x y z;\n" in content
+    assert "Keywords[es]=bla bla bla;foo bar;\n" in content
+    assert "Keywords[zh]=我不听;我不听;\n" in content
 
     polycotylus_yaml("""
         desktop_entry_points:
@@ -73,7 +84,7 @@ def test_yaml_parse(polycotylus_yaml):
     """)
     with pytest.raises(polycotylus._exceptions.PolycotylusYAMLParseError,
                        match='Invalid localization "XYZ" should .*'
-                              'See polycotylus --list-localizations'):
+                       'See polycotylus --list-localizations'):
         polycotylus.Project.from_root(bare_minimum)
 
     polycotylus_yaml("""
