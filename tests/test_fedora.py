@@ -49,6 +49,9 @@ def test_dumb_text_viewer():
 def test_silly_named_package():
     self = Fedora(Project.from_root(silly_name))
     self.generate()
+    assert "certifi" not in self.spec()
+    assert "setuptools" not in self.spec()
+    assert "colorama" not in self.spec()
     self.test(self.build()["main"])
 
 

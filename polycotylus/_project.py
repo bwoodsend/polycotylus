@@ -82,16 +82,23 @@ class Project:
                 raise _exceptions.NoLicenseSpecifierError()
 
         dependencies = polycotylus_options.get("dependencies", {})
+        # Collect test dependencies on PyPI packages.
         test_dependencies = []
         extras = project.get("optional-dependencies", {})
         for requirement in dependencies.get("test", {}).get("pip", []):
             test_dependencies += expand_pip_requirements(
                 requirement, root, extras)
         dependencies.setdefault("test", {})["pip"] = test_dependencies
-        dependencies.setdefault("build", {})["pip"] = \
-            pyproject_options.get("build-system", {}).get("requires", [])
-        dependencies.setdefault("run", {})["pip"] = \
-            project.get("dependencies", [])
+        # Collect built time PyPI dependencies.
+        pip_build = dependencies.setdefault("build", {}).setdefault("pip", [])
+        pip_build[:] = [Dependency(i, "polycotylus.yaml") for i in pip_build]
+        for dependency in pyproject_options.get("build-system", {}).get("requires", []):
+            pip_build.append(Dependency(dependency, "pyproject.toml"))
+        # Collect runtime PyPI dependencies.
+        pip_run = dependencies.setdefault("run", {}).setdefault("pip", [])
+        pip_run[:] = [Dependency(i, "polycotylus.yaml") for i in pip_run]
+        pip_run += [Dependency(i, "pyproject.toml") for i in project.get("dependencies", [])]
+        # Unpack grouped Linux dependencies.
         for group in dependencies:
             unpacked = {}
             for (distros, packages) in dependencies[group].items():
@@ -246,6 +253,14 @@ class Project:
     @property
     def test_command(self):
         return "xvfb-run pytest" if self.gui else "pytest"
+
+
+class Dependency(str):
+    @staticmethod
+    def __new__(cls, name, origin):
+        self = super().__new__(cls, name)
+        self.origin = origin
+        return self
 
 
 def expand_pip_requirements(requirement, cwd, extras=None):

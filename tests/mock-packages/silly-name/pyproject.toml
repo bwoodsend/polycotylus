@@ -6,6 +6,10 @@ authors = [
 ]
 version = "1.2.3"
 license = { file="The license file" }
+dependencies = ["certifi"]
+
+[build-system]
+requires = ["colorama", "setuptools"]
 
 [project.urls]
 "Homepage" = "https://github.com/bwoodsend/polycotylus"

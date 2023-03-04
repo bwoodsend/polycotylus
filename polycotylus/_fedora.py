@@ -100,6 +100,11 @@ class Fedora(BaseDistribution):
             for package in self.python_extras[extra]:
                 out += f"BuildRequires:  {package}\n"
                 out += f"Requires:       {package}\n"
+        for package in self.project.dependencies["pip"]:
+            if package.origin == "polycotylus.yaml":
+                out += f"Requires:       python3dist({package})\n"
+        for package in self.project.dependencies.get(self.name, ()):
+            out += f"Requires:       {package}\n"
         out += "\n\n"
         out += self._formatter(f"""
             %description

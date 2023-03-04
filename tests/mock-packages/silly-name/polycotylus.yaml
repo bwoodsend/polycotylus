@@ -4,5 +4,15 @@ spdx:
   custom:
 
 dependencies:
+  build:
+    arch manjaro fedora void alpine: croc
+    python: sqlite3
+    pip: pyperclip
+  run:
+    arch manjaro fedora void alpine: jq
+    python: tkinter
+    pip: tabulate
   test:
+    arch manjaro fedora void alpine: cmatrix
+    python: sqlite3 tkinter
     pip: pytest
