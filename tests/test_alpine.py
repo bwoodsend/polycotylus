@@ -13,7 +13,7 @@ from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
 from tests import dumb_text_viewer, ubrotli, cross_distribution, silly_name, \
-    bare_minimum
+    bare_minimum, fussy_arch
 
 mirror = mirrors["alpine"]
 
@@ -252,3 +252,8 @@ def test_architecture_errors(monkeypatch):
     with pytest.raises(_exceptions.PolycotylusUsageError,
                        match='Emulating "aarch64" requires the "qemu-aarch64-static" command'):
         Alpine(Project.from_root(ubrotli), "aarch64")
+
+
+def test_fussy_arch():
+    self = Alpine(Project.from_root(fussy_arch))
+    assert "\narch='aarch64 ppc64le'\n" in self.apkbuild()

@@ -111,7 +111,7 @@ class CachedMirror:
                 return
         # Wait until all running downloads are complete to avoid competing over
         # ports if this mirror is re-enabled soon after.
-        while self._in_progress:
+        while self._in_progress:  # pragma: no cover
             time.sleep(.1)
         self._httpd.shutdown()
         self._httpd.socket.close()
@@ -258,7 +258,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             with self.upstream:
                 with open(cache, "wb") as f:
                     shutil.copyfileobj(self.upstream, f)
-        except:
+        except:  # pragma: no cover
             with contextlib.suppress(FileNotFoundError):
                 cache.unlink()
             raise
@@ -310,7 +310,7 @@ def _manjaro_preferred_mirror():
     mirrorlist = container.file("/etc/pacman.d/mirrorlist").decode()
     mirrors = re.findall("^Server = (.*?)/(?:arm-)?stable", mirrorlist, flags=re.M)
     assert mirrors
-    for url in mirrors:
+    for url in mirrors:  # pragma: no branch
         with contextlib.suppress(HTTPError):
             urlopen(Request(url, method="HEAD")).close()
             (cache_root / "manjaro-mirror").write_text(url)

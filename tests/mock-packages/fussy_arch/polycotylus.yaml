@@ -1,0 +1,5 @@
+architecture: aarch64 ppc64le
+
+dependencies:
+  test:
+    pip: pytest

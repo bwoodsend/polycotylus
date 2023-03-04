@@ -1,0 +1,20 @@
+[project]
+name = "fussy_arch"
+description = "A package which only works on aarch64"
+authors = [
+    { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+]
+version = "1.2.3"
+license = { file="LICENSE" }
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
+
+[tool.setuptools]
+py-modules = ["fussy_arch"]

@@ -196,14 +196,14 @@ class Void(BaseDistribution):
         from https://build.voidlinux.org/builders/aarch64-musl_builder
         (replacing aarch64 with the current architecture)."""
         url = f"https://build.voidlinux.org/json/builders/{platform.machine()}-musl_builder/builds?"
-        for j in range(-1, -10, -3):
+        for j in range(-1, -10, -3):  # pragma: no branch
             _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
             with urlopen(_url) as response:
                 builds = json.loads(response.read())
-            for j in map(str, range(j, j - 3, -1)):
-                if not builds[j].get("currentStep"):
+            for j in map(str, range(j, j - 3, -1)):  # pragma: no branch
+                if not builds[j].get("currentStep"):  # pragma: no branch
                     return builds[j]["sourceStamps"][0]["revision"]
-        raise StopIteration
+        raise StopIteration  # pragma: no cover
 
     def void_packages_repo(self):
         """Clone/cache Void Linux's package build recipes repo."""
@@ -212,15 +212,18 @@ class Void(BaseDistribution):
         # repositories so to build anything, we need to clone everything.
         # Currently, a shallow clone is about 12MB whereas a conventional clone
         # is 558MB.
-        from subprocess import run, PIPE, DEVNULL
+        from subprocess import run, PIPE, DEVNULL, STDOUT
         cache = cache_root / "void-packages"
         commit = self._void_packages_head()
-        if not (cache / ".git").is_dir():
+        if not (cache / ".git").is_dir():  # pragma: no cover
             run(["git", "init", "-q", str(cache)], stderr=PIPE, check=True)
         if run(["git", "-C", str(cache), "log", "-n1", "--pretty=%H"],
                stdout=PIPE, stderr=DEVNULL).stdout.strip().decode() == commit:
             return cache
-        if run(["git", "show", commit], stdout=DEVNULL, stderr=DEVNULL).returncode:
+        p = run(["git", "-C", str(cache), "cat-file", "-e", commit],
+                stdout=PIPE, stderr=STDOUT)
+        assert p.returncode in (0, 1), p.stdout
+        if p.returncode:  # pragma: no cover
             command = ["git", "-C", str(cache), "fetch", "--depth=1", "--progress",
                        "https://github.com/void-linux/void-packages", commit]
             run(command, stdout=None if _docker._verbosity() >= 2 else PIPE, check=True)

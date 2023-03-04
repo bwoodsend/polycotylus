@@ -22,7 +22,7 @@ class WhitespaceDelimited(ScalarValidator):
             out.append(self._item_validator.validate_scalar(slice))
         return out
 
-    def to_yaml(self, data):
+    def to_yaml(self, data):  # pragma: no cover
         return " ".join([self._item_validator.to_yaml(item) for item in data])
 
 

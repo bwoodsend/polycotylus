@@ -19,7 +19,7 @@ class DockerInfo(str):
         p = _run([self, "--version"], stdout=PIPE, stderr=STDOUT, text=True)
         m = re.match("(docker|podman) version ([^, ]+)", p.stdout.lower())
         self.variant, self.version = m.groups()
-        if self.variant == "podman":  # pragma: no cover
+        if self.variant == "podman":
             if tuple(map(int, re.findall(r"\d+", self.version))) < (4, 3, 1):
                 # Note that there may be versions after 3.4.4 which also work.
                 # If ``podman run echo -n hello > /dev/null && podman logs -l``
@@ -45,13 +45,13 @@ class run:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
         if interactive:
             arguments.append("-it" if tty else "-i")
-        elif tty:
+        elif tty:  # pragma: no cover
             arguments.append("-t")
         arguments.extend(map(str, flags))
         if not root:
             if docker.variant == "podman":
                 arguments += ["--userns", "keep-id", "--user=user:wheel"]
-            else:
+            else:  # pragma: no cover
                 arguments += [f"--user={os.getuid()}"]
 
         arguments.append(base)

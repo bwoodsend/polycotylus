@@ -210,13 +210,11 @@ class BaseDistribution(abc.ABC):
             }}
         """) + "\n"
 
-    def install_desktop_files(self, indentation, source="", dest="$pkgdir"):
-        if source:
-            source += "/"
+    def install_desktop_files(self, indentation, dest="$pkgdir"):
         out = ""
         for id in self.project.desktop_entry_points:
             out += self._formatter(
-                f'install -Dm644 "{source}.polycotylus/{id}.desktop" '
+                f'install -Dm644 ".polycotylus/{id}.desktop" '
                 f'"{dest}/usr/share/applications/{id}.desktop"', indentation)
         return out
 

@@ -14,7 +14,7 @@ jobs:
           - docker
         suite:
           - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py
-          - tests/test_alpine.py
+          - tests/test_alpine.py tests/test_completion.py
           - tests/test_arch.py tests/test_manjaro.py
           - tests/test_fedora.py
           - tests/test_void.py
@@ -36,7 +36,7 @@ jobs:
           fi
       - run: python -m pip install -U pip setuptools wheel
       - run: pip install -e .[test]
-      - run: pytest -sv ${{ matrix.suite }}
+      - run: pytest --cov-fail-under=0 -sv ${{ matrix.suite }}
         env:
           docker: ${{ matrix.docker }}
       - run: mv .coverage .coverage-$(uuidgen)

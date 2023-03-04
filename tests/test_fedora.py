@@ -35,7 +35,13 @@ def test_python_extras():
 def test_ubrotli():
     self = Fedora(Project.from_root(ubrotli))
     self.generate()
-    self.test(self.build()["main"])
+    (self.distro_root / self.architecture).mkdir(exist_ok=True)
+    (self.distro_root / self.architecture / f"python3-ubrotli-0.2.0-1.fc37.{self.architecture}.rpm").write_bytes(b"")
+    packages = self.build()
+    assert "main" in packages
+    assert "debuginfo" in packages
+    assert "debugsource" in packages
+    self.test(packages["main"])
 
 
 def test_dumb_text_viewer():
@@ -80,3 +86,6 @@ def test_cli(monkeypatch, capsys):
     cli(["fedora"])
     capture = capsys.readouterr()
     assert "Built 3 artifacts:\n" in capture.out
+
+    with pytest.raises(SystemExit, match='^Architecture "ppc64le" '):
+        cli(["fedora", "--architecture=ppc64le"])
