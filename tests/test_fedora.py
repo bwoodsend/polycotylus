@@ -1,6 +1,8 @@
 import re
 import shlex
 
+import pytest
+
 from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._fedora import Fedora
@@ -44,6 +46,19 @@ def test_dumb_text_viewer():
     container.file("/usr/share/applications/underwhelming_software-dumb_text_viewer.desktop")
     container.file("/usr/share/icons/hicolor/24x24/apps/underwhelming_software-dumb_text_viewer.png")
     container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
+
+
+def test_png_source_icon(polycotylus_yaml):
+    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    polycotylus_yaml(
+        original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
+    self = Fedora(Project.from_root(dumb_text_viewer))
+    self.generate()
+    assert "svg" not in self.spec()
+    container = self.test(self.build()["main"])
+    container.file("/usr/share/icons/hicolor/24x24/apps/underwhelming_software-dumb_text_viewer.png")
+    with pytest.raises(Exception):
+        container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
 
 
 def test_silly_named_package():

@@ -93,6 +93,20 @@ def test_dumb_text_viewer():
         """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
 
 
+def test_png_source_icon(polycotylus_yaml):
+    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    polycotylus_yaml(
+        original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
+    self = Alpine(Project.from_root(dumb_text_viewer))
+    self.generate()
+    assert "svg" not in self.apkbuild()
+    apks = self.build()
+    with tarfile.open(apks["main"]) as tar:
+        files = tar.getnames()
+    for file in files:
+        assert ".svg" not in file
+
+
 def test_ubrotli():
     self = Alpine(Project.from_root(ubrotli))
     self.generate()

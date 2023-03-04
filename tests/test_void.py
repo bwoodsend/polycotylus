@@ -1,4 +1,8 @@
 import subprocess
+import tarfile
+import io
+
+import pyzstd
 
 from polycotylus._project import Project
 from polycotylus._void import Void
@@ -21,6 +25,21 @@ def test_dumb_text_viewer():
     self = Void(Project.from_root(dumb_text_viewer))
     self.generate()
     self.test(self.build()["main"])
+
+
+def test_png_source_icon(polycotylus_yaml):
+    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    polycotylus_yaml(
+        original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
+    self = Void(Project.from_root(dumb_text_viewer))
+    self.generate()
+    assert "svg" not in self.template()
+    packages = self.build()
+    raw = pyzstd.decompress(packages["main"].read_bytes())
+    with tarfile.open("", "r", io.BytesIO(raw)) as tar:
+        files = tar.getnames()
+    for file in files:
+        assert ".svg" not in file
 
 
 def test_silly_named_package():

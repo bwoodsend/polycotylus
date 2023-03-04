@@ -197,9 +197,10 @@ class BaseDistribution(abc.ABC):
                 f"mkdir -p {self.pkgdir}/usr/share/icons/hicolor/scalable/apps",
                 indentation)
         for (source, dest) in self.icons:
-            out += self._formatter(
-                f'cp "{source}" {self.pkgdir}/usr/share/icons/hicolor/scalable/apps/{dest}.svg',
-                indentation)
+            if source.endswith(".svg"):
+                out += self._formatter(
+                    f'cp "{source}" {self.pkgdir}/usr/share/icons/hicolor/scalable/apps/{dest}.svg',
+                    indentation)
         return out
 
     def define_py3ver(self):
