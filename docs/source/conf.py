@@ -57,7 +57,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "polycotylus"
-copyright = "2022, Brénainn Woodsend"
+copyright = "2022-2023, Brénainn Woodsend"
 author = "Brénainn Woodsend"
 
 # The version info for the project you"re documenting, acts as replacement
