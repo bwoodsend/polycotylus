@@ -1,3 +1,8 @@
+:root {
+  --sidebar-text: #FFFF;
+  --sidebar-caption: #007dce;
+}
+
 /* Custom `.. rst-class:: in-red` blocks. */
 .in-red {
   color: darkred;
@@ -64,7 +69,7 @@
 
 .wy-side-nav-search > div.version {
   /* Make the version under the title not transparent. */
-  color: #FFFF;
+  color: var(--sidebar-text);
 }
 .wy-side-nav-search,
 .wy-menu-vertical li.toctree-l1,
@@ -73,14 +78,14 @@
 .wy-menu-vertical li.toctree-l2.current > a {
   /* Make the text on top of it more readable. */
   background-color: #0000;
-  color: #FFF;
+  color: var(--sidebar-text);
 }
 .wy-menu-vertical a, .wy-menu-vertical li.toctree-l2 a {
-    color: #FFF;
+    color: var(--sidebar-text);
 }
 .wy-menu-vertical p.caption {
   /* Likewise with the CONTENTS: caption in the side-bar. */
-  color: #76D5FF;
+  color: --sidebar-caption;
   background-color: #0000;
 }
 

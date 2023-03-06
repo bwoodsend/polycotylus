@@ -150,6 +150,7 @@ html_static_path = ["static"]
 
 def setup(app):
     app.add_css_file("theme-overrides.css")
+    app.add_css_file("dark-theme.css")
 
 
 html_favicon = 'static/favicon.png'
