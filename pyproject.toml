@@ -18,7 +18,6 @@ dependencies = [
     "strictyaml",
     "appdirs",
     "toml",
-    "setuptools",
 ]
 description = """\
   A CLI tool to convert Python packages into a wide range of Linux distributions \

@@ -4,7 +4,7 @@ from fnmatch import fnmatch
 
 import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._mirror import mirrors
 from polycotylus._project import Project
 from tests import ubrotli
@@ -49,8 +49,8 @@ class Base:
         for pypi_name in awkward_pypi_packages:
             assert self.cls.python_package(pypi_name) in self.cls.available_packages()
 
-        with pytest.raises(ValueError):
-            self.cls.python_package("hello world")
+        with pytest.raises(_exceptions.PackageUnavailableError):
+            self.cls.python_package("i-am-a-unicorn")
 
     base_image: str
     package_install: str

@@ -55,10 +55,8 @@ class Fedora(BaseDistribution):
 
     @classmethod
     def python_package(cls, requirement):
-        import pkg_resources
-        requirement = pkg_resources.Requirement(requirement)
-        requirement.name = "python3dist({})".format(requirement.name)
-        return str(requirement).replace(">=", " >= ")
+        requirement = re.sub("^([a-zA-Z0-9._-]+)", r"python3dist(\1)", requirement)
+        return requirement.replace(">=", " >= ")
 
     @property
     def dependencies(self):

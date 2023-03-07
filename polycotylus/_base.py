@@ -69,23 +69,22 @@ class BaseDistribution(abc.ABC):
 
     @classmethod
     def python_package(cls, requirement):
-        import pkg_resources
-        requirement = pkg_resources.Requirement(requirement)
-        name = re.sub("[._-]+", "-", requirement.key.lower())
+        match = re.match("([a-zA-Z0-9._-]+)(.*)", requirement)
+        name = re.sub("[._-]+", "-", match[1].lower())
         available = cls.available_packages_normalized()
 
         if cls.python_package_convention(name) in available:
-            requirement.name = available[cls.python_package_convention(name)]
+            name = available[cls.python_package_convention(name)]
         elif name in available:
-            requirement.name = available[name]
+            name = available[name]
         elif m := re.match("(python|py)3?-?(.*)", name.lower()):
             try:
-                requirement.name = cls.python_package(m[2])
+                name = cls.python_package(m[2])
             except _exceptions.PackageUnavailableError:
-                raise _exceptions.PackageUnavailableError(requirement.name, cls.name) from None
+                raise _exceptions.PackageUnavailableError(match[1], cls.name) from None
         else:
-            raise _exceptions.PackageUnavailableError(requirement.name, cls.name)
-        return str(requirement)
+            raise _exceptions.PackageUnavailableError(match[1], cls.name)
+        return name + match[2]
 
     invalid_package_characters = abc.abstractproperty()
 
