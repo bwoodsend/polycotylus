@@ -11,7 +11,7 @@ dependencies:
   run:
     arch manjaro fedora void alpine: jq
     python: tkinter
-    pip: tabulate
+    pip: TABULATE
   test:
     arch manjaro fedora void alpine: cmatrix
     python: sqlite3 tkinter

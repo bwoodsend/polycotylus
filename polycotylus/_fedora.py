@@ -55,7 +55,10 @@ class Fedora(BaseDistribution):
 
     @classmethod
     def python_package(cls, requirement):
-        requirement = re.sub("^([a-zA-Z0-9._-]+)", r"python3dist(\1)", requirement)
+        requirement = re.sub(
+            "^([a-zA-Z0-9._-]+)",
+            lambda m: "python3dist(" + re.sub("[_.-]+", "-", m[1].lower()) + ")",
+            requirement)
         return requirement.replace(">=", " >= ")
 
     @property
@@ -85,7 +88,7 @@ class Fedora(BaseDistribution):
         for group in (self.project.build_dependencies, self.project.test_dependencies):
             build_requires += group.get("fedora", ())
         for dependency in self.project.test_dependencies.get("pip", ()):
-            build_requires.append(f"python3dist({dependency})")
+            build_requires.append(self.python_package(dependency))
         if self.project.gui:
             build_requires.append(self.xvfb_run)
         if self.icons:
@@ -100,7 +103,7 @@ class Fedora(BaseDistribution):
                 out += f"Requires:       {package}\n"
         for package in self.project.dependencies["pip"]:
             if package.origin == "polycotylus.yaml":
-                out += f"Requires:       python3dist({package})\n"
+                out += f"Requires:       {self.python_package(package)}\n"
         for package in self.project.dependencies.get(self.name, ()):
             out += f"Requires:       {package}\n"
         out += "\n\n"
@@ -253,7 +256,7 @@ class Fedora(BaseDistribution):
             volumes.append((self.project.root / path, f"/io/{path}"))
         test_dependencies = []
         for package in self.project.test_dependencies["pip"]:
-            test_dependencies.append(f"python3dist({package})")
+            test_dependencies.append(self.python_package(package))
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.name}
