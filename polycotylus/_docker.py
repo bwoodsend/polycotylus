@@ -11,6 +11,11 @@ import json
 import time
 import sys
 
+import appdirs
+
+cache_root = Path(appdirs.user_cache_dir("polycotylus"))
+cache_root.mkdir(parents=True, exist_ok=True)
+
 
 class DockerInfo(str):
     @staticmethod
@@ -30,6 +35,8 @@ class DockerInfo(str):
 
 
 docker = DockerInfo()
+images_cache = cache_root / docker.variant
+images_cache.mkdir(exist_ok=True)
 
 
 class run:
@@ -104,8 +111,8 @@ class run:
                 return f.read()
 
     def commit(self):
-        return _run([docker, "commit", self.id], stdout=PIPE,
-                    text=True).stdout.strip()
+        return _audit_image(_run([docker, "commit", self.id], stdout=PIPE,
+                                  text=True).stdout.strip())
 
 
 def _tee_run(command, verbosity, **kwargs):
@@ -120,6 +127,20 @@ def _tee_run(command, verbosity, **kwargs):
     return p.returncode, b"".join(chunks).decode()
 
 
+def _audit_image(hash):
+    path = images_cache / hash
+    path.write_bytes(b"")
+    caches = list(images_cache.iterdir())
+    if len(caches) > 100:  # pragma: no cover
+        # Apply a dumb least recently used deletion policy for old polycotylus
+        # generated docker image caches.
+        caches.sort(key=lambda path: path.stat().st_mtime)
+        for path in caches[:-100]:
+            _run([docker, "image", "rm", path.name], stderr=DEVNULL, stdout=DEVNULL)
+            path.unlink()
+    return hash
+
+
 def build(dockerfile, root, target=None, architecture=platform.machine(), verbosity=None):
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
@@ -132,7 +153,7 @@ def build(dockerfile, root, target=None, architecture=platform.machine(), verbos
     returncode, output = _tee_run(command, verbosity, cwd=root)
     if returncode:
         raise Error("$ " + shlex.join(command), output)
-    return _parse_build_output(output)
+    return _audit_image(_parse_build_output(output))
 
 
 def _parse_build_output(output):
