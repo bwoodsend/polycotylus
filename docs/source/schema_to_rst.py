@@ -4,6 +4,8 @@ import textwrap
 
 import strictyaml
 
+from polycotylus._yaml_schema import polycotylus_yaml
+
 
 raw = Path(__file__).with_name("schema.yaml").read_text()
 intro, raw = re.match("(.*?)(# ---.*)", raw, flags=re.DOTALL).groups()
@@ -16,9 +18,10 @@ Reference: ``polycotylus.yaml``
 ===============================
 """]
 
-key_value_re = re.compile("( *)([^#:]*): *(.*)")
+key_value_re = re.compile(r"( *)'?([^#:']*)'?: *(.*)")
 comment_re = re.compile("( *)# ?(.*\n)")
 caption_re = re.compile("# -{20}")
+list_re = re.compile("( *)- ([^ ].*)")
 blank_re = re.compile(" *\n")
 
 toc = []
@@ -44,11 +47,17 @@ while i < len(lines):
             yaml[key] = value
             i += 1
         key = "$distribution"
-    if key == "spdx":
-        yaml["spdx"] = {}
+    if key in ("spdx", "Name"):
+        yaml[key] = {}
         while m := key_value_re.match(lines[i]):
             _indentation, _key, _value = m.groups()
-            yaml["spdx"][_key] = _value
+            yaml[key][_key] = _value
+            i += 1
+        value = yaml
+    if key == "test_files":
+        yaml[key] = []
+        while m := list_re.match(lines[i]):
+            yaml[key].append(m[2])
             i += 1
         value = yaml
 
@@ -79,9 +88,16 @@ while i < len(lines):
                 yaml[path[-1]] = textwrap.dedent(yaml[path[-1]][1:])
         for key in path[::-1][1:]:
             yaml = {key: yaml}
+        serialized = strictyaml.as_document(yaml).as_yaml()
+        try:
+            strictyaml.load(serialized.replace("$identifier", "identifier"),
+                            schema=polycotylus_yaml)
+        except Exception as ex:
+            if not re.search("required key.*not found", str(ex)):
+                raise
         body += [
             "\n.. code-block:: yaml\n\n",
-            textwrap.indent(strictyaml.as_document(yaml).as_yaml(), "    "),
+            textwrap.indent(serialized, "    "),
             "\n",
         ]
 
