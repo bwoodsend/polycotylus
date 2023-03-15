@@ -8,6 +8,9 @@ import json
 import gzip
 import warnings
 from importlib import resources
+import textwrap
+import os
+from fnmatch import fnmatch
 
 import toml
 
@@ -52,18 +55,59 @@ class Project:
         polycotylus_options = _yaml_schema.read(root / "polycotylus.yaml")
 
         project = pyproject_options["project"]
+        missing_fields = {}
+        if "name" not in project:
+            missing_fields["name"] = "your_package_name"
+        if "version" not in project:
+            missing_fields["version"] = "1.2.3"
+        if "description" not in project:
+            missing_fields["description"] = "Give a one-line description of your package here"
+        if not project.get("urls", {}).get("Homepage"):
+            missing_fields["urls"] = {"Homepage": "https://your.project.site"}
+        if project.get("license", {}).get("file"):
+            licenses = [project["license"]["file"]]
+        else:
+            licenses = []
+            for file in os.listdir(root):
+                for pattern in ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']:
+                    if fnmatch(file, pattern):
+                        licenses.append(file)
+                        break
+            if not licenses:
+                missing_fields["license"] = {"file": "LICENSE.txt"}
+        if missing_fields:
+            raise _exceptions.PolycotylusUsageError(
+                f"Missing pyproject.toml fields {sorted(missing_fields)}. "
+                "Add or migrate them to the pyproject.toml.\n\n"
+                + textwrap.indent(toml.dumps({"project": missing_fields}), "    ")
+                + "\nThey cannot be dynamic."
+            )
         if maintainer_slug := polycotylus_options.get("maintainer"):
             match = re.fullmatch(_yaml_schema.maintainer_slug_re, maintainer_slug)
             maintainer = dict(zip(["name", "email"], match.groups()))
         else:
-            try:
-                maintainer, = project.get("maintainers", []) or project["authors"]
-            except (KeyError, ValueError):
-                raise _exceptions.PolycotylusUsageError(
-                    "Linux repositories require exactly one maintainer of the "
-                    "Linux package. Nominate who that should be and specify "
-                    "their contact details in the polycotylus.yaml.\n"
-                    "    maintainer: your name <your@email.org>") from None
+            maintainers = project.get("maintainers", project.get("authors", []))
+            if not maintainers:
+                raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                    No maintainer declared in either the pyproject.toml or
+                    polycotylus.yaml. Nominate who will be responsible for
+                    maintaining this and declare them using either:
+                        # in pyproject.toml
+                        [project]
+                        maintainers = [{name="Your Name", email="your@email.com"}]
+                    Or:
+                        # polycotylus.yaml
+                        maintainer: Your Name <your.email@address.com>
+                """))
+            if len(maintainers) > 1:
+                raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                    Multiple maintainers declared in pyproject.toml.
+                    Linux repositories require exactly one maintainer of the
+                    Linux package. Nominate who that should be and specify
+                    their contact details in the polycotylus.yaml.
+                        maintainer: your name <your@email.org>"
+                    """))
+            maintainer, = maintainers
         check_maintainer(maintainer["name"])
 
         if polycotylus_options.get("spdx"):
@@ -152,7 +196,7 @@ class Project:
             test_files=test_files,
             url=project["urls"]["Homepage"],
             license_names=license_names,
-            licenses=[project["license"]["file"]],
+            licenses=licenses,
             desktop_entry_points=desktop_files,
             source_url=source,
             source_top_level=source_top_level,

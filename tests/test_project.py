@@ -38,6 +38,7 @@ def test_expand_pip_requirements():
 
 def test_yaml_error(tmp_path):
     shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
+    shutil.copy(bare_minimum / "LICENSE", tmp_path)
     polycotylus_yaml = tmp_path / "polycotylus.yaml"
     polycotylus_yaml.write_text("""
 source_url: https://xyz
@@ -57,8 +58,9 @@ Required key(s) 'Name' not found while parsing a mapping.
 """
 
 
-def test_minimal_configuration(tmp_path):
+def test_empty_polycotylus_yaml(tmp_path):
     shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
+    shutil.copy(bare_minimum / "LICENSE", tmp_path / "COPYING.txt")
     for contents in ["", "\n", "  \n   \n # hello \n\n", "\n\n---\n\n"]:
         (tmp_path / "polycotylus.yaml").write_text(contents)
         Project.from_root(tmp_path)
@@ -66,6 +68,7 @@ def test_minimal_configuration(tmp_path):
 
 def test_dockerignore(tmp_path):
     shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
+    shutil.copy(bare_minimum / "LICENSE", tmp_path)
     (tmp_path / "polycotylus.yaml").write_bytes(b"")
     self = Project.from_root(tmp_path)
     path = tmp_path / ".dockerignore"
@@ -128,6 +131,38 @@ def test_check_maintainer():
             check_maintainer(name)
 
 
+def test_missing_pyproject_metadata(tmp_path):
+    shutil.copy(bare_minimum / "polycotylus.yaml", tmp_path)
+    (tmp_path / "pyproject.toml").write_text("""
+        [project]
+
+        authors = [
+            { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+        ]
+
+        classifiers = [
+            "License :: OSI Approved :: MIT License",
+        ]
+    """)
+    with pytest.raises(PolycotylusUsageError) as error:
+        Project.from_root(tmp_path)
+    assert str(error.value) == """\
+Missing pyproject.toml fields ['description', 'license', 'name', 'urls', 'version']. Add or migrate them to the pyproject.toml.
+
+    [project]
+    name = "your_package_name"
+    version = "1.2.3"
+    description = "Give a one-line description of your package here"
+
+    [project.urls]
+    Homepage = "https://your.project.site"
+
+    [project.license]
+    file = "LICENSE.txt"
+
+They cannot be dynamic."""
+
+
 def test_maintainer(tmp_path):
     for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
         shutil.copy(bare_minimum / path, tmp_path / path)
@@ -147,7 +182,7 @@ def test_maintainer(tmp_path):
     del options["project"]["maintainers"]
     del options["project"]["authors"]
     pyproject_toml.write_text(toml.dumps(options))
-    with pytest.raises(PolycotylusUsageError, match="exactly one"):
+    with pytest.raises(PolycotylusUsageError, match="No maintainer declared"):
         self = Project.from_root(tmp_path)
 
     options["project"]["authors"] = [dict(name="bob", email="bob@mail.com"),

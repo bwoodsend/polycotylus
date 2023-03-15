@@ -5,7 +5,6 @@ authors = [
     { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
 ]
 version = "1.2.3"
-license = { file="LICENSE" }
 
 classifiers = [
     "License :: OSI Approved :: MIT License",
