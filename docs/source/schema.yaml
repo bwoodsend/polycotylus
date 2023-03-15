@@ -126,8 +126,9 @@ architecture: aarch64 armhf armv7 ppc64le s390x x86 x86_64
   #    for each one.
   #  - A subset of any of the listed architectures.
   #
-  # Defaults to ``any`` if ``gcc`` or ``clang`` is found in
-  # `dependencies.build.$distribution`; ``noarch`` otherwise.
+  # Defaults to ``any`` if ``gcc`` or ``clang`` or any ``*-dev``/``*-devel``
+  # packages are found in `dependencies.build.$distribution`; ``noarch``
+  # otherwise.
 
 maintainer: Your Name <your.email@address.com>
   # Contact details for whoever's job it will be to fix it if there are issues.

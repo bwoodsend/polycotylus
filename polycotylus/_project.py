@@ -8,6 +8,7 @@ import json
 import gzip
 import warnings
 from importlib import resources
+import itertools
 import textwrap
 import os
 from fnmatch import fnmatch
@@ -159,10 +160,11 @@ class Project:
             architecture = polycotylus_options["architecture"]
         else:
             architecture = "none"
-            for compiler in ("gcc", "g++", "build-base", "clang"):
-                for group in dependencies["build"].values():
-                    if compiler in group:
-                        architecture = "any"
+            for dependency in itertools.chain(*dependencies["build"].values()):
+                if re.fullmatch("gcc|g[+][+]|clang|build-base|.*-(dev|devel)",
+                                dependency):
+                    architecture = "any"
+                    break
 
         desktop_files = polycotylus_options.get("desktop_entry_points", {})
         for (id, desktop_file) in desktop_files.items():
