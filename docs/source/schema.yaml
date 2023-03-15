@@ -136,7 +136,11 @@ maintainer: Your Name <your.email@address.com>
   # `polycotylus` will default to the ``project.maintainer`` field in the
   # ``pyproject.toml``.
 
-test_files: tests test_*.py pytest.ini conftest.py
+test_files:
+  - tests
+  - test_*.py
+  - pytest.ini
+  - conftest.py
   # The files needed to run the test suite. `polycotylus`, when testing the
   # final package, will mount only these files into the test container so that
   # tests can't accidentally use your original source code rather than the
@@ -184,15 +188,28 @@ desktop_entry_points:
     # (``-``). The second form is typically only used if you provide a family of
     # applications (e.g. libreoffice or gnome).
 
-    Name: My Application
-    Exec: my_application %U
-    MimeType: |
-      image/bmp
-      image/gif
-      image/jpeg
-      image/png
-      image/tiff
-      video/mp4
+    Name:
+      '': My Application
+      es: Mi Aplicación
+      fr: Mon Application
+        # Your application's localized *pretty name* where spaces and capital
+        # letters are allowed and encouraged. If you don't want to support
+        # multiple languages and locales then just ``Name: My Application`` is
+        # also allowed.
+
+    Exec: my_application %F
+    # The `shell-like command executed`_ when launching the application. The
+    # majority of the time, the executable's name followed by ``%f`` (a single
+    # file) or ``%F`` (multiple files) is all you need.
+    #
+    # .. _`shell-like command executed`: https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s07.html
+
+    MimeType: image/bmp;image/gif;image/jpeg;image/png;image/tiff;video/mp4
+    # Declare which file types your application can open. Desktops will respond
+    # by adding your application to *Open With* dialogs in graphical file
+    # managers. See `mimetypes.types_map` for finding common mimetype names.
+    # Desktop file list items are delimited by ``;`` but you may write mimetypes
+    # on separate lines instead for readability/git friendliness.
 
     icon: icon-source.svg
     # A path, relative to the directory containing the ``polycotylus.yaml``, to
