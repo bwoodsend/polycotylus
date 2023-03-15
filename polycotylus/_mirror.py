@@ -15,12 +15,8 @@ from urllib.error import HTTPError
 import email.utils
 import contextlib
 
-import appdirs
-
 from polycotylus import _docker
-
-cache_root = Path(appdirs.user_cache_dir("polycotylus"))
-cache_root.mkdir(parents=True, exist_ok=True)
+from polycotylus._docker import cache_root
 
 
 class CachedMirror:
