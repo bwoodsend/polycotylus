@@ -1,18 +1,20 @@
 # An exhaustive list of all valid options settable in the ``polycotylus.yaml``.
-# Options are grouped into non-front-end and front-end specific categories. Each
-# category is ordered with (almost) mandatory options first and options with
+# Options are grouped into non-front-end (i.e. libraries) and front-end (GUIs or
+# CLIs) specific categories. Each category is ordered with the options that
+# you're almost certainly going to need first and the rarely needed options with
 # relatively all-encompassing defaults last. (Feedback wanted of whether this is
-# actually a helpful structure or if it should stick to conventional
-# alphabetical ordering.)
+# actually a helpful structure or if I should stick to the conventional
+# alphabetic ordering.)
 
 # Note that, whilst this file's format is still dubbed as *YAML*, its parser is
-# strictyaml_. This means that, amongst other things, implicit typing, embedded
-# JSON and anchors features are all gone. Additionally, `polycotylus` uses a
-# custom *whitespace delimited list* validator for lists of packages (e.g.
-# ``numpy requests pyperclip`` instead of ``["numpy", "requests",
+# strictyaml_ which removes_ some of YAML's more questionable features such as
+# embedded JSON and implicit typing. Additionally, `polycotylus` uses a custom
+# *whitespace delimited list* validator for denoting lists of packages (e.g.
+# write ``numpy requests pyperclip`` instead of ``["numpy", "requests",
 # "pyperclip"]``).
 
 # .. _strictyaml: https://hitchdev.com/strictyaml/
+# .. _removes: https://hitchdev.com/strictyaml/features-removed/
 
 # ---------------
 # Generic Options
@@ -125,6 +127,8 @@ architecture: aarch64 armhf armv7 ppc64le s390x x86 x86_64
   #  - ``any``: The package may run on any architecture but must be recompiled
   #    for each one.
   #  - A subset of any of the listed architectures.
+  #  - A list of architectures prefixed with ``!`` to imply ``any`` except the
+  #    given architectures.
   #
   # Defaults to ``any`` if ``gcc`` or ``clang`` or any ``*-dev``/``*-devel``
   # packages are found in `dependencies.build.$distribution`; ``noarch``
@@ -145,8 +149,9 @@ test_files:
   # final package, will mount only these files into the test container so that
   # tests can't accidentally use your original source code rather than the
   # installed package. The patterns listed here are the defaults. Setting this
-  # field replaces the defaults so you will have to re-add those if you need
-  # them too.
+  # field replaces the defaults so you will have to re-add the ones you need.
+  # Globs are expanded using `pathlib.Path.glob`. All paths are relative to the
+  # directory containing the ``polycotylus.yaml``.
 
 
 # --------------------
@@ -155,10 +160,10 @@ test_files:
 
 prefix_package_name: false
   # Apply the Linux distribution's standard Python package prefix (e.g.
-  # ``numpy`` → ``py3-numpy`` on Alpine). Disable this if your package is not
-  # primarily a library intended to be imported by other packages – rather it's
-  # a standalone CLI tool or GUI application that merely happens to be written
-  # in Python.
+  # ``numpy`` becomes ``py3-numpy`` on Alpine). Disable this if your package is
+  # not primarily a library intended to be imported by other packages – rather
+  # it's a standalone CLI tool or GUI application that merely happens to be
+  # written in Python.
 
 gui: true
   # Set to true if your package contains GUI elements. Defaults to false but
@@ -173,12 +178,14 @@ desktop_entry_points:
   # each desktop's equivalent of Windows's Start menu or macOS's Dock and
   # register supported file types so that your application appears in *Open
   # with* menus when a user opens a supported file from a graphical file manager
-  # application. This reference lists only the more essential keys. If you're
-  # ever unsure what a particular key does, you can normally find examples by
-  # running ``grep KeyName /usr/share/applications/*.desktop`` on any Linux
-  # machine with a desktop installed.
+  # application. This reference lists only the more essential subset of
+  # `recognised keys`_. If you're ever unsure what a particular key does, you
+  # can normally find examples by running ``grep KeyName
+  # /usr/share/applications/*.desktop`` on any Linux machine with a desktop
+  # installed.
   #
   # .. _specification: https://specifications.freedesktop.org/desktop-entry-spec/latest/
+  # .. _`recognised keys`: https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
 
   $identifier:
     # An identifier, which will ultimately become the ``.desktop`` file's
@@ -215,7 +222,8 @@ desktop_entry_points:
     # A path, relative to the directory containing the ``polycotylus.yaml``, to
     # an icon for the application. The desktop specification promotes using SVG
     # since it can be scaled to arbitrary sizes but I have yet to encounter a
-    # desktop environment that actually will use SVGs therefore a decent sized
-    # PNG is equally sufficient. The provided icon should be square and either
-    # much larger than 128x128px or an exact multiple in size. `polycotylus`
-    # will handle the image resize and conversions.
+    # desktop environment that actually will use SVGs (even if you take away all
+    # PNG alternatives) so a decent sized PNG is equally sufficient. The
+    # provided icon should be square and either much larger than 128x128px or an
+    # exact multiple in size to minimize resize aliasing. `polycotylus` will
+    # handle the image resize and conversions.
