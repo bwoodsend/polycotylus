@@ -377,7 +377,12 @@ obsolete_caches = {
         './tumbleweed/repo/oss/x86_64/glibc-locale-base-2.37-3.1.x86_64.rpm',
         './tumbleweed/repo/oss/x86_64/libitm1-13.0.1+git7231-1.1.x86_64.rpm'
     ],
-
+    "debian13": [
+        "./debian/pool/main/n/ncurses/libncursesw6_6.2%2b20201114-2_amd64.deb",
+        "./debian/pool/main/p/python3-defaults/libpython3-stdlib_3.9.2-3_amd64.deb",
+        "./debian/pool/main/p/python3-defaults/python3-minimal_3.9.2-3_amd64.deb",
+        "./debian/pool/main/p/python3-defaults/python3_3.9.2-3_amd64.deb",
+    ],
 }
 
 

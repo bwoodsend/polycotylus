@@ -9,12 +9,14 @@ dependencies:
   build:
     alpine: brotli-dev python3-dev gcc musl-dev
     arch manjaro: brotli gcc
+    debian: libbrotli-dev gcc
     fedora: brotli-devel python3-devel gcc
     opensuse: libbrotli-devel gcc
     void: brotli-devel python3-devel gcc
   run:
     alpine: brotli-libs
     arch manjaro: brotli
+    debian: libbrotli1
     fedora: libbrotli
     opensuse: brotli
     void: brotli

@@ -73,18 +73,16 @@ Distributions  Supported versions
 =============  =====================================
 Alpine_        3.17-3.18, edge
 Arch_          rolling
+Debian_        13 (pre-release)
 Fedora_        37-38, 39 (pre-release), 40 (rawhide)
 Manjaro_       rolling
 OpenSUSE_      Tumbleweed only (rolling)
 Void_          rolling
 =============  =====================================
 
-There is a work in progress effort to support Debian's unstable branch and
-Ubuntu 23.04 but, given ``debpkg``\ 's unwieldiness, I'm not convinced that I'll
-ever finish it. 🙁
-
 .. _Alpine: https://alpinelinux.org/
 .. _Arch: https://archlinux.org/
+.. _Debian: https://www.debian.org/
 .. _Fedora: https://fedoraproject.org/
 .. _Manjaro: https://manjaro.org/
 .. _OpenSUSE: https://www.opensuse.org/

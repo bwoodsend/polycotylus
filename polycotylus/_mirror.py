@@ -443,6 +443,17 @@ mirrors = {
             (opensuse_last_sync_time,),
             r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
         ),
+    "debian13":
+        CachedMirror(
+            "http://deb.debian.org/",
+            cache_root / "debian13",
+            ["InRelease"],
+            [],
+            8905,
+            r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8905/|g' /etc/apt/sources.list.d/debian.sources",
+            (_use_last_modified_header,),
+            r"(.+_)([^-]+-\d+)(.+)",
+        ),
 }
 
 if __name__ == "__main__":

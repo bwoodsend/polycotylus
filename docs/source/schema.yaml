@@ -35,7 +35,7 @@ dependencies:
   #
   #   - ``pip``: Pip/PyPI packages.
   #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which may be packaged separately from Python itself for size or licensing reasons.
-  #   - ``alpine|arch|fedora|manjaro|opensuse|void``: Linux packages installed by each distribution's native package manager.
+  #   - ``alpine|arch|debian|fedora|manjaro|opensuse|void``: Linux packages installed by each distribution's native package manager.
 
   run:
     # Dependencies needed to run the application/package.
@@ -53,6 +53,7 @@ dependencies:
 
     alpine: ffmpeg-libs xsetroot
     arch manjaro: ffmpeg xorg-xsetroot
+    debian: ffmpeg
     fedora: ffmpeg-free xsetroot
     opensuse: ffmpeg xsetroot
     void: ffmpeg xsetroot
@@ -74,6 +75,7 @@ dependencies:
 
     alpine: python3-dev gcc musl-dev
     arch manjaro: gcc
+    debian: gcc
     fedora: python3-devel gcc
     opensuse: gcc
     void: python3-devel gcc

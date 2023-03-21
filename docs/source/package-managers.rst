@@ -74,6 +74,36 @@ This reference should answer those questions.
         pacman -Qlq python
 
 
+.. tab:: Debian
+
+    ::
+
+        # Install packages:
+        apt-get update; apt-get install -y python3-wheel python3-pip
+
+        # Uninstall packages:
+        apt-get remove -y python3-wheel python3-pip
+
+        # Search packages by name+description (extremely low signal to noise
+        # ratio, recommend search by file or grep apt list instead):
+        apt search substring
+
+        # Search by file (requires apt-get install -y apt-file; apt-file update):
+        apt-file search /usr/bin/python3
+
+        # List all available packages:
+        apt list
+
+        # List all installed packages:
+        apt list --installed
+
+        # Show a package's metadata:
+        apt show python3
+
+        # List a package's files:
+        apt-file list python3
+
+
 .. tab:: Fedora
 
     ::
@@ -207,6 +237,8 @@ Working with local packages
         # Read package's metadata
         tar xOf package-1.2.3-1-any.pkg.tar.zst .PKGINFO
 
+
+.. tab:: Debian
 
 .. tab:: Fedora
 

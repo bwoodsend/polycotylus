@@ -112,7 +112,7 @@ class run:
             self.returncode = p.returncode
             if check and self.returncode:
                 if post_mortem and globals()["post_mortem"]:
-                    for shell in ["/usr/bin/bash", "/usr/sbin/bash", "/usr/bin/zsh"]:  # pragma: no branch
+                    for shell in ["/usr/bin/fish", "/usr/bin/zsh", "/usr/sbin/bash", "/usr/bin/bash"]:  # pragma: no branch
                         with contextlib.suppress(Exception):
                             self[shell]
                             break

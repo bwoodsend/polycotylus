@@ -1,17 +1,19 @@
-set -l distributions alpine arch fedora manjaro opensuse void
+set -l distributions alpine arch debian fedora manjaro opensuse void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:edge
+set -l debian_variants debian:13
 set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40
 set -l void_variants void:musl void:glibc
-set -l all_variants $distributions $alpine_variants $fedora_variants $void_variants
+set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $void_variants
 set -l atomic_flags --completion --list-localizations --configure --presubmit-check
 
 complete -c polycotylus -f
 complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_variants $atomic_flags" -a "$distributions"
 
 # The --architecture flag – if a Linux distribution is already selected, offer only architectures valid on that distribution.
-complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_variants $atomic_flags" -a 'aarch64 armv7 ppc64le x86 x86_64'
+complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_variants $atomic_flags" -a 'aarch64 amd64 arm64 armel armhf armv7 i386 mips64el ppc64el ppc64le riscv64 s390x x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from alpine $alpine_variants" -a 'aarch64 armv7 ppc64le x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch" -a 'x86_64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debian" -a 'amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manjaro" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from opensuse" -a 'x86_64 aarch64'
@@ -19,6 +21,7 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void 
 
 # Suggest variants of distributions only if the user has already started typing the distribution's name.
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- a (commandline -t)' -a "$alpine_variants"
+complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- d (commandline -t)' -a "$debian_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- f (commandline -t)' -a "$fedora_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
