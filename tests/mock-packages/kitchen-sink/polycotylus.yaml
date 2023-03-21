@@ -11,7 +11,7 @@ dependencies:
     python: sqlite3
     pip: pyperclip -r build-requirements.txt
   run:
-    arch manjaro fedora void alpine opensuse: jq
+    arch manjaro debian fedora void alpine opensuse: jq
     python: tkinter
     pip: TABULATE -r requirements.txt
   test:

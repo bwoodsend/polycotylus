@@ -442,6 +442,16 @@ mirrors = {
             "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
             (opensuse_last_sync_time,),
             r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
+    "debian":
+        CachedMirror(
+            "http://deb.debian.org/",
+            cache_root / "debian",
+            ["InRelease"],
+            [],
+            8904,
+            r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8904/|g' /etc/apt/sources.list.d/debian.sources",
+            (_use_last_modified_header,),
+            r"(.+_)([^-]+-\d+)(.+)",
         ),
 }
 
