@@ -11,7 +11,7 @@ from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
-from tests import dumb_text_viewer, cross_distribution, ubrotli, silly_name
+import shared
 
 mirror = mirrors["arch"]
 
@@ -27,14 +27,14 @@ license=(MIT)
 """
 
 
-class TestCommon(cross_distribution.Base):
+class TestCommon(shared.Base):
     cls = Arch
     base_image = "archlinux"
     package_install = "pacman -Sy --noconfirm --needed"
 
 
 def test_dumb_text_viewer():
-    self = Arch(Project.from_root(dumb_text_viewer))
+    self = Arch(Project.from_root(shared.dumb_text_viewer))
     self.generate()
 
     pkgbuild = self.pkgbuild()
@@ -77,7 +77,7 @@ def test_dumb_text_viewer():
 
 
 def test_ubrotli():
-    self = Arch(Project.from_root(ubrotli))
+    self = Arch(Project.from_root(shared.ubrotli))
     self.generate()
     assert "arch=(x86_64)" in self.pkgbuild()
     self.project.build_dependencies["arch"].append("gcc")
@@ -98,7 +98,7 @@ def test_ubrotli():
 
 
 def test_silly_named_package():
-    self = Arch(Project.from_root(silly_name))
+    self = Arch(Project.from_root(shared.silly_name))
     self.generate()
     package = self.build()["main"]
     installed = self.test(package).commit()

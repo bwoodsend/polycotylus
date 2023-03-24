@@ -3,8 +3,7 @@ import pytest
 import polycotylus
 from polycotylus._yaml_schema import localizations, Locale
 from polycotylus.__main__ import cli
-from tests import bare_minimum
-
+import shared
 
 list_localizations_sample_output = """\
 Language Tag  Description
@@ -66,7 +65,7 @@ def test_localized_parse(polycotylus_yaml):
                     es: bla bla bla;foo bar
                     zh: 我不听;我不听;;;
     """)
-    self = polycotylus.Project.from_root(bare_minimum)
+    self = polycotylus.Project.from_root(shared.bare_minimum)
     content = self._desktop_file("foo", self.desktop_entry_points["foo"])
     assert "Name=hello\n" in content
     assert "Name[es]=holá\n" in content
@@ -85,7 +84,7 @@ def test_localized_parse(polycotylus_yaml):
     with pytest.raises(polycotylus._exceptions.PolycotylusYAMLParseError,
                        match='Invalid localization "XYZ" should .*'
                        'See polycotylus --list-localizations'):
-        polycotylus.Project.from_root(bare_minimum)
+        polycotylus.Project.from_root(shared.bare_minimum)
 
     polycotylus_yaml("""
         desktop_entry_points:
@@ -97,4 +96,4 @@ def test_localized_parse(polycotylus_yaml):
     with pytest.raises(polycotylus._exceptions.PolycotylusYAMLParseError,
                        match='Unknown region identifier "XX". '
                              'See polycotylus --list-localizations=region for a list of valid region codes.'):
-        polycotylus.Project.from_root(bare_minimum)
+        polycotylus.Project.from_root(shared.bare_minimum)

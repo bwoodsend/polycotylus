@@ -7,11 +7,11 @@ from polycotylus import _docker
 from polycotylus._project import Project
 from polycotylus._fedora import Fedora
 from polycotylus.__main__ import cli
-from tests import dumb_text_viewer, cross_distribution, ubrotli, silly_name
+import shared
 
 
 def test_pretty_spec():
-    self = Fedora(Project.from_root(dumb_text_viewer))
+    self = Fedora(Project.from_root(shared.dumb_text_viewer))
     spec = self.spec()
 
     first, *others = re.finditer(r"^(\w+:( *))(.*)$", spec, flags=re.M)
@@ -24,7 +24,7 @@ def test_pretty_spec():
 
 
 def test_python_extras():
-    for (packages, imports) in cross_distribution._group_python_extras(Fedora.python_extras):
+    for (packages, imports) in shared._group_python_extras(Fedora.python_extras):
         _docker.run("fedora:37", f"""
             {Fedora.dnf_config_install}
             yum install -y {shlex.join(packages)} python3
@@ -34,7 +34,7 @@ def test_python_extras():
 
 def test_python_package():
     packages = [
-        Fedora.python_package(i) for i in cross_distribution.awkward_pypi_packages
+        Fedora.python_package(i) for i in shared.awkward_pypi_packages
         if i != "zope.deferredimport"]
     script = Fedora.dnf_config_install + "\nyum install --assumeno " + shlex.join(packages)
     container = _docker.run("fedora:37", script, check=False,
@@ -43,7 +43,7 @@ def test_python_package():
 
 
 def test_ubrotli():
-    self = Fedora(Project.from_root(ubrotli))
+    self = Fedora(Project.from_root(shared.ubrotli))
     self.generate()
     (self.distro_root / self.architecture).mkdir(exist_ok=True)
     (self.distro_root / self.architecture / f"python3-ubrotli-0.2.0-1.fc37.{self.architecture}.rpm").write_bytes(b"")
@@ -55,7 +55,7 @@ def test_ubrotli():
 
 
 def test_dumb_text_viewer():
-    self = Fedora(Project.from_root(dumb_text_viewer))
+    self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     container = self.test(self.build()["main"])
     assert container.file("/usr/bin/dumb_text_viewer").startswith(b"#! /usr/bin/python3")
@@ -65,10 +65,10 @@ def test_dumb_text_viewer():
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
-    self = Fedora(Project.from_root(dumb_text_viewer))
+    self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.spec()
     container = self.test(self.build()["main"])
@@ -78,7 +78,7 @@ def test_png_source_icon(polycotylus_yaml):
 
 
 def test_silly_named_package():
-    self = Fedora(Project.from_root(silly_name))
+    self = Fedora(Project.from_root(shared.silly_name))
     self.generate()
     assert "certifi" not in self.spec()
     assert "setuptools" not in self.spec()
@@ -87,12 +87,12 @@ def test_silly_named_package():
 
 
 def test_cli(monkeypatch, capsys):
-    monkeypatch.chdir(dumb_text_viewer)
+    monkeypatch.chdir(shared.dumb_text_viewer)
     cli(["fedora"])
     capture = capsys.readouterr()
     assert "Built 1 artifact:\n" in capture.out
 
-    monkeypatch.chdir(ubrotli)
+    monkeypatch.chdir(shared.ubrotli)
     cli(["fedora"])
     capture = capsys.readouterr()
     assert "Built 3 artifacts:\n" in capture.out

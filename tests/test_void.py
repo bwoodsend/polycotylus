@@ -6,32 +6,32 @@ import pyzstd
 
 from polycotylus._project import Project
 from polycotylus._void import Void
-from tests import dumb_text_viewer, ubrotli, cross_distribution, silly_name
+import shared
 
 
-class TestCommon(cross_distribution.Base):
+class TestCommon(shared.Base):
     cls = Void
     base_image = "ghcr.io/void-linux/void-linux:latest-mini-x86_64-musl"
     package_install = "xbps-install -ySu xbps"
 
 
 def test_ubrotli():
-    self = Void(Project.from_root(ubrotli))
+    self = Void(Project.from_root(shared.ubrotli))
     self.generate()
     self.test(self.build()["main"])
 
 
 def test_dumb_text_viewer():
-    self = Void(Project.from_root(dumb_text_viewer))
+    self = Void(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     self.test(self.build()["main"])
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
-    self = Void(Project.from_root(dumb_text_viewer))
+    self = Void(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.template()
     packages = self.build()
@@ -45,7 +45,7 @@ def test_png_source_icon(polycotylus_yaml):
 def test_silly_named_package():
     # Mimic the local cache of the void-packages repo being out of date so that
     # some dependencies will no longer be available.
-    self = Void(Project.from_root(silly_name))
+    self = Void(Project.from_root(shared.silly_name))
     cache = self.void_packages_repo()
     hash = "f9bf46d6376a467b5f7dc21018f7a6dc9e6a3f2b"
     for command in [["fetch", "--depth=1", "https://github.com/void-linux/void-packages", hash],

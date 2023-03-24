@@ -9,7 +9,7 @@ from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
     AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
-from tests import dumb_text_viewer, bare_minimum
+from shared import dumb_text_viewer, bare_minimum
 
 
 def test_tar_reproducibility():

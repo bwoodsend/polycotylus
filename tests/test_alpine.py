@@ -12,13 +12,12 @@ from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
-from tests import dumb_text_viewer, ubrotli, cross_distribution, silly_name, \
-    bare_minimum, fussy_arch
+import shared
 
 mirror = mirrors["alpine"]
 
 
-class TestCommon(cross_distribution.Base):
+class TestCommon(shared.Base):
     cls = Alpine
     base_image = Alpine.base
     package_install = "apk add"
@@ -26,7 +25,7 @@ class TestCommon(cross_distribution.Base):
 
 def test_key_generation(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.project.maintainer = "Mr Cake"
     self.project.email = "foo@bar.com"
     public, private = self.abuild_keys()
@@ -44,7 +43,7 @@ def test_key_generation(tmp_path, monkeypatch):
 
 
 def test_abuild_lint():
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     with self.mirror:
         _docker.run(Alpine.base, f"""
@@ -55,7 +54,7 @@ def test_abuild_lint():
 
 
 def test_dumb_text_viewer():
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
     assert "arch=noarch" in self.apkbuild()
@@ -94,10 +93,10 @@ def test_dumb_text_viewer():
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.apkbuild()
     apks = self.build()
@@ -108,7 +107,7 @@ def test_png_source_icon(polycotylus_yaml):
 
 
 def test_ubrotli():
-    self = Alpine(Project.from_root(ubrotli))
+    self = Alpine(Project.from_root(shared.ubrotli))
     self.generate()
     assert "arch=all" in self.apkbuild()
 
@@ -127,7 +126,7 @@ def test_ubrotli():
 
 
 def test_user_privilege_escalation():
-    self = Alpine(Project.from_root(ubrotli))
+    self = Alpine(Project.from_root(shared.ubrotli))
     self.generate()
     base = self.build_builder_image()
 
@@ -145,7 +144,7 @@ def test_unknown_package(polycotylus_yaml):
             test:
                 pip: Hippos_can_fly
     """)
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     with pytest.raises(_exceptions.PolycotylusUsageError,
                        match="Dependency \"Hippos_can_fly\" is not .* on Alpine Linux. "
                        ".* submit Hippos_can_fly to Alpine Linux\'s package"):
@@ -155,7 +154,7 @@ def test_unknown_package(polycotylus_yaml):
             test:
                 pip: python_Hippos_can_fly
     """)
-    self = Alpine(Project.from_root(dumb_text_viewer))
+    self = Alpine(Project.from_root(shared.dumb_text_viewer))
     with pytest.raises(_exceptions.PolycotylusUsageError, match="python_Hippos_can_fly"):
         self.apkbuild()
 
@@ -167,7 +166,7 @@ def test_license_handling(tmp_path):
             "pyproject.toml", "polycotylus.yaml", "LICENSE", "bare_minimum.py",
             "tests/test_bare_minimum.py"
     ]:
-        shutil.copy(bare_minimum / path, tmp_path / path)
+        shutil.copy(shared.bare_minimum / path, tmp_path / path)
 
     pyproject_toml = tmp_path / "pyproject.toml"
     options = toml.load(pyproject_toml)
@@ -224,7 +223,7 @@ def test_license_handling(tmp_path):
 
 
 def test_silly_named_package():
-    self = Alpine(Project.from_root(silly_name))
+    self = Alpine(Project.from_root(shared.silly_name))
     self.generate()
     apks = self.build()
     installed = self.test(apks["main"]).commit()
@@ -240,20 +239,20 @@ def test_silly_named_package():
             assert "🦄" in f.read().decode()
 
 
-test_multiarch = cross_distribution.qemu(Alpine)
+test_multiarch = shared.qemu(Alpine)
 
 
 def test_architecture_errors(monkeypatch):
     with pytest.raises(_exceptions.PolycotylusUsageError,
                        match='Architecture "donkey" is not available on Alpine Linux.'):
-        Alpine(Project.from_root(ubrotli), "donkey")
+        Alpine(Project.from_root(shared.ubrotli), "donkey")
 
     monkeypatch.setattr(shutil, "which", lambda x: None)
     with pytest.raises(_exceptions.PolycotylusUsageError,
                        match='Emulating "aarch64" requires the "qemu-aarch64-static" command'):
-        Alpine(Project.from_root(ubrotli), "aarch64")
+        Alpine(Project.from_root(shared.ubrotli), "aarch64")
 
 
 def test_fussy_arch():
-    self = Alpine(Project.from_root(fussy_arch))
+    self = Alpine(Project.from_root(shared.fussy_arch))
     assert "\narch='aarch64 ppc64le'\n" in self.apkbuild()

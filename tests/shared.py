@@ -1,13 +1,19 @@
 import shlex
 import collections
 from fnmatch import fnmatch
+from pathlib import Path
 
 import pytest
 
 from polycotylus import _docker, _exceptions
 from polycotylus._mirror import mirrors
 from polycotylus._project import Project
-from tests import ubrotli
+
+dumb_text_viewer = Path(__file__, "../../examples/dumb_text_viewer").resolve()
+ubrotli = dumb_text_viewer.with_name("ubrotli")
+bare_minimum = dumb_text_viewer.with_name("bare-minimum")
+silly_name = Path(__file__, "../mock-packages/silly-name").resolve()
+fussy_arch = silly_name.with_name("fussy_arch")
 
 awkward_pypi_packages = [
     "zope.deferredimport",  # Contains a '.'
