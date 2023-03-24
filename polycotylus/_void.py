@@ -32,7 +32,6 @@ class Void(BaseDistribution):
     xvfb_run = "xvfb-run util-linux"
     font = "dejavu-fonts-ttf"
     _formatter = _misc.Formatter()
-    invalid_package_characters = "[^a-zA-Z0-9_+.-]"
     supported_architectures = {
         "x86_64": "x86_64",
         # "aarch64": "aarch64",  # unshare barfs out on these. I don't

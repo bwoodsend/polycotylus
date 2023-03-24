@@ -42,7 +42,6 @@ class Fedora(BaseDistribution):
 
     available_packages = NotImplemented
     fix_package_name = NotImplemented
-    invalid_package_characters = r"[^\w\-_+.]"
 
     @staticmethod
     def fix_package_name(name):

@@ -57,8 +57,6 @@ class Arch(BaseDistribution):
         return set(re.findall("([^\n]+)", preinstalled) +
                    re.findall(r".*/(.+?)(?:-[^-]+){3}\.pkg\.tar\.zst", devel))
 
-    invalid_package_characters = "[^a-z0-9-]"
-
     @staticmethod
     def fix_package_name(name):
         return name.lower().replace("_", "-").replace(".", "-")

@@ -75,8 +75,6 @@ class Alpine(BaseDistribution):
     def fix_package_name(name):
         return name.lower().replace(".", "-").replace("_", "-")
 
-    invalid_package_characters = r"[^.\-_+0-9a-z]"
-
     def inject_source(self):
         # abuild insists that the archive must be named something more than just
         # $version.tar.gz.

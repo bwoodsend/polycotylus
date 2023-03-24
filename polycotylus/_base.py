@@ -86,8 +86,6 @@ class BaseDistribution(abc.ABC):
             raise _exceptions.PackageUnavailableError(match[1], cls.name)
         return name + match[2]
 
-    invalid_package_characters = abc.abstractproperty()
-
     @abc.abstractmethod
     def fix_package_name(name):
         """Apply the distribution's package naming rules for case folding/
