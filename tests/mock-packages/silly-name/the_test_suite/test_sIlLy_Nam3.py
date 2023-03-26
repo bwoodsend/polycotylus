@@ -12,3 +12,7 @@ def test_dependencies():
     import sqlite3
     import tkinter
     assert shutil.which("cmatrix")
+
+
+def test_import_other_test_files():
+    from the_test_suite.constants import POINTLESS_CONSTANT

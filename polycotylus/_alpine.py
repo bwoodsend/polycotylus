@@ -147,14 +147,15 @@ class Alpine(BaseDistribution):
 
         out += self._formatter("""
             check() {
-                PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" %s "$srcdir"
+                cd "$srcdir/%s"
+                PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" %s
             }
 
             package() {
                 mkdir -p "$(dirname "$pkgdir")"
                 cp -r "$builddir" "$pkgdir"
             }
-        """ % self.project.test_command)
+        """ % (top_level, self.project.test_command))
         out += "\n"
         out += self._formatter("""
             sha512sums="

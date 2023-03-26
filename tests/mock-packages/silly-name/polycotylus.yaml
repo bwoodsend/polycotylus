@@ -16,3 +16,7 @@ dependencies:
     arch manjaro fedora void alpine: cmatrix
     python: sqlite3 tkinter
     pip: pytest
+
+test_files:
+  - the_test_suite
+  - pytest.ini

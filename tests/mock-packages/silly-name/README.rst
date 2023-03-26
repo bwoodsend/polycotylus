@@ -6,3 +6,7 @@ A package which:
 
 * Utilizes all possible sources of dependencies to test that they all get
   combined together correctly.
+
+* Uses a nonstandard name for its tests directory.
+
+* Treats its test suite like a package rather than a collection of modules.
