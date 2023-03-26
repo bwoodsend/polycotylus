@@ -14,7 +14,7 @@ class CompletionAction(Action):
 
     def __call__(self, parser, namespace, shell, option_string=None):
         with resources.open_text("polycotylus._completions", self.files[shell]) as f:
-            print(f.read())
+            print(f.read(), end="")
         parser.exit()
 
 
