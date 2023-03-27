@@ -16,6 +16,7 @@ def test_fish(capsys):
         pytest.skip("fish shell is not installed")
 
     assert completions
+
     def _exec(code):
         return subprocess.check_output(["fish"], text=True, input=completions + code)
 
