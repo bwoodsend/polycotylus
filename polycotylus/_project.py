@@ -213,11 +213,14 @@ class Project:
         return f"{self.maintainer} <{self.email}>"
 
     def tar(self):
-        p = subprocess.run(["git", "ls-files", "--exclude-standard", "-ocz"],
-                           text=True, cwd=str(self.root),
-                           stdout=subprocess.PIPE)
-        assert p.returncode == 0
-        files = re.findall("[^\x00]+", p.stdout)
+        outputs = []
+        for flag in ("-ocz", "-dz"):
+            p = subprocess.run(["git", "ls-files", "--exclude-standard", flag],
+                               text=True, cwd=str(self.root),
+                               stdout=subprocess.PIPE)
+            assert p.returncode == 0
+            outputs.append(re.findall("[^\x00]+", p.stdout))
+        files = [i for i in outputs[0] if i not in outputs[1]]
         buffer = io.BytesIO()
 
         def _strip_mtime(tar_info):
