@@ -3,7 +3,7 @@ import shlex
 
 import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
 from polycotylus._fedora import Fedora
 from polycotylus.__main__ import cli
@@ -84,6 +84,30 @@ def test_silly_named_package():
     assert "setuptools" not in self.spec()
     assert "colorama" not in self.spec()
     self.test(self.build()["main"])
+
+
+def test_test_command(polycotylus_yaml):
+    dependencies = "dependencies:\n  test:\n    pip: pytest\n"
+
+    polycotylus_yaml(dependencies)
+    spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
+    assert "%global __pytest" not in spec
+    spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
+    assert "%global __pytest /usr/bin/xvfb-run %{python3} -m pytest" in spec
+
+    polycotylus_yaml(dependencies + "test_command: python3 -c 'print(10)'")
+    spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
+    assert "%global __pytest %{python3} -c 'print(10)'" in spec
+    with pytest.raises(_exceptions.PolycotylusUsageError, match="implicit"):
+        spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
+
+    polycotylus_yaml(dependencies + "test_command: python3 -c 'print(10)'\ngui: true")
+    with pytest.raises(_exceptions.PolycotylusUsageError, match="specified"):
+        spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
+
+    polycotylus_yaml(dependencies + "test_command: xvfb-run python3 -c 'print(10)'")
+    spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
+    assert "%global __pytest /usr/bin/xvfb-run %{python3} -c 'print(10)'" in spec
 
 
 def test_cli(monkeypatch, capsys):

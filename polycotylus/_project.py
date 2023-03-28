@@ -38,6 +38,7 @@ class Project:
     dependencies: dict
     build_dependencies: dict
     test_dependencies: dict
+    test_command: str
     test_files: list
     license_names: list
     licenses: list
@@ -53,7 +54,8 @@ class Project:
     def from_root(cls, root):
         root = Path(root)
         pyproject_options = toml.load(str(root / "pyproject.toml"))
-        polycotylus_options = _yaml_schema.read(root / "polycotylus.yaml")
+        polycotylus_yaml = _yaml_schema.read(root / "polycotylus.yaml")
+        polycotylus_options = polycotylus_yaml.data
 
         project = pyproject_options["project"]
         missing_fields = {}
@@ -156,6 +158,31 @@ class Project:
         else:
             gui = bool(project.get('gui-scripts'))
 
+        if gui:
+            if "test_command" in polycotylus_options:
+                if "xvfb-run" not in polycotylus_options["test_command"]:
+                    if "gui" in polycotylus_options:
+                        message = _exceptions._unravel("""
+                            GUI mode is enabled (specified by `gui: true` in the
+                            polycotylus.yaml)
+                        """)
+                    else:
+                        message = _exceptions._unravel("""
+                            GUI mode is implicitly enabled (disable this by
+                            setting `gui: false` in the polycotylus.yaml if this
+                            your project does not use GUI elements)
+                        """)
+                    message += " " + _exceptions._unravel("""
+                        but xvfb-run is not used in your test command.
+                        GUI tests will fail to run without a virtual display.
+                        Prepend xvfb-run to your test command
+                    """)
+                    _yaml_schema.revalidation_error(
+                        polycotylus_yaml["test_command"], message)
+            test_command = polycotylus_options.get("test_command", "xvfb-run pytest")
+        else:
+            test_command = polycotylus_options.get("test_command", "pytest")
+
         if "architecture" in polycotylus_options:
             architecture = polycotylus_options["architecture"]
         else:
@@ -195,6 +222,7 @@ class Project:
             dependencies=dependencies.get("run", {}),
             build_dependencies=dependencies["build"],
             test_dependencies=dependencies["test"],
+            test_command=test_command,
             test_files=test_files,
             url=project["urls"]["Homepage"],
             license_names=license_names,
@@ -298,10 +326,6 @@ class Project:
         if b".polycotylus" in original:
             return
         path.write_bytes(original + b".polycotylus\n")
-
-    @property
-    def test_command(self):
-        return "xvfb-run pytest" if self.gui else "pytest"
 
 
 class Dependency(str):

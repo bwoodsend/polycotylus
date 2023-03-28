@@ -103,6 +103,7 @@ polycotylus_yaml = Map({
     Optional("prefix_package_name", default=True): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
     Optional("test_files", default=default_test_files): Seq(Str()),
+    Optional("test_command"): Str(),
     Optional("architecture"): OrValidator(
         Regex("(any|none)"),
         WhitespaceDelimited(Regex("!?(" + "|".join(architectures) + ")")),
@@ -137,9 +138,13 @@ def read(path):
         raw = "dependencies:\n  run:\n    pip:"
     try:
         yaml = load(raw, polycotylus_yaml, str(path))
-        return yaml.data
+        return yaml
     except StrictYAMLError as ex:
         yaml_error(ex)
+
+
+def revalidation_error(yaml, message):
+    yaml_error(YAMLValidationError(*message.split(" ", 1)[::-1], yaml._chunk))
 
 
 if __name__ == "__main__":
@@ -151,7 +156,7 @@ if __name__ == "__main__":
     with open(path) as f:
         contents = f.read()
     try:
-        config = read(path)
+        config = read(path).data
     except PolycotylusYAMLParseError as ex:
         raise SystemExit(ex)
 

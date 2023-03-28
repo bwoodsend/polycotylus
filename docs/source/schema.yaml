@@ -140,6 +140,15 @@ maintainer: Your Name <your.email@address.com>
   # `polycotylus` will default to the ``project.maintainer`` field in the
   # ``pyproject.toml``.
 
+test_command: pytest -k 'not unrunable_test'
+  # The verification command, defaulting to ``pytest``. This command will be
+  # invoked using ``sh`` from the root of a copy of your project but note that
+  # only the files listed in `test_files` will be available when `polycotylus`
+  # runs its end to end test. If you want to invoke python, use just ``python``
+  # instead of ``python3`` or ``/usr/bin/python`` so that `polycotylus` can
+  # replace ``python`` with each Linux distribution's invocation convention or
+  # macros.
+
 test_files:
   - tests
   - test_*.py

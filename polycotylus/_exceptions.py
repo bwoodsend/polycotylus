@@ -4,7 +4,7 @@ import re
 
 def _unravel(text):
     return re.sub("(^ .*\n)|\n(?! )", lambda m: m[1] or " ",
-                  textwrap.dedent(text.lstrip("\n")), flags=re.M)
+                  textwrap.dedent(text.lstrip("\n")), flags=re.M).strip()
 
 
 class PolycotylusUsageError(Exception):
@@ -30,7 +30,7 @@ class AmbiguousLicenseError(PolycotylusUsageError):
             set it in your polycotylus.yaml as:
                 spdx:
                   - {self.possibilities[-1]}:
-        """)
+        """) + "\n"
 
 
 class NoLicenseSpecifierError(PolycotylusUsageError):

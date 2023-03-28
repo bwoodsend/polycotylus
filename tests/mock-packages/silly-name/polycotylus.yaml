@@ -17,6 +17,8 @@ dependencies:
     python: sqlite3 tkinter
     pip: pytest
 
+test_command: TEST_VARIABLE=hello pytest -k 'not unrunable' && python -c 'print("hello")'
+
 test_files:
   - the_test_suite
   - pytest.ini

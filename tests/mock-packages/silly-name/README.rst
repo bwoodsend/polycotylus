@@ -10,3 +10,6 @@ A package which:
 * Uses a nonstandard name for its tests directory.
 
 * Treats its test suite like a package rather than a collection of modules.
+
+* Uses a custom test command to work around it's otherwise deliberately broken
+  test suite.

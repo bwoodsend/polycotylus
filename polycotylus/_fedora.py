@@ -136,8 +136,18 @@ class Fedora(BaseDistribution):
             """.format(self.project.source_top_level.format(version="%{version}")))
 
         out += "\n\n%check\n"
-        if self.project.gui:
-            out += "%global __pytest /usr/bin/xvfb-run -a %{python3} -m pytest\n"
+        if self.project.test_command != "pytest":
+            parts = []
+            for part in self.project.test_command.split(" "):
+                if part in ("python", "python3"):
+                    parts.append("%{python3}")
+                elif part == "pytest":
+                    parts.append("%{python3} -m pytest")
+                elif part == "xvfb-run":
+                    parts.append("/usr/bin/xvfb-run")
+                else:
+                    parts.append(part)
+            out += f"%global __pytest {' '.join(parts)}\n"
         out += self._formatter(f"""
             %pytest
 
@@ -256,9 +266,10 @@ class Fedora(BaseDistribution):
         test_dependencies = []
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(self.python_package(package))
+        test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.name}
-                {self.project.test_command}
+                {test_command}
             """, volumes=volumes, tty=True, root=False,
                                architecture=self.docker_architecture)
