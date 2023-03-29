@@ -177,7 +177,7 @@ class Arch(BaseDistribution):
         with self.mirror:
             _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
                         volumes=[(self.distro_root, "/io")], root=False,
-                        architecture=self.docker_architecture, tty=True)
+                        architecture=self.docker_architecture, tty=True, post_mortem=True)
         architecture = self.architecture if self.project.architecture != "none" else "any"
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-{architecture}.pkg.tar.zst")
@@ -193,7 +193,7 @@ class Arch(BaseDistribution):
                 sudo pacman -Sy
                 sudo pacman -U --noconfirm /pkg/{package.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False,
+            """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
 
     @classmethod

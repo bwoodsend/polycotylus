@@ -254,7 +254,7 @@ class Alpine(BaseDistribution):
         ]
         with self.mirror:
             _docker.run(base, "abuild -f", root=False, volumes=volumes, tty=True,
-                        architecture=self.docker_architecture)
+                        architecture=self.docker_architecture, post_mortem=True)
         _dist = self.distro_root / "dist" / self.architecture
         apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
         _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
@@ -273,5 +273,5 @@ class Alpine(BaseDistribution):
             return _docker.run(base, f"""
                 sudo apk add /pkg/{package.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False,
+            """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)

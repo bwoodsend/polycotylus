@@ -174,7 +174,7 @@ class Void(BaseDistribution):
                 _docker.run(self.build_builder_image(), command,
                             "--privileged", root=False,
                             volumes=[(self.distro_root, "/io")], tty=True,
-                            architecture=self.docker_architecture)
+                            architecture=self.docker_architecture, post_mortem=True)
         name = f"{self.package_name}-{self.project.version}_1.{platform.machine()}-musl.xbps"
         return {"main": self.distro_root / "hostdir/binpkgs" / name}
 
@@ -187,7 +187,7 @@ class Void(BaseDistribution):
             return _docker.run(base, f"""
                 sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False,
+            """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
 
     def _void_packages_head(self):

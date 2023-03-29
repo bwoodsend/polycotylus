@@ -10,6 +10,7 @@ import platform
 import json
 import time
 import sys
+import contextlib
 
 import appdirs
 
@@ -37,11 +38,12 @@ class DockerInfo(str):
 docker = DockerInfo()
 images_cache = cache_root / docker.variant
 images_cache.mkdir(exist_ok=True)
+post_mortem = False
 
 
 class run:
     def __init__(self, base, command=None, *flags, volumes=(), check=True,
-                 interactive=False, tty=False, root=True,
+                 interactive=False, tty=False, root=True, post_mortem=False,
                  architecture=platform.machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
         if verbosity is None:
@@ -84,6 +86,26 @@ class run:
                      stderr=STDOUT if verbosity >= 2 else PIPE)
             self.returncode = p.returncode
             if check and self.returncode:
+                if post_mortem and globals()["post_mortem"]:
+                    for shell in ["/usr/bin/bash", "/usr/sbin/bash", "/usr/bin/zsh"]:  # pragma: no branch
+                        with contextlib.suppress(Exception):
+                            self[shell]
+                            break
+                    else:  # pragma: no cover
+                        shell = "sh"
+
+                    print("Error occurred. Entering post-mortem debug shell.",
+                          "The command polycotylus was trying to run was:",
+                          shlex.join(command) if isinstance(command, list) else command, flush=True)
+                    image = self.commit()
+                    run(image, [shell], *flags, volumes=volumes, tty=True,
+                        interactive=True, root=root, architecture=architecture,
+                        verbosity=0)
+                    _run([docker, "image", "rm", image], stderr=DEVNULL, stdout=DEVNULL)
+                    (images_cache / image).unlink()
+
+                    raise SystemExit(1)
+
                 if not self.output and p.stderr:
                     raise Error(human_friendly, p.stderr.decode())
                 raise Error(human_friendly, self.output)
@@ -102,7 +124,7 @@ class run:
     def __getitem__(self, path):
         path = Path("/", path)
         p = _run([docker, "container", "cp", f"{self.id}:{path}", "-"],
-                 stdout=PIPE)
+                 stdout=PIPE, stderr=PIPE)
         return TarFile("", "r", io.BytesIO(p.stdout))
 
     def file(self, path):
@@ -112,7 +134,7 @@ class run:
 
     def commit(self):
         return _audit_image(_run([docker, "commit", self.id], stdout=PIPE,
-                                  text=True).stdout.strip())
+                                 text=True).stdout.strip())
 
 
 def _tee_run(command, verbosity, **kwargs):

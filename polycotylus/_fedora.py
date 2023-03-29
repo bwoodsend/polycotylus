@@ -248,7 +248,7 @@ class Fedora(BaseDistribution):
                         ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
                         tty=True, root=False,
                         volumes=[(self.distro_root, "/io")] + self._mounted_caches,
-                        architecture=self.docker_architecture)
+                        architecture=self.docker_architecture, post_mortem=True)
         rpms = {}
         machine = "noarch" if self.project.architecture == "none" else self.architecture
         pattern = re.compile(
@@ -271,5 +271,5 @@ class Fedora(BaseDistribution):
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.name}
                 {test_command}
-            """, volumes=volumes, tty=True, root=False,
+            """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)

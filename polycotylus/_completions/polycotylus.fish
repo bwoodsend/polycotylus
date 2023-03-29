@@ -9,6 +9,7 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manja
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void" -a 'x86_64'
 
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'
+complete -c polycotylus -f -l post-mortem -d 'Enter container on error'
 
 complete -c polycotylus -x -l completion -a 'fish'
 complete -c polycotylus -x -l list-localizations -a 'language region modifier'

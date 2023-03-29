@@ -3,6 +3,8 @@ import subprocess
 import platform
 import tarfile
 import re
+import sys
+import textwrap
 
 from PIL import Image
 import pyzstd
@@ -106,3 +108,30 @@ def test_silly_named_package():
     container = _docker.run(installed, script)
     assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
                      container.output)
+
+
+def test_post_mortem(polycotylus_yaml):
+    script = textwrap.dedent("""
+        import polycotylus.__main__
+        polycotylus._yaml_schema._read_text = lambda x: \"""
+            test_command: cat polycotylus.yaml
+            dependencies:
+                test:
+                    pip: pytest
+            \"""
+        polycotylus.__main__.cli(["arch", "--post-mortem"])
+    """)
+    post_mortem_script = " && ".join([
+        "python -c 'import bare_minimum'",
+        "sudo pacman -Sy",
+        "pytest",
+        "ps -f --no-headers 1",
+        "echo Made it!!",
+    ])
+    p = subprocess.run([sys.executable, "-c", script], input=post_mortem_script,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       text=True, cwd=str(shared.bare_minimum))
+    assert p.returncode == 1, p.stdout
+    lines = p.stdout.splitlines()
+    assert lines[-1] == "Made it!!"
+    assert "/bash" in lines[-2]

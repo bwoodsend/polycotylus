@@ -38,12 +38,16 @@ parser.add_argument("--completion", action=CompletionAction,
 parser.add_argument("--list-localizations", action=ListLocalizationAction,
                     choices=["language", "region", "modifier"])
 parser.add_argument("--architecture", default=platform.machine())
+parser.add_argument("--post-mortem", action="store_true",
+                    help="Enter an in-container interactive shell whenever an "
+                    "error occurs in a docker container")
 
 
 def cli(argv=None):
     assert isinstance(argv, list) or argv is None
     options = parser.parse_args(argv)
     os.environ["POLYCOTYLUS_VERBOSITY"] = str(max(-options.quiet, 0))
+    polycotylus._docker.post_mortem = options.post_mortem
 
     cls = polycotylus.distributions[options.distribution]
     try:
