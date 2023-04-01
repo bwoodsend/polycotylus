@@ -135,3 +135,9 @@ def test_post_mortem(polycotylus_yaml):
     lines = p.stdout.splitlines()
     assert lines[-1] == "Made it!!"
     assert "/bash" in lines[-2]
+
+
+def test_poetry():
+    self = Arch(Project.from_root(shared.poetry_based))
+    self.generate()
+    self.test(self.build()["main"])

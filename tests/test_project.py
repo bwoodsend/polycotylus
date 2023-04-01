@@ -9,7 +9,7 @@ from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
     AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
-from shared import dumb_text_viewer, bare_minimum
+from shared import dumb_text_viewer, bare_minimum, poetry_based
 
 
 def test_tar_reproducibility():
@@ -153,6 +153,16 @@ Missing pyproject.toml fields ['description', 'license', 'name', 'urls', 'versio
     file = "LICENSE.txt"
 
 They cannot be dynamic."""
+
+
+def test_missing_poetry_metadata(pyproject_toml):
+    pyproject = toml.load(poetry_based / "pyproject.toml")
+    pyproject["tool"]["poetry"].pop("license")
+    pyproject_toml(pyproject)
+    with pytest.raises(PolycotylusUsageError) as error:
+        Project.from_root(poetry_based)
+    error.match('Field "license" is missing from poetry\'s .* '
+                'See https://python-poetry.org/docs/pyproject/#license for what to set it to.')
 
 
 def test_maintainer(pyproject_toml, polycotylus_yaml):

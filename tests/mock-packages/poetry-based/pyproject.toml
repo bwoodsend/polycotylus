@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "poetry-based"
+version = "0.1.0"
+description = "A test packge which uses non PEP 621 compliant poetry instead of setuptools"
+authors = ["Brénainn Woodsend <bwoodsend@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "poetry_based"}]
+homepage = "https://blah.blah"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyperclip = "^1.6"
+tabulate = "~0.9"
+certifi = "2021.*"
+cycler = ">= 0.8, < 10.5"
+toml = { version = "*", extras = ["kittens"] }
+filelock = { version = "^3", optional = true }
+
+[tool.poetry.scripts]
+print_hello = "poetry_based.__main__:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

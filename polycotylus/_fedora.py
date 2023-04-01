@@ -158,8 +158,10 @@ class Fedora(BaseDistribution):
         out += f"%license {licenses}\n"
         options = toml.load(self.project.root / "pyproject.toml")
         for variant in ("gui-scripts", "scripts"):
-            for script in options["project"].get(variant, ()):
+            for script in options.get("project", {}).get(variant, ()):
                 out += f"%{{_bindir}}/{script}\n"
+        for script in options.get("tool", {}).get("poetry", {}).get("scripts", {}):
+            out += f"%{{_bindir}}/{script}\n"
         for (_, name) in self.icons:
             out += f"%{{_datadir}}/icons/hicolor/*/apps/{name}.png\n"
         for (source, dest) in self.icons:

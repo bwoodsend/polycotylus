@@ -1,0 +1,7 @@
+dependencies:
+  test:
+    pip: pytest
+
+test_command: |
+  pytest
+  stat polycotylus.yaml || print_hello

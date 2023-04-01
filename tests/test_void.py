@@ -56,3 +56,9 @@ def test_silly_named_package():
     self.test(self.build()["main"])
 
     assert hash not in subprocess.run(["git", "-C", str(cache), "log", "-n1"], check=True, stdout=subprocess.PIPE, text=True).stdout
+
+
+def test_poetry():
+    self = Void(Project.from_root(shared.poetry_based))
+    self.generate()
+    self.test(self.build()["main"])
