@@ -123,3 +123,9 @@ def test_cli(monkeypatch, capsys):
 
     with pytest.raises(SystemExit, match='^Architecture "ppc64le" '):
         cli(["fedora", "--architecture=ppc64le"])
+
+
+def test_poetry():
+    self = Fedora(Project.from_root(shared.poetry_based))
+    self.generate()
+    self.test(self.build()["main"])

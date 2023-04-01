@@ -14,6 +14,7 @@ ubrotli = dumb_text_viewer.with_name("ubrotli")
 bare_minimum = dumb_text_viewer.with_name("bare-minimum")
 silly_name = Path(__file__, "../mock-packages/silly-name").resolve()
 fussy_arch = silly_name.with_name("fussy_arch")
+poetry_based = silly_name.with_name("poetry-based")
 
 awkward_pypi_packages = [
     "zope.deferredimport",  # Contains a '.'
