@@ -57,7 +57,40 @@ class Project:
         polycotylus_yaml = _yaml_schema.read(root / "polycotylus.yaml")
         polycotylus_options = polycotylus_yaml.data
 
-        project = pyproject_options["project"]
+        if poetry_project := pyproject_options.get("tool", {}).get("poetry", {}):
+            try:
+                maintainers = poetry_project.get("maintainers") or poetry_project["authors"]
+                maintainers = [dict(zip(["name", "email"], re.match("([^<>]+?) *<(.+)>", i).groups())) for i in maintainers]
+                project = {
+                    "name": poetry_project["name"],
+                    "version": poetry_project["version"],
+                    "description": poetry_project["description"],
+                    "urls": {"homepage": poetry_project["homepage"]},
+                    "maintainers": maintainers,
+                    "dependencies": [],
+                }
+                for (name, version) in poetry_project["dependencies"].items():
+                    # Poetry strongly encourages over-constraining versions
+                    # (both lower and upper bounds). Since both bounds are most
+                    # likely arbitrary and will cause disruption on
+                    # distributions with longer release latencies, just discard
+                    # them both. For Python, discard the upper bound.
+                    if name == "python":
+                        project["requires-python"] = version.replace("^", ">=")
+                    elif isinstance(version, str) or not version.get("optional"):
+                        project["dependencies"].append(name)
+
+                poetry_spdx = poetry_project["license"]
+            except KeyError as ex:
+                raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+                    Field "{ex.args[0]}" is missing from poetry's configuration
+                    (the [tool.poetry] section of the pyproject.toml). See
+                    https://python-poetry.org/docs/pyproject/#{ex.args[0]} for
+                    what to set it to.
+                """)) from None
+        else:
+            poetry_spdx = None
+            project = pyproject_options["project"]
         missing_fields = {}
         if "name" not in project:
             missing_fields["name"] = "your_package_name"
@@ -115,6 +148,8 @@ class Project:
 
         if polycotylus_options.get("spdx"):
             license_names = list(polycotylus_options["spdx"])
+        elif poetry_spdx:
+            license_names = [poetry_spdx]
         else:
             license_names = []
             for classifier in project.get("classifiers", []):

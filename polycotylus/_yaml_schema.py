@@ -97,6 +97,7 @@ polycotylus_yaml = Map({
     Optional("dependencies"): Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
+    Optional("dependency_map"): MapPattern(Str(), MapPattern(Str(), Str())),
     Optional("maintainer"): Regex(maintainer_slug_re),
     Optional("gui"): Bool(),
     Optional("spdx"): MapPattern(Str(), EmptyDict()),

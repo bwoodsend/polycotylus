@@ -1,6 +1,9 @@
 import re
 import shlex
+import shutil
+import subprocess
 
+import toml
 import pytest
 
 from polycotylus import _docker, _exceptions
@@ -123,3 +126,26 @@ def test_cli(monkeypatch, capsys):
 
     with pytest.raises(SystemExit, match='^Architecture "ppc64le" '):
         cli(["fedora", "--architecture=ppc64le"])
+
+
+def test_poetry(tmp_path):
+    # Fedora turns optional dependencies into mandatory ones. This is wrong but
+    # can't be fixed by polycotylus so remove them from the test and pretend all
+    # is wonderful.
+    (tmp_path / "poetry_based").mkdir(exist_ok=True)
+    files = [
+        ".dockerignore", "LICENSE", "README.md", "poetry.lock",
+        "poetry_based/__init__.py", "poetry_based/__main__.py",
+        "polycotylus.yaml", "pytest.ini", "test_poetry_based.py",
+    ]
+    for path in files:
+        shutil.copyfile(shared.poetry_based / path, tmp_path / path)
+    subprocess.run(["git", "init"], cwd=tmp_path)
+    pyproject = toml.load(str(shared.poetry_based / "pyproject.toml"))
+    pyproject["tool"]["poetry"]["dependencies"].pop("toml")
+    pyproject["tool"]["poetry"]["dependencies"].pop("filelock")
+
+    (tmp_path / "pyproject.toml").write_text(toml.dumps(pyproject))
+    self = Fedora(Project.from_root(tmp_path))
+    self.generate()
+    self.test(self.build()["main"])

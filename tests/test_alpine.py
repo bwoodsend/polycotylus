@@ -256,3 +256,9 @@ def test_architecture_errors(monkeypatch):
 def test_fussy_arch():
     self = Alpine(Project.from_root(shared.fussy_arch))
     assert "\narch='aarch64 ppc64le'\n" in self.apkbuild()
+
+
+def test_poetry():
+    self = Alpine(Project.from_root(shared.poetry_based))
+    self.generate()
+    self.test(self.build()["main"])
