@@ -271,7 +271,7 @@ class Fedora(BaseDistribution):
         test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
-                sudo dnf install -y /pkg/{rpm.name}
-                {test_command}
-            """, volumes=volumes, tty=True, root=False, post_mortem=True,
+                dnf install -y /pkg/{rpm.name}
+                su user -c sh -c {shlex.quote(test_command)}
+            """, volumes=volumes, tty=True, post_mortem=True,
                                architecture=self.docker_architecture)

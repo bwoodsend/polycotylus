@@ -83,11 +83,11 @@ def test_dumb_text_viewer():
     installed = container.commit()
 
     with mirror:
-        script = "sudo apk add py3-pip && pip show dumb_text_viewer"
+        script = "apk add py3-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
 
         assert _docker.run(installed, """
-            sudo apk add -q xdg-utils shared-mime-info
+            apk add -q xdg-utils shared-mime-info
             xdg-mime query default text/plain
         """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
 
@@ -123,19 +123,6 @@ def test_ubrotli():
         assert "license = Apache-2.0" in pkginfo
     assert len(apks) == 1
     self.test(apks["main"])
-
-
-def test_user_privilege_escalation():
-    self = Alpine(Project.from_root(shared.ubrotli))
-    self.generate()
-    base = self.build_builder_image()
-
-    user = _docker.run(base, ["whoami"], root=False).output.strip()
-    assert user == "user"
-
-    # sudo should not require a password.
-    user = _docker.run(base, ["sudo", "whoami"], root=False).output.strip()
-    assert user == "root"
 
 
 def test_unknown_package(polycotylus_yaml):

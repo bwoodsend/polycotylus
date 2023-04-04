@@ -63,7 +63,7 @@ def test_dumb_text_viewer():
     installed = container.commit()
 
     with mirror:
-        script = "sudo pacman -S --noconfirm --needed python-pip && pip show dumb_text_viewer"
+        script = "pacman -S --noconfirm --needed python-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
     info = _docker.run(installed, "pacman -Q --info dumb-text-viewer").output
     assert "Brénainn" in re.search("Packager *: *(.*)", info)[1]
@@ -123,8 +123,8 @@ def test_post_mortem(polycotylus_yaml):
     """)
     post_mortem_script = " && ".join([
         "python -c 'import bare_minimum'",
-        "sudo pacman -Sy",
-        "pytest",
+        "pacman -Sy",
+        "su user -c pytest",
         "ps -f --no-headers 1",
         "echo Made it!!",
     ])

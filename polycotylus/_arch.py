@@ -190,10 +190,10 @@ class Arch(BaseDistribution):
             for path in self.project.test_files:
                 volumes.append((self.project.root / path, f"/io/{path}"))
             return _docker.run(base, f"""
-                sudo pacman -Sy
-                sudo pacman -U --noconfirm /pkg/{package.name}
-                {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False, post_mortem=True,
+                pacman -Sy
+                pacman -U --noconfirm /pkg/{package.name}
+                su user -c sh -c {shlex.quote(self.project.test_command)}
+            """, volumes=volumes, tty=True, post_mortem=True,
                                architecture=self.docker_architecture)
 
     @classmethod

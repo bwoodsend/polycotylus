@@ -93,7 +93,7 @@ class Void(BaseDistribution):
         return self._formatter(f"""
             FROM {self.image} AS base
             RUN {self.mirror.install}
-            RUN xbps-install -ySu xbps bash shadow sudo
+            RUN xbps-install -ySu xbps bash shadow
             CMD ["/bin/bash"]
             {self._install_user()}
             RUN mkdir /io && chown user /io
@@ -185,9 +185,9 @@ class Void(BaseDistribution):
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:
             return _docker.run(base, f"""
-                sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
-                {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False, post_mortem=True,
+                xbps-install -ySu -R /pkg/ xbps {self.package_name}
+                su user -c sh -c {shlex.quote(self.project.test_command)}
+            """, volumes=volumes, tty=True, post_mortem=True,
                                architecture=self.docker_architecture)
 
     def _void_packages_head(self):

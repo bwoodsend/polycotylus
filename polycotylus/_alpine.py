@@ -173,7 +173,7 @@ class Alpine(BaseDistribution):
             RUN {self.mirror.install}
             RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
 
-            RUN apk add shadow sudo
+            RUN apk add shadow
             {self._install_user("abuild")}
 
             RUN mkdir /io && chown user /io
@@ -271,7 +271,7 @@ class Alpine(BaseDistribution):
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:
             return _docker.run(base, f"""
-                sudo apk add /pkg/{package.name}
-                {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False, post_mortem=True,
+                apk add /pkg/{package.name}
+                su user -c sh -c {shlex.quote(self.project.test_command)}
+            """, volumes=volumes, tty=True, post_mortem=True,
                                architecture=self.docker_architecture)
