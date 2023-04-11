@@ -170,7 +170,7 @@ class Void(BaseDistribution):
     def build(self):
         with self.mirror:
             for command in [["./xbps-src", "-1", "binary-bootstrap"],
-                            ["./xbps-src", "-1", "pkg", self.package_name]]:
+                            ["./xbps-src", "pkg", self.package_name]]:
                 _docker.run(self.build_builder_image(), command,
                             "--privileged", root=False,
                             volumes=[(self.distro_root, "/io")], tty=True,

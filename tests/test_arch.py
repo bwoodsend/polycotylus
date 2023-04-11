@@ -128,12 +128,20 @@ def test_post_mortem(polycotylus_yaml):
         "ps -f --no-headers 1",
         "echo Made it!!",
     ])
-    p = subprocess.run([sys.executable, "-c", script], input=post_mortem_script,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                       text=True, cwd=str(shared.bare_minimum))
-    assert p.returncode == 1, p.stdout
-    lines = p.stdout.splitlines()
-    assert lines[-1] == "Made it!!"
+    p = subprocess.Popen([sys.executable, "-c", script], stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, cwd=str(shared.bare_minimum))
+    lines = []
+    while True:
+        assert p.poll() is None
+        line = p.stdout.readline()
+        print(line, end="")
+        lines.append(line)
+        if "Entering post-mortem debug shell." in line:
+            break
+    lines += p.communicate(post_mortem_script)[0].splitlines(keepends=True)
+    assert p.returncode == 1, "".join(lines)
+    assert lines[-1] == "Made it!!\n"
     assert "/bash" in lines[-2]
 
 

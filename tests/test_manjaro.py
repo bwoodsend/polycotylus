@@ -9,7 +9,7 @@ import shared
 
 class TestCommon(shared.Base):
     cls = Manjaro
-    base_image = "manjarolinux/base"
+    base_image = "docker.io/manjarolinux/base"
     package_install = "pacman -Sy --needed --noconfirm"
 
 
@@ -24,7 +24,7 @@ def test_mirror_detection():
         (cache_root / "manjaro-mirror").unlink()
     with Manjaro.mirror:
         for architecture in ["x86_64", "aarch64"]:
-            _docker.run("manjarolinux/base", f"""
+            _docker.run("docker.io/manjarolinux/base", f"""
                 {Manjaro.mirror.install}
                 pacman -Sy
             """, architecture=architecture, tty=True)

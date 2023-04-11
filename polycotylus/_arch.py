@@ -193,7 +193,7 @@ class Arch(BaseDistribution):
                 sudo pacman -Sy
                 sudo pacman -U --noconfirm /pkg/{package.name}
                 {self.project.test_command}
-            """, volumes=volumes, tty=True, root=False, post_mortem=True,
+            """, "--privileged", volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
 
     @classmethod

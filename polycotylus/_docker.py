@@ -59,7 +59,8 @@ class run:
         arguments.extend(map(str, flags))
         if not root:
             if docker.variant == "podman":
-                arguments += ["--userns", "keep-id", "--user=user:wheel"]
+                arguments += ["--userns", "keep-id", "--group-add=wheel",
+                              f"--user={os.getuid()}:{os.getgid()}"]
             else:  # pragma: no cover
                 arguments += [f"--user={os.getuid()}"]
 
@@ -134,7 +135,7 @@ class run:
 
     def commit(self):
         return _audit_image(_run([docker, "commit", self.id], stdout=PIPE,
-                                 text=True).stdout.strip())
+                                 stderr=PIPE, text=True).stdout.strip())
 
 
 def _tee_run(command, verbosity, **kwargs):
@@ -144,6 +145,7 @@ def _tee_run(command, verbosity, **kwargs):
             chunks.append(chunk)
             if verbosity >= 2:
                 sys.stdout.buffer.write(chunk)
+                sys.stdout.flush()
         if verbosity >= 2:
             print()
     return p.returncode, b"".join(chunks).decode()

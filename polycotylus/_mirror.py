@@ -326,8 +326,8 @@ def _manjaro_preferred_mirror():
         urlopen(Request(url, method="HEAD")).close()
         return url
 
-    container = _docker.run("manjarolinux/base", "pacman-mirrors --geoip",
-                            tty=True)
+    container = _docker.run("docker.io/manjarolinux/base",
+                            "pacman-mirrors --geoip", tty=True)
     mirrorlist = container.file("/etc/pacman.d/mirrorlist").decode()
     mirrors = re.findall("^Server = (.*?)/(?:arm-)?stable", mirrorlist, flags=re.M)
     assert mirrors
