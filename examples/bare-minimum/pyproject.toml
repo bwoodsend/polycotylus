@@ -13,4 +13,4 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-"Homepage" = "https://github.com/bwoodsend/polycotylus"
+"homepage" = "https://github.com/bwoodsend/polycotylus"

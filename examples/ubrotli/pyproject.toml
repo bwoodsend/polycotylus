@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/me/blah"
+"homepage" = "https://github.com/me/blah"
 
 [tool.setuptools.packages.find]
 include = ["ubrotli*"]

@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/me/blah"
+"homepage" = "https://github.com/me/blah"
 
 [project.gui-scripts]
 dumb_text_viewer = "dumb_text_viewer.__main__:main"

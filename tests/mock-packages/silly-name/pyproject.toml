@@ -12,7 +12,7 @@ dependencies = ["certifi"]
 requires = ["colorama", "setuptools"]
 
 [project.urls]
-"Homepage" = "https://github.com/bwoodsend/polycotylus"
+"homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [tool.setuptools]
 py-modules = ["sIlLy_Nam3"]

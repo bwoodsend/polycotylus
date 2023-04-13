@@ -155,7 +155,7 @@ Missing pyproject.toml fields ['description', 'license', 'name', 'urls', 'versio
     description = "Give a one-line description of your package here"
 
     [project.urls]
-    Homepage = "https://your.project.site"
+    homepage = "https://your.project.site"
 
     [project.license]
     file = "LICENSE.txt"

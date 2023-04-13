@@ -14,7 +14,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-"Homepage" = "https://github.com/bwoodsend/polycotylus"
+"homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [tool.setuptools]
 py-modules = ["fussy_arch"]

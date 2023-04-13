@@ -65,8 +65,8 @@ class Project:
             missing_fields["version"] = "1.2.3"
         if "description" not in project:
             missing_fields["description"] = "Give a one-line description of your package here"
-        if not project.get("urls", {}).get("Homepage"):
-            missing_fields["urls"] = {"Homepage": "https://your.project.site"}
+        if not project.get("urls", {}).get("homepage"):
+            missing_fields["urls"] = {"homepage": "https://your.project.site"}
         if project.get("license", {}).get("file"):
             licenses = [project["license"]["file"]]
         else:
@@ -224,7 +224,7 @@ class Project:
             test_dependencies=dependencies["test"],
             test_command=test_command,
             test_files=test_files,
-            url=project["urls"]["Homepage"],
+            url=project["urls"]["homepage"],
             license_names=license_names,
             licenses=licenses,
             desktop_entry_points=desktop_files,
