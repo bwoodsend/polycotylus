@@ -26,6 +26,6 @@ def test_fish(capsys):
 
     assert "--architecture" in _exec("complete --do-complete 'polycotylus -'")
     assert "--architecture" in _exec("complete --do-complete 'polycotylus manjaro -'")
-    assert "s390x" in _exec("complete --do-complete 'polycotylus alpine --architecture='")
+    assert "ppc64le" in _exec("complete --do-complete 'polycotylus alpine --architecture='")
     assert "aarch64" in _exec("complete --do-complete 'polycotylus manjaro --architecture='")
-    assert "s390x" not in _exec("complete --do-complete 'polycotylus manjaro --architecture='")
+    assert "ppc64le" not in _exec("complete --do-complete 'polycotylus manjaro --architecture='")

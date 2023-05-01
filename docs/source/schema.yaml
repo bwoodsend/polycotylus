@@ -118,7 +118,7 @@ spdx:
   # .. _exceptions: https://spdx.org/licenses/exceptions-index.html
   # .. _`trove classifiers`: https://pypi.org/classifiers/
 
-architecture: aarch64 armhf armv7 ppc64le s390x x86 x86_64
+architecture: aarch64 armhf armv7 ppc64le x86 x86_64
   # The architectures that this package may be installed on. Allowed
   # values are:
   #

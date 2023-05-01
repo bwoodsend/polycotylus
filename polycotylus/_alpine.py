@@ -28,7 +28,7 @@ class Alpine(BaseDistribution):
         "aarch64": "aarch64",
         "armv7": "arm",
         "ppc64le": "ppc64le",
-        "s390x": "s390x",
+        # "s390x": "s390x",  sudo has started stalling on this platform
         "x86": "i386",
         "x86_64": "x86_64",
     }

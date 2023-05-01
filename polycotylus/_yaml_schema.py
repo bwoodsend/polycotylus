@@ -86,7 +86,7 @@ dependencies_group = MapCombined(
     Str(), WhitespaceDelimited(Str()),
 )
 
-architectures = ["aarch64", "armhf", "armv7", "ppc64le", "s390x", "x86", "x86_64"]
+architectures = ["aarch64", "armhf", "armv7", "ppc64le", "x86", "x86_64"]
 
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]
 maintainer_slug_re = r"\s*([^<>@]+)\b\s*<\s*([^<>@ ]+@[^<>@ ]+)\s*>\s*"
