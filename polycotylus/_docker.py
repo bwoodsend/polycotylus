@@ -62,6 +62,9 @@ class run:
                 arguments += ["--userns", "keep-id", "--user=user:wheel"]
             else:  # pragma: no cover
                 arguments += [f"--user={os.getuid()}"]
+        if docker.variant == "docker":
+            # https://github.com/moby/moby/issues/45436#issuecomment-1528445371
+            arguments += ["--ulimit", "nofile=1024:1048576"]
 
         arguments.append(base)
         if isinstance(command, str):

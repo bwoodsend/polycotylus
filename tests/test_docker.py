@@ -32,7 +32,7 @@ def test_interactive():
                        timeout=10, stdout=subprocess.PIPE)
     assert p.returncode == 0
     assert re.fullmatch(
-        br'(\$ (docker|podman) run --rm --network=host --platform=\S+ -i alpine\n)?hello\n+', p.stdout)
+        br'(\$ (docker|podman) run --rm --network=host --platform=\S+ -i (--ulimit nofile=1024:1048576 )?alpine\n)?hello\n+', p.stdout)
 
     code = dedent("""
         from polycotylus import _docker
@@ -44,7 +44,7 @@ def test_interactive():
     assert re.search(b"foo\nhello\n+$", p.stdout)
 
     pattern = ".*command:\n" \
-        r".*(docker|podman) run --rm --network=host --platform=\S+ -it? alpine sh -ec 'cat .'\n" \
+        r".*(docker|podman) run --rm --network=host --platform=\S+ -it? (--ulimit nofile=1024:1048576 )?alpine sh -ec 'cat .'\n" \
         ".*\n( Emulate Docker CLI using podman.*\n)?.*Is a directory"
     with pytest.raises(_docker.Error, match=pattern):
         _docker.run("alpine", "cat .", interactive=True)
