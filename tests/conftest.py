@@ -11,3 +11,22 @@ def polycotylus_yaml(monkeypatch):
                             lambda *_: textwrap.dedent(content))
 
     return with_polycotylus_yaml
+
+
+@pytest.fixture(autouse=True)
+def pyproject_toml(monkeypatch):
+
+    def with_pyproject_toml(content):
+        import toml
+        original = toml.loads
+
+        def toml_loads(*_):
+            if isinstance(content, dict):
+                return content
+            else:
+                return original(content)
+
+        monkeypatch.setattr(toml, "loads", toml_loads)
+        monkeypatch.setattr(toml, "load", toml_loads)
+
+    return with_pyproject_toml

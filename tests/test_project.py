@@ -36,11 +36,8 @@ def test_expand_pip_requirements():
     ]
 
 
-def test_yaml_error(tmp_path):
-    shutil.copy(bare_minimum / "pyproject.toml", tmp_path)
-    shutil.copy(bare_minimum / "LICENSE", tmp_path)
-    polycotylus_yaml = tmp_path / "polycotylus.yaml"
-    polycotylus_yaml.write_text("""
+def test_yaml_error(polycotylus_yaml):
+    polycotylus_yaml("""
 source_url: https://xyz
 desktop_entry_points:
   socks:
@@ -48,10 +45,10 @@ desktop_entry_points:
 gui: true
 """)
     with pytest.raises(PolycotylusYAMLParseError) as capture:
-        Project.from_root(tmp_path)
+        Project.from_root(bare_minimum)
     assert str(capture.value) == f"""\
 Invalid polycotylus.yaml:
-  In "{polycotylus_yaml}", line 3
+  In "{bare_minimum / "polycotylus.yaml"}", line 3
         Exec: ''
     ^ (line: 4)
 Required key(s) 'Name' not found while parsing a mapping.
@@ -90,35 +87,30 @@ def test_dockerignore(tmp_path):
     assert path.stat() == old
 
 
-def test_license_handling(tmp_path):
-    for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
-        shutil.copy(bare_minimum / path, tmp_path / path)
-
-    pyproject_toml = tmp_path / "pyproject.toml"
-    options = toml.load(pyproject_toml)
+def test_license_handling(polycotylus_yaml, pyproject_toml):
+    options = toml.load(bare_minimum / "pyproject.toml")
 
     def _write_trove(trove):
         options["project"]["classifiers"] = [trove]
-        pyproject_toml.write_text(toml.dumps(options))
+        pyproject_toml(options)
 
-    self = Project.from_root(tmp_path)
+    self = Project.from_root(bare_minimum)
     assert self.license_names == ["MIT"]
 
     # No meaningful license identifier.
     _write_trove("License :: DFSG approved")
     with pytest.raises(NoLicenseSpecifierError, match=".* add it"):
-        Project.from_root(tmp_path)
+        Project.from_root(bare_minimum)
 
     # Ambiguous license identifier.
     _write_trove("License :: OSI Approved :: Apache Software License")
     with pytest.raises(
             AmbiguousLicenseError, match=r".*classifier 'License :: OSI Approved :: Apache Software License' could .* codes \['Apache-1.0', 'Apache-1.1', 'Apache-2.0'\]\. "
             "Either .* as:\n    spdx:\n      - Apache-2.0:\n"):
-        Project.from_root(tmp_path)
+        Project.from_root(bare_minimum)
 
-    yaml = tmp_path / "polycotylus.yaml"
-    yaml.write_text(yaml.read_text() + "spdx:\n  kittens:\n")
-    self = Project.from_root(tmp_path)
+    polycotylus_yaml("spdx:\n  kittens:\n")
+    self = Project.from_root(bare_minimum)
     assert self.license_names == ["kittens"]
 
 
@@ -163,48 +155,44 @@ Missing pyproject.toml fields ['description', 'license', 'name', 'urls', 'versio
 They cannot be dynamic."""
 
 
-def test_maintainer(tmp_path):
-    for path in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
-        shutil.copy(bare_minimum / path, tmp_path / path)
+def test_maintainer(pyproject_toml, polycotylus_yaml):
 
-    pyproject_toml = tmp_path / "pyproject.toml"
-    polycotylus_yaml = tmp_path / "polycotylus.yaml"
-    options = toml.load(pyproject_toml)
-    self = Project.from_root(tmp_path)
+    options = toml.load(bare_minimum / "pyproject.toml")
+    self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Brénainn Woodsend <bwoodsend@gmail.com>"
 
     options["project"]["maintainers"] = [dict(name="Sausage Roll",
                                               email="s.roll@pastries.com")]
-    pyproject_toml.write_text(toml.dumps(options))
-    self = Project.from_root(tmp_path)
+    pyproject_toml(options)
+    self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Sausage Roll <s.roll@pastries.com>"
 
     del options["project"]["maintainers"]
     del options["project"]["authors"]
-    pyproject_toml.write_text(toml.dumps(options))
+    pyproject_toml(options)
     with pytest.raises(PolycotylusUsageError, match="No maintainer declared"):
-        self = Project.from_root(tmp_path)
+        self = Project.from_root(bare_minimum)
 
     options["project"]["authors"] = [dict(name="bob", email="bob@mail.com"),
                                      dict(name="foo", email="foo@mail.com")]
-    pyproject_toml.write_text(toml.dumps(options))
+    pyproject_toml(options)
     with pytest.raises(PolycotylusUsageError, match="exactly one"):
-        self = Project.from_root(tmp_path)
+        self = Project.from_root(bare_minimum)
 
     options["project"]["maintainer"] = [dict(name="Bob and his friends",
                                              email="some@mailing-list.com")]
-    pyproject_toml.write_text(toml.dumps(options))
+    pyproject_toml(options)
     with pytest.raises(PolycotylusUsageError, match=""):
-        self = Project.from_root(tmp_path)
+        self = Project.from_root(bare_minimum)
 
-    polycotylus_yaml.write_text("maintainer: The maintainers <foo@mail.com>")
+    polycotylus_yaml("maintainer: The maintainers <foo@mail.com>")
     with pytest.raises(PolycotylusUsageError, match="generic"):
-        self = Project.from_root(tmp_path)
+        self = Project.from_root(bare_minimum)
 
-    polycotylus_yaml.write_text("maintainer: Mr Hippo < hippo@mail.com  > \n")
-    self = Project.from_root(tmp_path)
+    polycotylus_yaml("maintainer: Mr Hippo < hippo@mail.com  > \n")
+    self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
 
-    polycotylus_yaml.write_text("maintainer: Mr Hippo<hippo@mail.com>")
-    self = Project.from_root(tmp_path)
+    polycotylus_yaml("maintainer: Mr Hippo<hippo@mail.com>")
+    self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
