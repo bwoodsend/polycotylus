@@ -48,7 +48,7 @@ This reference should answer those questions.
     ::
 
         # Install packages:
-        pacman -Sy python-wheel python-pip
+        pacman -S python-wheel python-pip
 
         # Uninstall packages:
         pacman -R python-wheel python-pip
