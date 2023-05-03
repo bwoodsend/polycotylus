@@ -123,7 +123,7 @@ def test_post_mortem(polycotylus_yaml):
     """)
     post_mortem_script = " && ".join([
         "python -c 'import bare_minimum'",
-        "sudo pacman -Sy",
+        "sudo pacman -Syu",
         "pytest",
         "ps -f --no-headers 1",
         "echo Made it!!",

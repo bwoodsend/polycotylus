@@ -12,7 +12,7 @@ from polycotylus._base import BaseDistribution
 
 
 class Arch(BaseDistribution):
-    image = "archlinux:base-devel"
+    image = "archlinux:base"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["tk"],
@@ -150,6 +150,7 @@ class Arch(BaseDistribution):
             FROM {self.image} AS base
 
             RUN {self.mirror.install}
+            RUN pacman -Syu --noconfirm --needed sudo
             {self._install_user()}
             RUN mkdir /io && chown user /io
             WORKDIR /io
@@ -157,10 +158,10 @@ class Arch(BaseDistribution):
             FROM base as build
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-            RUN pacman -Sy --noconfirm --needed base-devel {" ".join(dependencies)}
+            RUN pacman -Syu --noconfirm --needed base-devel {" ".join(dependencies)}
 
             FROM base AS test
-            RUN pacman -Sy --noconfirm --needed {" ".join(self.test_dependencies)}
+            RUN pacman -Syu --noconfirm --needed {" ".join(self.test_dependencies)}
     """)
 
     def generate(self):
@@ -190,7 +191,7 @@ class Arch(BaseDistribution):
             for path in self.project.test_files:
                 volumes.append((self.project.root / path, f"/io/{path}"))
             return _docker.run(base, f"""
-                sudo pacman -Sy
+                sudo pacman -Syu --noconfirm
                 sudo pacman -U --noconfirm /pkg/{package.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
