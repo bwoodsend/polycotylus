@@ -19,7 +19,7 @@ mirror = mirrors["alpine"]
 
 class TestCommon(shared.Base):
     cls = Alpine
-    base_image = Alpine.base
+    base_image = Alpine.image
     package_install = "apk add"
 
 
@@ -46,7 +46,7 @@ def test_abuild_lint():
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     with self.mirror:
-        _docker.run(Alpine.base, f"""
+        _docker.run(Alpine.image, f"""
             {mirror.install}
             apk add -q atools
             apkbuild-lint /io/APKBUILD
@@ -60,7 +60,7 @@ def test_dumb_text_viewer():
     assert "arch=noarch" in self.apkbuild()
     assert "gcc" not in self.apkbuild()
 
-    _docker.run(Alpine.base, ["ash", "-c", "set -e; source /io/APKBUILD"],
+    _docker.run(Alpine.image, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
     apks = self.build()
     assert len(apks) == 1
@@ -225,6 +225,8 @@ def test_license_handling(tmp_path):
 def test_silly_named_package():
     self = Alpine(Project.from_root(shared.silly_name))
     self.generate()
+    assert "pywin32-ctypes" not in self.apkbuild()
+    assert "colorama" in self.apkbuild()
     apks = self.build()
     installed = self.test(apks["main"]).commit()
     script = "apk info -a py3-99---s1lly---name---packag3--x--y--z"

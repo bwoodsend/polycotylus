@@ -17,7 +17,7 @@ from polycotylus._base import BaseDistribution
 
 
 class Alpine(BaseDistribution):
-    base = "alpine:3.17"
+    image = "alpine:3.17"
     python_prefix = "/usr"
     python = "python3"
     python_extras = {
@@ -40,32 +40,22 @@ class Alpine(BaseDistribution):
 
     @classmethod
     @lru_cache()
-    def _base_image_synchronised(cls):
+    def _package_manager_queries(cls):
         with cls.mirror:
-            return _docker.run(cls.base, f"""
+            container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 apk update
-            """, tty=True).commit()
-
-    @classmethod
-    @lru_cache()
-    def available_packages(cls):
-        container = _docker.run(cls._base_image_synchronised(), "apk search -q",
-                                verbosity=0)
-        return set(re.findall("([^\n]+)", container.output))
-
-    @classmethod
-    @lru_cache()
-    def build_base_packages(cls):
-        with cls.mirror:
-            container = _docker.run(cls._base_image_synchronised(), """
-                apk info -q
-                printf '\\0'
-                apk add --simulate alpine-sdk
-            """, verbosity=0)
-            preinstalled, sdk = container.output.split("\n\x00")
-            return set(re.findall("([^\n]+)", preinstalled)
-                       + re.findall("Installing ([^ ]+)", sdk))
+                apk search -q > /packages
+                apk info -q > /base-packages
+                apk add --simulate alpine-sdk > /sdk-packages
+                apk search -x python3 > /python-version
+            """, tty=True)
+        _read = lambda path: container.file(path).decode()
+        cls._available_packages = set(re.findall("([^\n]+)", _read("/packages")))
+        preinstalled = re.findall("([^\n]+)", _read("/base-packages"))
+        sdk = re.findall("Installing ([^ ]+)", _read("/sdk-packages"))
+        cls._build_base_packages = set(preinstalled + sdk)
+        cls._python_version = re.match("python3-([^-]+)", _read("/python-version"))[1]
 
     @staticmethod
     def python_package_convention(pypi_name):
@@ -168,7 +158,7 @@ class Alpine(BaseDistribution):
     def dockerfile(self):
         public, private = self.abuild_keys()
         return self._formatter(f"""
-            FROM {self.base} AS base
+            FROM {self.image} AS base
 
             RUN {self.mirror.install}
             RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
@@ -219,7 +209,7 @@ class Alpine(BaseDistribution):
                 return public_key, private_key
 
         with self.mirror:
-            container = _docker.run(self.base, f"""
+            container = _docker.run(self.image, f"""
                 {self.mirror.install}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf

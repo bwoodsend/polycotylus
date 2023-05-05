@@ -1,6 +1,9 @@
 import shutil
 import os
 import importlib.metadata
+
+import pytest
+
 import sIlLy_Nam3
 
 
@@ -13,6 +16,8 @@ def test_dependencies():
     import sqlite3
     import tkinter
     assert shutil.which("cmatrix")
+    with pytest.raises(ImportError):
+        import win32ctypes
 
 
 def test_import_other_test_files():

@@ -6,10 +6,10 @@ authors = [
 ]
 version = "1.2.3"
 license = { file="The license file" }
-dependencies = ["certifi"]
+dependencies = ["certifi", "pywin32-ctypes; platform_system == 'Windows'"]
 
 [build-system]
-requires = ["colorama", "setuptools"]
+requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' and implementation_name == 'cpython'", "setuptools"]
 
 [project.urls]
 "homepage" = "https://github.com/bwoodsend/polycotylus"

@@ -31,31 +31,22 @@ class Arch(BaseDistribution):
 
     @classmethod
     @lru_cache()
-    def _base_image_synchronised(cls):
+    def _package_manager_queries(cls):
         with cls.mirror:
-            return _docker.run(cls.image, f"""
+            container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 pacman -Sy
-            """, tty=True).commit()
-
-    @classmethod
-    @lru_cache()
-    def available_packages(cls):
-        container = _docker.run(cls._base_image_synchronised(), "pacman -Ssq",
-                                verbosity=0)
-        return set(re.findall("([^\n]+)", container.output))
-
-    @classmethod
-    @lru_cache()
-    def build_base_packages(cls):
-        container = _docker.run(cls._base_image_synchronised(), """
-            pacman -Qq
-            printf '\\0'
-            pacman -Sp --needed base-devel
-        """, verbosity=0)
-        preinstalled, devel = container.output.split("\n\x00")
-        return set(re.findall("([^\n]+)", preinstalled) +
-                   re.findall(r".*/(.+?)(?:-[^-]+){3}\.pkg\.tar\.zst", devel))
+                pacman -Ssq > /packages
+                pacman -Qq > /base-packages
+                pacman -Sp --needed base-devel > /sdk-packages
+                pacman -Si python > /python-version
+            """, tty=True)
+        _read = lambda path: container.file(path).decode()
+        cls._available_packages = set(re.findall("([^\n]+)", _read("/packages")))
+        preinstalled = re.findall("([^\n]+)", _read("/base-packages"))
+        sdk = re.findall(r".*/(.+?)(?:-[^-]+){3}\.pkg\.tar\.zst", _read("/sdk-packages"))
+        cls._build_base_packages = set(preinstalled + sdk)
+        cls._python_version = re.search("Version +: ([^ -]+)", _read("/python-version"))[1]
 
     @staticmethod
     def fix_package_name(name):

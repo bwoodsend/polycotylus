@@ -9,8 +9,10 @@ Examples: https://src.fedoraproject.org/rpms/python-pyperclip/blob/rawhide/f/pyt
 import re
 import contextlib
 import shlex
+from functools import lru_cache
 
 import toml
+from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker
 from polycotylus._mirror import cache_root
@@ -41,7 +43,6 @@ class Fedora(BaseDistribution):
     }
 
     available_packages = NotImplemented
-    fix_package_name = NotImplemented
 
     @staticmethod
     def fix_package_name(name):
@@ -53,12 +54,20 @@ class Fedora(BaseDistribution):
         return re.sub("^(?:python-)?(.*)", r"python3-\1", cls.fix_package_name(name))
 
     @classmethod
+    @lru_cache()
+    def python_version(cls):
+        command = ["python3", "-c", "import sys; print('{}.{}.{}'.format(*sys.version_info))"]
+        return _docker.run("fedora:37", command, tty=True).output.strip()
+
+    @classmethod
     def python_package(cls, requirement):
-        requirement = re.sub(
-            "^([a-zA-Z0-9._-]+)",
-            lambda m: "python3dist(" + re.sub("[_.-]+", "-", m[1].lower()) + ")",
-            requirement)
-        return requirement.replace(">=", " >= ")
+        requirement = Requirement(requirement)
+        requirement.name = f"python3dist({cls.fix_package_name(requirement.name)})"
+        if not cls.evaluate_requirements_marker(requirement):
+            return
+        else:
+            requirement.marker = None
+        return str(requirement).replace(">=", " >= ")
 
     @property
     def dependencies(self):

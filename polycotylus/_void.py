@@ -46,29 +46,19 @@ class Void(BaseDistribution):
 
     @classmethod
     @lru_cache()
-    def _lookup_packages(cls):
+    def _package_manager_queries(cls):
         with cls.mirror:
-            output = _docker.run(cls.image, f"""
+            container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
-                xbps-install -ySu xbps > /dev/null
-                echo '~~~~~~'
-                xbps-query -Rs ''
-                echo '~~~~~~'
-                xbps-query -Rx base-chroot
-            """, verbosity=0).output
-        _, all, base = output.split("~~~~~~")
-        cls._all_packages = re.findall(r"\[-\] ([^ ]+)-[^ ]", all)
-        cls._base_packages = re.findall(r"^([^>]+)", base)
-
-    @classmethod
-    def available_packages(cls):
-        cls._lookup_packages()
-        return cls._all_packages
-
-    @classmethod
-    def build_base_packages(cls):
-        cls._lookup_packages()
-        return cls._base_packages
+                xbps-install -ySu xbps
+                xbps-query -Rs '' > /all
+                xbps-query -Rx base-chroot > /base
+                xbps-query -R python3 > /python-info
+            """, tty=True)
+        _read = lambda path: container.file(path).decode()
+        cls._available_packages = re.findall(r"\[-\] ([^ ]+)-[^ ]", _read("/all"))
+        cls._build_base_packages = re.findall(r"^([^>]+)", _read("base"))
+        cls._python_version = re.search("pkgver: python3-([^_]+)", _read("/python-info"))[1]
 
     @property
     def build_dependencies(self):

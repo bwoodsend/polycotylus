@@ -5,6 +5,8 @@ import os
 import platform
 from functools import lru_cache
 
+from packaging.requirements import Requirement
+
 from polycotylus import _docker, _exceptions, _misc
 from polycotylus._mirror import mirrors
 
@@ -46,20 +48,27 @@ class BaseDistribution(abc.ABC):
     def distro_root(self):
         return self.project.root / ".polycotylus" / self.name
 
-    @abc.abstractmethod
-    def available_packages():
-        raise NotImplementedError
+    @classmethod
+    def available_packages(cls):
+        cls._package_manager_queries()
+        return cls._available_packages
+
+    @classmethod
+    def build_base_packages(cls):
+        """Packages that the distribution considers *too standard* to be given
+        as build dependencies."""
+        cls._package_manager_queries()
+        return cls._build_base_packages
+
+    @classmethod
+    def python_version(cls):
+        cls._package_manager_queries()
+        return cls._python_version
 
     @classmethod
     @lru_cache()
     def available_packages_normalized(cls):
         return {re.sub("[._-]+", "-", i.lower()): i for i in cls.available_packages()}
-
-    @abc.abstractmethod
-    def build_base_packages():
-        """Packages that the distribution considers *too standard* to be given
-        as build dependencies."""
-        raise NotImplementedError
 
     def _install_user(self, *groups):
         groups = ",".join(("wheel", *groups))
@@ -68,11 +77,29 @@ class BaseDistribution(abc.ABC):
             RUN useradd --create-home --non-unique --uid {os.getuid()} --groups {groups} user"""
 
     @classmethod
+    def evaluate_requirements_marker(cls, requirement: Requirement):
+        # See table in https://peps.python.org/pep-0508/#environment-markers
+        return not requirement.marker or requirement.marker.evaluate({
+            "os_name": "posix",
+            "sys_platform": "linux",
+            "platform_python_implementation": "CPython",
+            "platform_system": "Linux",
+            "python_version": re.match(r"\d+\.\d+", cls.python_version())[0],
+            "python_full_version": cls.python_version(),
+            "implementation_name": "cpython",
+            "implementation_version": cls.python_version(),
+        })
+
+    @classmethod
     def python_package(cls, requirement):
-        match = re.match("([a-zA-Z0-9._-]+)(.*)", requirement)
-        name = re.sub("[._-]+", "-", match[1].lower())
+        requirement = Requirement(requirement)
+        name = re.sub("[._-]+", "-", requirement.name.lower())
         available = cls.available_packages_normalized()
 
+        if not cls.evaluate_requirements_marker(requirement):
+            return
+        else:
+            requirement.marker = None
         if cls.python_package_convention(name) in available:
             name = available[cls.python_package_convention(name)]
         elif name in available:
@@ -81,10 +108,13 @@ class BaseDistribution(abc.ABC):
             try:
                 name = cls.python_package(m[2])
             except _exceptions.PackageUnavailableError:
-                raise _exceptions.PackageUnavailableError(match[1], cls.name) from None
+                raise _exceptions.PackageUnavailableError(requirement.name, cls.name) from None
         else:
-            raise _exceptions.PackageUnavailableError(match[1], cls.name)
-        return name + match[2]
+            raise _exceptions.PackageUnavailableError(requirement.name, cls.name)
+
+        requirement.name = name
+        requirement.extras = set()
+        return str(requirement)
 
     @abc.abstractmethod
     def fix_package_name(name):
@@ -144,7 +174,7 @@ class BaseDistribution(abc.ABC):
         for package in dependencies.get("pip", []):
             out.append(self.python_package(package))
         out += dependencies.get(self.name, [])
-        return out
+        return list(filter(None, out))
 
     @property
     def dependencies(self):
