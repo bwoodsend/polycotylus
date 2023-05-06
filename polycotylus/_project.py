@@ -33,6 +33,7 @@ class Project:
     maintainer: str
     email: str
     version: str
+    setuptools_scm: bool
     description: str
     supported_python: str
     dependencies: dict
@@ -94,8 +95,25 @@ class Project:
         missing_fields = {}
         if "name" not in project:
             missing_fields["name"] = "your_package_name"
+        _setuptools_scm = False
         if "version" not in project:
-            missing_fields["version"] = "1.2.3"
+            if "version" in project.get("dynamic", []) and \
+                    "setuptools_scm" in pyproject_options.get("tool", {}):
+                try:
+                    import setuptools_scm
+                    project["version"] = setuptools_scm.get_version(
+                        str(root), version_scheme=lambda v: str(v.tag), local_scheme=lambda x: "")
+                    _setuptools_scm = True
+                except ImportError:
+                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                        setuptools-scm project detected (implied by the
+                        [tool.setuptools_scm] section in the pyproject.toml).
+                        polycotylus requires setuptools-scm to be installed to
+                        process setuptools-scm versioned projects. Please pip
+                        install setuptools-scm.
+                    """))
+            else:
+                missing_fields["version"] = "1.2.3"
         if "description" not in project:
             missing_fields["description"] = "Give a one-line description of your package here"
         if not project.get("urls", {}).get("homepage"):
@@ -252,6 +270,7 @@ class Project:
             maintainer=maintainer["name"],
             email=maintainer["email"],
             version=project["version"],
+            setuptools_scm=_setuptools_scm,
             description=project["description"],
             supported_python=project.get("requires-python", ""),
             dependencies=dependencies.get("run", {}),

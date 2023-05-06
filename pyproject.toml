@@ -37,6 +37,7 @@ test = [
     "pytest-cov",
     "pillow",
     "pyzstd",
+    "setuptools-scm",
 ]
 
 [project.urls]

@@ -1,6 +1,8 @@
 import gzip
 from pathlib import Path
 import shutil
+import sys
+import subprocess
 
 import toml
 import pytest
@@ -9,7 +11,7 @@ from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
     AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
-from shared import dumb_text_viewer, bare_minimum, poetry_based
+from shared import dumb_text_viewer, bare_minimum, poetry_based, silly_name
 
 
 def test_tar_reproducibility():
@@ -206,3 +208,39 @@ def test_maintainer(pyproject_toml, polycotylus_yaml):
     polycotylus_yaml("maintainer: Mr Hippo<hippo@mail.com>")
     self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
+
+
+def test_missing_setuptools_scm(monkeypatch):
+    monkeypatch.setitem(sys.modules, "setuptools_scm", None)
+    with pytest.raises(PolycotylusUsageError, match="install setuptools-scm"):
+        Project.from_root(silly_name)
+
+
+def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml):
+    (tmp_path / "LICENSE").write_bytes(b"hello")
+    subprocess.run(["sh", "-ec", """
+        git init
+        git add .
+        git config --local user.email "you@example.com"
+        git config --local user.name "Your Name"
+        git commit -m "Blah blah blah"
+        git tag v9.3
+    """], check=True, cwd=str(tmp_path))
+    (tmp_path / "LICENSE").write_bytes(b"feet")
+    (tmp_path / "bar").write_bytes(b"")
+    polycotylus_yaml("")
+    pyproject_toml("""
+        [project]
+        name = "..."
+        description = "..."
+        dynamic = ["version"]
+        maintainers = [{name="...", email="x@email.com"}]
+        classifiers = ["License :: OSI Approved :: MIT License"]
+
+        [project.urls]
+        homepage = "..."
+
+        [tool.setuptools_scm]
+    """)
+    self = Project.from_root(tmp_path)
+    assert self.version == "9.3"

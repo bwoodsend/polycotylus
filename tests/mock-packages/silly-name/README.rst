@@ -1,4 +1,4 @@
-A package which:
+A horrible package which:
 
 * Contains special characters wherever possible to test name normalisation and
   special character/unicode handling. Note that non-ASCII characters are not
@@ -13,3 +13,5 @@ A package which:
 
 * Uses a custom test command to work around it's otherwise deliberately broken
   test suite.
+
+* Uses setuptools-scm.

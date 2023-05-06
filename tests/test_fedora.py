@@ -80,7 +80,8 @@ def test_png_source_icon(polycotylus_yaml):
         container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
 
 
-def test_silly_named_package():
+def test_silly_named_package(monkeypatch):
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     self = Fedora(Project.from_root(shared.silly_name))
     self.generate()
     assert "certifi" not in self.spec()

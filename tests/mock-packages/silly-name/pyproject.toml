@@ -4,15 +4,17 @@ description = "🚀 🦄 \"quoted\" 'quoted again' $$$"
 authors = [
     { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
 ]
-version = "1.2.3"
+dynamic = ["version"]
 license = { file="The license file" }
 dependencies = ["certifi", "pywin32-ctypes; platform_system == 'Windows'"]
 
 [build-system]
-requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' and implementation_name == 'cpython'", "setuptools"]
+requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' and implementation_name == 'cpython'", "setuptools", "setuptools-scm"]
 
 [project.urls]
 "homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [tool.setuptools]
 py-modules = ["sIlLy_Nam3"]
+
+[tool.setuptools_scm]

@@ -42,7 +42,8 @@ def test_png_source_icon(polycotylus_yaml):
         assert ".svg" not in file
 
 
-def test_silly_named_package():
+def test_silly_named_package(monkeypatch):
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     # Mimic the local cache of the void-packages repo being out of date so that
     # some dependencies will no longer be available.
     self = Void(Project.from_root(shared.silly_name))

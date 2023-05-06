@@ -114,6 +114,10 @@ class Void(BaseDistribution):
             distfiles=quote(self.project.source_url.format(version="${version}").replace("https://pypi.io/packages/source/", "${PYPI_SITE}/")),
             checksum=hashlib.sha256(self.project.tar()).hexdigest(),
         )
+        if self.project.setuptools_scm:
+            out += self._formatter("""
+                export SETUPTOOLS_SCM_PRETEND_VERSION="${version}"
+            """)
         out += self._formatter("post_install() {")
         for license in self.project.licenses:
             out += self._formatter("vlicense " + shlex.quote(license), 1)

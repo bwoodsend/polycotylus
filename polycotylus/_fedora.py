@@ -125,10 +125,18 @@ class Fedora(BaseDistribution):
 
 
             %generate_buildrequires
+        """)
+        if self.project.setuptools_scm:
+            out += self._formatter('export SETUPTOOLS_SCM_PRETEND_VERSION="%{version}"')
+        out += self._formatter("""
             %pyproject_buildrequires
 
 
             %build
+        """)
+        if self.project.setuptools_scm:
+            out += self._formatter('export SETUPTOOLS_SCM_PRETEND_VERSION="%{version}"')
+        out += self._formatter("""
             %pyproject_wheel
 
 

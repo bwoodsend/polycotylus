@@ -222,7 +222,8 @@ def test_license_handling(tmp_path):
             assert f.read().endswith(b"kittens.")
 
 
-def test_silly_named_package():
+def test_silly_named_package(monkeypatch):
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     self = Alpine(Project.from_root(shared.silly_name))
     self.generate()
     assert "pywin32-ctypes" not in self.apkbuild()
