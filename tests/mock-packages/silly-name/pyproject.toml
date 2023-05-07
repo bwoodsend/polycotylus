@@ -12,7 +12,7 @@ dependencies = ["certifi", "pywin32-ctypes; platform_system == 'Windows'"]
 requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' and implementation_name == 'cpython'", "setuptools", "setuptools-scm"]
 
 [project.urls]
-"homepage" = "https://github.com/bwoodsend/polycotylus"
+"Homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [tool.setuptools]
 py-modules = ["sIlLy_Nam3"]

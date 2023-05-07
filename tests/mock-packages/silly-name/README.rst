@@ -15,3 +15,5 @@ A horrible package which:
   test suite.
 
 * Uses setuptools-scm.
+
+* Uses the key ``Homepage`` instead of ``homepage`` in the ``pyproject.toml``.

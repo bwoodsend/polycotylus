@@ -116,6 +116,8 @@ class Project:
                 missing_fields["version"] = "1.2.3"
         if "description" not in project:
             missing_fields["description"] = "Give a one-line description of your package here"
+        if project.get("urls", {}).get("Homepage"):
+            project["urls"]["homepage"] = project["urls"]["Homepage"]
         if not project.get("urls", {}).get("homepage"):
             missing_fields["urls"] = {"homepage": "https://your.project.site"}
         if project.get("license", {}).get("file"):
