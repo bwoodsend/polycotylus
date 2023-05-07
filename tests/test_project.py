@@ -108,7 +108,7 @@ def test_license_handling(polycotylus_yaml, pyproject_toml):
     _write_trove("License :: OSI Approved :: Apache Software License")
     with pytest.raises(
             AmbiguousLicenseError, match=r".*classifier 'License :: OSI Approved :: Apache Software License' could .* codes \['Apache-1.0', 'Apache-1.1', 'Apache-2.0'\]\. "
-            "Either .* as:\n    spdx:\n      - Apache-2.0:\n"):
+            "Either .* as:\n    spdx:\n      Apache-2.0:\n"):
         Project.from_root(bare_minimum)
 
     polycotylus_yaml("spdx:\n  kittens:\n")

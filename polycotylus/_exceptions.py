@@ -29,7 +29,7 @@ class AmbiguousLicenseError(PolycotylusUsageError):
             the appropriate SPDX identifier from https://spdx.org/licenses/ and
             set it in your polycotylus.yaml as:
                 spdx:
-                  - {self.possibilities[-1]}:
+                  {self.possibilities[-1]}:
         """) + "\n"
 
 
@@ -46,7 +46,7 @@ class NoLicenseSpecifierError(PolycotylusUsageError):
             Or select the appropriate SPDX identifier from
             https://spdx.org/licenses/ and set it in your polycotylus.yaml:
                 spdx:
-                  - MIT:
+                  MIT:
         """)
 
 
