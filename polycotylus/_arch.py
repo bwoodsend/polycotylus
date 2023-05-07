@@ -149,10 +149,10 @@ class Arch(BaseDistribution):
             FROM base as build
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-            RUN pacman -Syu --noconfirm --needed base-devel {" ".join(dependencies)}
+            RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
 
             FROM base AS test
-            RUN pacman -Syu --noconfirm --needed {" ".join(self.test_dependencies)}
+            RUN pacman -Syu --noconfirm --needed {shlex.join(self.test_dependencies)}
     """)
 
     def generate(self):

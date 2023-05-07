@@ -6,7 +6,7 @@ authors = [
 ]
 dynamic = ["version"]
 license = { file="The license file" }
-dependencies = ["certifi", "pywin32-ctypes; platform_system == 'Windows'"]
+dependencies = ["certifi>=2020.4", "pywin32-ctypes; platform_system == 'Windows'"]
 
 [build-system]
 requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' and implementation_name == 'cpython'", "setuptools", "setuptools-scm"]

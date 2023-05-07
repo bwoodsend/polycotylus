@@ -180,10 +180,10 @@ class Alpine(BaseDistribution):
             RUN touch "/home/user/.abuild/{private.name}"
             RUN chown -R user /home/user/.abuild
             RUN cp "/etc/apk/keys/{public.name}" /home/user/.abuild/
-            RUN apk add {" ".join(self.dependencies + self.build_dependencies + self.test_dependencies)}
+            RUN apk add {shlex.join(self.dependencies + self.build_dependencies + self.test_dependencies)}
 
             FROM base AS test
-            RUN apk add {" ".join(self.test_dependencies)}
+            RUN apk add {shlex.join(self.test_dependencies)}
 
             # This seemingly redundant layer of indirection ensures that
             # xvfb-run (which calls exec) is never the top level process in the

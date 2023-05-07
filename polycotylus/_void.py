@@ -90,10 +90,10 @@ class Void(BaseDistribution):
             WORKDIR /io
 
             FROM base as build
-            RUN xbps-install -ySu xbps git bash util-linux {" ".join(dependencies)}
+            RUN xbps-install -ySu xbps git bash util-linux {shlex.join(dependencies)}
 
             FROM base AS test
-            RUN xbps-install -ySu xbps {" ".join(self.test_dependencies)}
+            RUN xbps-install -ySu xbps {shlex.join(self.test_dependencies)}
         """)
 
     def template(self):

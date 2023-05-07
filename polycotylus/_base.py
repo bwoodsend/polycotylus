@@ -207,7 +207,7 @@ class BaseDistribution(abc.ABC):
     def test_dependencies(self):
         out = self._dependencies(self.project.test_dependencies)
         if self.project.gui:
-            out += [self.xvfb_run, self.font]
+            out += [*self.xvfb_run.split(), self.font]
         return _deduplicate(out)
 
     def install_icons(self, indentation):
