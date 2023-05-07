@@ -6,6 +6,12 @@
 # actually a helpful structure or if I should stick to the conventional
 # alphabetic ordering.)
 
+# If unsure where to start, the following is a fairly ubiquitous base step::
+#
+#    dependencies:
+#      test:
+#        pip: pytest
+
 # Note that, whilst this file's format is still dubbed as *YAML*, its parser is
 # strictyaml_ which removes_ some of YAML's more questionable features such as
 # embedded JSON and implicit typing. Additionally, `polycotylus` uses a custom

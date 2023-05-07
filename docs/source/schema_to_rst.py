@@ -9,13 +9,15 @@ from polycotylus._yaml_schema import polycotylus_yaml
 
 raw = Path(__file__).with_name("schema.yaml").read_text()
 intro, raw = re.match("(.*?)(# ---.*)", raw, flags=re.DOTALL).groups()
-intro = re.sub("^# *", "", intro, flags=re.M)
+intro = re.sub("^# ?", "", intro, flags=re.M)
 lines = raw.splitlines(keepends=True)
 
 heading = ["""
 ===============================
 Reference: ``polycotylus.yaml``
 ===============================
+
+.. highlight:: YAML
 """]
 
 key_value_re = re.compile(r"( *)'?([^#:']*)'?: *(.*)")

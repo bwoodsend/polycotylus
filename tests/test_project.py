@@ -157,6 +157,14 @@ Missing pyproject.toml fields ['description', 'license', 'name', 'urls', 'versio
 They cannot be dynamic."""
 
 
+def test_missing_config_files(tmp_path):
+    with pytest.raises(PolycotylusUsageError, match="No pyproject.toml found"):
+        Project.from_root(tmp_path)
+    (tmp_path / "pyproject.toml").write_text("")
+    with pytest.raises(PolycotylusUsageError, match="Missing polycotylus.yaml"):
+        Project.from_root(tmp_path)
+
+
 def test_missing_poetry_metadata(pyproject_toml):
     pyproject = toml.load(poetry_based / "pyproject.toml")
     pyproject["tool"]["poetry"].pop("license")

@@ -54,8 +54,24 @@ class Project:
     @classmethod
     def from_root(cls, root):
         root = Path(root)
-        pyproject_options = toml.load(str(root / "pyproject.toml"))
-        polycotylus_yaml = _yaml_schema.read(root / "polycotylus.yaml")
+        try:
+            pyproject_options = toml.load(str(root / "pyproject.toml"))
+        except FileNotFoundError:
+            raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                No pyproject.toml found. polycotylus should be ran from the
+                root of a pip installable Python distribution with its core
+                metadata declared in a PEP 621 pyproject.toml file. See
+                https://packaging.python.org/en/latest/tutorials/packaging-projects/
+            """)) from None
+        try:
+            polycotylus_yaml = _yaml_schema.read(root / "polycotylus.yaml")
+        except FileNotFoundError:
+            raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                Missing polycotylus.yaml: Create a polycotylus.yaml file in the
+                same directory as your pyproject.toml file. See
+                https://polycotylus.readthedocs.io/en/latest/schema.html
+            """)) from None
+
         polycotylus_options = polycotylus_yaml.data
 
         if poetry_project := pyproject_options.get("tool", {}).get("poetry", {}):
@@ -91,7 +107,7 @@ class Project:
                 """)) from None
         else:
             poetry_spdx = None
-            project = pyproject_options["project"]
+            project = pyproject_options.get("project", {})
         missing_fields = {}
         if "name" not in project:
             missing_fields["name"] = "your_package_name"
