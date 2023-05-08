@@ -424,6 +424,7 @@ class Dependency(str):
 
 def expand_pip_requirements(requirement, cwd, extras=None):
     if m := re.match("-r *([^ ].*)", requirement):
+        # e.g. "-r requirements.txt"
         requirements_txt = cwd / m[1]
         text = requirements_txt.read_text()
         for child in re.findall(r"^ *([^#\n\r]+)", text, re.MULTILINE):
@@ -431,10 +432,19 @@ def expand_pip_requirements(requirement, cwd, extras=None):
                                                requirements_txt.parent)
 
     elif m := re.match(r" *([^]]+) *\[([^]]+)\]", requirement):
-        assert m[1] == "."
-        for group in re.findall("[^ ,]+", m[2]):
-            for extra in extras[group]:
-                yield from expand_pip_requirements(extra, cwd)
+        if m[1] == ".":
+            # e.g. ".[test]"
+            for group in re.findall("[^ ,]+", m[2]):
+                for extra in extras[group]:
+                    yield from expand_pip_requirements(extra, cwd)
+        else:
+            # e.g. "package[extra]"
+            # Ignore extras from other packages. Figuring out what an extra
+            # contains would require checking the version of the given package
+            # available on each Linux distribution, downloading the wheel from
+            # PyPI for whatever that version is, then fishing the metadata out
+            # from the wheel.
+            yield m[1]
 
     else:
         yield requirement

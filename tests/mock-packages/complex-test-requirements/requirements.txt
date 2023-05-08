@@ -1,4 +1,4 @@
-soup
+soup[vegetable]
 cake
 -r foo/bar/more-requirements.txt
 # beans
