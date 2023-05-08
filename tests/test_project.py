@@ -175,6 +175,30 @@ def test_missing_poetry_metadata(pyproject_toml):
                 'See https://python-poetry.org/docs/pyproject/#license for what to set it to.')
 
 
+def test_overcomplicated_versioning(pyproject_toml):
+    pyproject = toml.load(bare_minimum / "pyproject.toml")
+
+    pyproject["project"]["version"] = "10"
+    pyproject_toml(pyproject)
+    assert Project.from_root(bare_minimum).version == "10"
+
+    pyproject["project"]["version"] = "10.11.12.13"
+    pyproject_toml(pyproject)
+    assert Project.from_root(bare_minimum).version == "10.11.12.13"
+
+    pyproject["project"]["version"] = "1.2a1"
+    pyproject_toml(pyproject)
+    with pytest.raises(PolycotylusUsageError,
+                       match='version "1.2a1" contains .* characters "a".'):
+        Project.from_root(bare_minimum)
+
+    pyproject["project"]["version"] = "1.2.post1"
+    pyproject_toml(pyproject)
+    with pytest.raises(PolycotylusUsageError,
+                       match='version "1.2.post1" contains .* characters "post".'):
+        Project.from_root(bare_minimum)
+
+
 def test_maintainer(pyproject_toml, polycotylus_yaml):
 
     options = toml.load(bare_minimum / "pyproject.toml")
@@ -252,3 +276,6 @@ def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml):
     """)
     self = Project.from_root(tmp_path)
     assert self.version == "9.3"
+    subprocess.run(["git", "tag", "v10.2.3.post3"], cwd=str(tmp_path), check=True)
+    with pytest.raises(PolycotylusUsageError, match='.*version "10.2.3.post3" .* "post"'):
+        Project.from_root(tmp_path)
