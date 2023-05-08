@@ -7,15 +7,15 @@ dependencies:
   build:
     arch manjaro fedora void alpine: croc
     python: sqlite3
-    pip: pyperclip
+    pip: pyperclip -r build-requirements.txt
   run:
     arch manjaro fedora void alpine: jq
     python: tkinter
-    pip: TABULATE
+    pip: TABULATE -r requirements.txt
   test:
     arch manjaro fedora void alpine: cmatrix
     python: sqlite3 tkinter
-    pip: pytest
+    pip: pytest[feet]
 
 test_command: TEST_VARIABLE=hello pytest -k 'not unrunable' && python -c 'print("hello")'
 

@@ -214,14 +214,22 @@ class Project:
                 requirement, root, extras)
         dependencies.setdefault("test", {})["pip"] = test_dependencies
         # Collect built time PyPI dependencies.
-        pip_build = dependencies.setdefault("build", {}).setdefault("pip", [])
-        pip_build[:] = [Dependency(i, "polycotylus.yaml") for i in pip_build]
+        _pip_build = dependencies.setdefault("build", {}).setdefault("pip", [])
+        pip_build = []
+        for item in _pip_build:
+            for dependency in expand_pip_requirements(item, root):
+                pip_build.append(Dependency(dependency, "polycotylus.yaml"))
         for dependency in pyproject_options.get("build-system", {}).get("requires", []):
             pip_build.append(Dependency(dependency, "pyproject.toml"))
+        dependencies["build"]["pip"] = pip_build
         # Collect runtime PyPI dependencies.
-        pip_run = dependencies.setdefault("run", {}).setdefault("pip", [])
-        pip_run[:] = [Dependency(i, "polycotylus.yaml") for i in pip_run]
+        _pip_run = dependencies.setdefault("run", {}).setdefault("pip", [])
+        pip_run = []
+        for item in _pip_run:
+            for dependency in expand_pip_requirements(item, root):
+                pip_run.append(Dependency(dependency, "polycotylus.yaml"))
         pip_run += [Dependency(i, "pyproject.toml") for i in project.get("dependencies", [])]
+        dependencies["run"]["pip"] = pip_run
         # Unpack grouped Linux dependencies.
         for group in dependencies:
             unpacked = {}
