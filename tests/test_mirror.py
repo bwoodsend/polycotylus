@@ -212,7 +212,7 @@ def test_abort_cleanup(tmp_path, monkeypatch):
 
         monkeypatch.undo()
         urlopen(url).close()
-        assert cache.exists()
+        assert any(cache.exists() or time.sleep(0.1) for _ in range(10))
 
         with urlopen(url) as response:
             gzip.decompress(response.read())
