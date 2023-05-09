@@ -12,10 +12,8 @@ import shlex
 from functools import lru_cache
 
 import toml
-from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker
-from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
 
@@ -61,6 +59,7 @@ class Fedora(BaseDistribution):
 
     @classmethod
     def python_package(cls, requirement):
+        from packaging.requirements import Requirement
         requirement = Requirement(requirement)
         requirement.name = f"python3dist({cls.fix_package_name(requirement.name)})"
         if not cls.evaluate_requirements_marker(requirement):
@@ -240,6 +239,7 @@ class Fedora(BaseDistribution):
 
     @property
     def _mounted_caches(self):
+        from polycotylus._mirror import cache_root
         mock_cache = cache_root / ("fedora-mock-" + _docker.docker.variant)
         mock_cache.mkdir(parents=True, exist_ok=True)
         dnf_cache = cache_root / ("fedora-dnf-" + _docker.docker.variant)

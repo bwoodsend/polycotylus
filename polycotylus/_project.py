@@ -15,7 +15,7 @@ from fnmatch import fnmatch
 
 import toml
 
-from polycotylus import _exceptions, _yaml_schema
+from polycotylus import _exceptions
 
 
 # When dropping support for Python 3.8, replace
@@ -53,6 +53,7 @@ class Project:
 
     @classmethod
     def from_root(cls, root):
+        from polycotylus import _yaml_schema
         root = Path(root)
         try:
             pyproject_options = toml.load(str(root / "pyproject.toml"))

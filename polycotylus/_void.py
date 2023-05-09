@@ -8,11 +8,9 @@ import contextlib
 import shutil
 import platform
 import shlex
-from urllib.request import urlopen
 import json
 
 from polycotylus import _misc, _docker
-from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
 
@@ -34,7 +32,7 @@ class Void(BaseDistribution):
     _formatter = _misc.Formatter()
     supported_architectures = {
         "x86_64": "x86_64",
-        # "aarch64": "aarch64",  # unshare barfs out on these. I don't
+        "aarch64": "aarch64",  # unshare barfs out on these. I don't
         # "armv6l": "arm/v6",    # understand why. Void on non-x86_64 seems
         # "armv7l": "arm/v7",    # unpopular anyway.
     }
@@ -188,6 +186,7 @@ class Void(BaseDistribution):
         """Fetch the commit SHA1 corresponding to the latest completed build
         from https://build.voidlinux.org/builders/aarch64-musl_builder
         (replacing aarch64 with the current architecture)."""
+        from urllib.request import urlopen
         url = f"https://build.voidlinux.org/json/builders/{platform.machine()}-musl_builder/builds?"
         for j in range(-1, -10, -3):  # pragma: no branch
             _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
@@ -206,6 +205,7 @@ class Void(BaseDistribution):
         # Currently, a shallow clone is about 12MB whereas a conventional clone
         # is 558MB.
         from subprocess import run, PIPE, DEVNULL, STDOUT
+        from polycotylus._mirror import cache_root
         cache = cache_root / "void-packages"
         commit = self._void_packages_head()
         if not (cache / ".git").is_dir():  # pragma: no cover

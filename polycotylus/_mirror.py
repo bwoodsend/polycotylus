@@ -18,7 +18,7 @@ import collections
 
 from polycotylus import _docker
 from polycotylus._docker import cache_root
-
+assert 0
 
 class CachedMirror:
     """A mirror of a Linux distribution's package repository which caches

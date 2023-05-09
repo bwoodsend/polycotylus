@@ -5,10 +5,7 @@ import os
 import platform
 from functools import lru_cache
 
-from packaging.requirements import Requirement
-
 from polycotylus import _docker, _exceptions, _misc
-from polycotylus._mirror import mirrors
 
 
 class BaseDistribution(abc.ABC):
@@ -77,7 +74,7 @@ class BaseDistribution(abc.ABC):
             RUN useradd --create-home --non-unique --uid {os.getuid()} --groups {groups} user"""
 
     @classmethod
-    def evaluate_requirements_marker(cls, requirement: Requirement):
+    def evaluate_requirements_marker(cls, requirement):
         # See table in https://peps.python.org/pep-0508/#environment-markers
         return not requirement.marker or requirement.marker.evaluate({
             "os_name": "posix",
@@ -92,6 +89,7 @@ class BaseDistribution(abc.ABC):
 
     @classmethod
     def python_package(cls, requirement):
+        from packaging.requirements import Requirement
         requirement = Requirement(requirement)
         name = re.sub("[._-]+", "-", requirement.name.lower())
         available = cls.available_packages_normalized()
@@ -144,6 +142,7 @@ class BaseDistribution(abc.ABC):
 
     @_misc.classproperty
     def mirror(_, cls):
+        from polycotylus._mirror import mirrors
         return mirrors[cls.name]
 
     def inject_source(self):
@@ -157,9 +156,7 @@ class BaseDistribution(abc.ABC):
 
     def pip_build_command(self, indentation, into="$pkgdir"):
         if self.project.setuptools_scm:
-            name = re.sub("[_.-]+", "_", self.project.name.upper())
-            declare_version = f'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
-            print(declare_version)
+            declare_version = 'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
         return self._formatter(f"""
             {declare_version if self.project.setuptools_scm else ""}
             {self.python_prefix}/bin/pip install --disable-pip-version-check --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
