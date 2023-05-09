@@ -1,0 +1,30 @@
+# Maintainer: {{ this.project.maintainer_slug }}
+pkgname={{ this.project.name | shlex_quote }}
+pkgver={{ this.project.version | shlex_quote }}
+pkgrel=1
+pkgdesc={{ this.project.description | shlex_quote }}
+arch={{ architecture | shlex_quote }}
+license={{ license_names | join(" ") | shlex_quote }}
+url={{ this.project.url | shlex_quote }}
+depends={{ this.dependencies | join(" ") | shlex_quote }}
+makedepends={{ this.build_dependencies | join(" ") | shlex_quote }}
+checkdepends={{ this.test_dependencies | join(" ") | shlex_quote }}
+source="$pkgname-$pkgver.tar.gz::{{ this.project.source_url.format(version="$pkgver") }}"
+builddir="$srcdir/_build"
+{%- if "custom" in license_names %}
+subpackages="$pkgname-doc"
+{%- endif %}
+
+_py3ver() {
+	/usr/bin/python3 -c 'import sys; print("{0}.{1}".format(*sys.version_info))'
+}
+
+build() {
+    cd "$srcdir/{{ this.project.source_top_level.format(version="$pkgver") }}"
+    rm -rf "$builddir"
+    /usr/bin/pip install --disable-pip-version-check --no-compile --prefix="$builddir/usr" --no-warn-script-location --no-deps --no-build-isolation .
+    /usr/bin/python -m compileall --invalidation-mode=unchecked-hash -s "$builddir" "$builddir/usr/lib/"
+    _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{{ this.project.name }}-$pkgver.dist-info"
+    rm -f "$_metadata_dir/direct_url.json"
+    rm -f "$_metadata_dir/LICENSE"
+}

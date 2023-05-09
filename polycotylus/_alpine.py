@@ -81,6 +81,11 @@ class Alpine(BaseDistribution):
             f.write(self.project.tar())
 
     def apkbuild(self):
+        import jinja2
+        env = jinja2.Environment()
+        env.filters["shlex_quote"] = shlex.quote
+        env.filters["shlex_join"] = shlex.join
+        template = env.from_string(open("/g/notebooks/polycotylus/polycotylus/APKBUILD").read())
         out = f"# Maintainer: {self.project.maintainer_slug}\n"
         if self.project.architecture == "none":
             architecture = "noarch"
