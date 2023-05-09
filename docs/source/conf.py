@@ -41,6 +41,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_rtd_theme_configuration",
     "sphinx_inline_tabs",
+    "sphinxnotes.strike",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

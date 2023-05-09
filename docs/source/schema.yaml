@@ -1,10 +1,9 @@
 # An exhaustive list of all valid options settable in the ``polycotylus.yaml``.
-# Options are grouped into non-front-end (i.e. libraries) and front-end (GUIs or
-# CLIs) specific categories. Each category is ordered with the options that
-# you're almost certainly going to need first and the rarely needed options with
-# relatively all-encompassing defaults last. (Feedback wanted of whether this is
-# actually a helpful structure or if I should stick to the conventional
-# alphabetic ordering.)
+# Options are grouped into non-front-end specific (i.e. libraries) and front-end
+# (GUIs or CLI tool) specific categories. Each category is ordered with the
+# commonly needed options first and the options with relatively all-encompassing
+# defaults last. (Feedback wanted of whether this is a helpful structure or if I
+# should stick to the conventional alphabetic ordering.)
 
 # If unsure where to start, the following is a fairly ubiquitous base step::
 #
@@ -12,12 +11,11 @@
 #      test:
 #        pip: pytest
 
-# Note that, whilst this file's format is still dubbed as *YAML*, its parser is
-# strictyaml_ which removes_ some of YAML's more questionable features such as
-# embedded JSON and implicit typing. Additionally, `polycotylus` uses a custom
-# *whitespace delimited list* validator for denoting lists of packages (e.g.
-# write ``numpy requests pyperclip`` instead of ``["numpy", "requests",
-# "pyperclip"]``).
+# Note that this file's format is dubbed as *YAML* but its parser is strictyaml_
+# which removes_ some of YAML's less practical features such as embedded JSON
+# and implicit typing. Additionally, `polycotylus` uses a custom *whitespace
+# delimited list* validator for denoting lists of packages (e.g. write ``numpy
+# requests pyperclip`` instead of ``["numpy", "requests", "pyperclip"]``).
 
 # .. _strictyaml: https://hitchdev.com/strictyaml/
 # .. _removes: https://hitchdev.com/strictyaml/features-removed/
@@ -26,7 +24,7 @@
 # Generic Options
 # ---------------
 
-# Options that are applicable to packages of any type (GUI, CLI or library).
+# Options that are applicable to packages of any type (i.e. GUIs, CLIs or libraries).
 
 dependencies:
   # A project's dependencies are divided up into three categories:
@@ -34,7 +32,7 @@ dependencies:
   # Each of those categories are then in-turn broken down into:
   #
   #   - ``pip``: Pip/PyPI packages.
-  #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which are often shipped separately for size or licensing reasons.
+  #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which may be packaged separately from Python itself for size or licensing reasons.
   #   - ``alpine|arch|fedora|manjaro|void``: Linux packages installed by each distribution's native package manager.
 
   run:
@@ -73,36 +71,34 @@ dependencies:
     arch manjaro: gcc
     fedora: gcc
     void: python3-devel gcc
-      # System package build dependencies. Pure Python packages are unlikely to
-      # need this section. Packages containing compiled extension modules will
-      # need to add the appropriate compiler for your chosen programming
-      # language and, for distributions that use them, the ``-dev`` variants of
-      # any C libraries linked against. The example shows the bare minimum
-      # required for any extension module written in C.
+      # System package build dependencies. This is where packages containing
+      # compiled extension modules will need to add the appropriate compiler for
+      # your chosen programming language and, for distributions that use them,
+      # the ``-dev`` variants of any C libraries linked against. The example
+      # shows the bare minimum required for any extension module written in C.
 
   test:
-    # Anything not already in the `dependencies.run` category needed to run your
-    # test suite.
+    # Anything not already listed in the `dependencies.run` category needed to
+    # run the test suite.
 
     pip: -r test-requirements.txt .[test]
-      # Test dependencies normally installed with ``pip`` can either be listed
-      # here, or if you already define them in a requirements.txt or as an
-      # optional dependency group, use the usual ``-r requirements.txt`` or
-      # ``.[group-name]`` syntax respectively. You'll likely discover that some
-      # of your favourite pytest plugins aren't available on all Linux
-      # distributions, in which case, you will either have to submit those
-      # plugins yourself or make do without them. Note that some distributions
-      # (particularly Fedora) dislike non-functional test dependencies such as
-      # linters, formatters or coverage tools. If you use these, you're
-      # recommended to banish them to a separate extras group or requirements
-      # file.
+      # Test dependencies normally installed with ``pip`` should be listed here.
+      # If defined in a requirements.txt or as an optional dependency group, use
+      # the usual ``-r requirements.txt`` or ``.[group-name]`` syntaxes
+      # respectively. You'll likely discover that some of your favourite pytest
+      # plugins aren't available on all Linux distributions, in which case, you
+      # will either have to submit those plugins yourself or make do without
+      # them. Be aware that some distributions (particularly Fedora) dislike
+      # non-functional test dependencies such as linters, formatters or coverage
+      # tools. If you use these, you're recommended to split them out into a
+      # separate extras group or requirements file.
 
 source_url:
-  # A URL where the project's source code can be downloaded from. Defaults to
-  # downloading an sdist from PyPI. If your project only puts wheels on PyPI or
-  # isn't on PyPI, you won't be able to use this default. Some examples for
-  # common git hosts assuming an organisation called ``foo`` and project
-  # called ``bar``::
+  # A URL where the project's source code can be downloaded from. The default is
+  # to download an sdist from PyPI. If your project puts only wheels on PyPI or
+  # isn't on PyPI, you won't be able to use this default. Some examples are
+  # listed below for common git hosts. Assuming an organisation called ``foo``
+  # and project called ``bar``::
   #
   #   https://bitbucket.org/foo/bar/downloads/bar-{version}.tar.xz
   #   https://downloads.sourceforge.net/foo/bar-{version}.tar.gz
@@ -110,6 +106,8 @@ source_url:
   #   https://gitlab.com/foo/bar/-/archive/v{version}/bar-v{version}.tar.gz
 
 source_top_level: foo-{version}
+  # The path inside a tarball downloaded from `source_url` to the directory
+  # containing the ``pyproject.toml``.
 
 spdx:
   MIT:
@@ -147,13 +145,13 @@ maintainer: Your Name <your.email@address.com>
   # ``pyproject.toml``.
 
 test_command: pytest -k 'not unrunable_test'
-  # The verification command, defaulting to ``pytest``. This command will be
+  # The verification command, defaults to ``pytest``. This command will be
   # invoked using ``sh`` from the root of a copy of your project but note that
   # only the files listed in `test_files` will be available when `polycotylus`
   # runs its end to end test. If you want to invoke python, use just ``python``
   # instead of ``python3`` or ``/usr/bin/python`` so that `polycotylus` can
-  # replace ``python`` with each Linux distribution's invocation convention or
-  # macros.
+  # replace ``python`` with whatever macros or conventions each Linux
+  # distribution prefers.
 
 test_files:
   - tests
@@ -164,9 +162,9 @@ test_files:
   # final package, will mount only these files into the test container so that
   # tests can't accidentally use your original source code rather than the
   # installed package. The patterns listed here are the defaults. Setting this
-  # field replaces the defaults so you will have to re-add the ones you need.
-  # Globs are expanded using `pathlib.Path.glob`. All paths are relative to the
-  # directory containing the ``polycotylus.yaml``.
+  # field replaces the defaults so remember to re-add any of the default ones
+  # you need. Globs are expanded using `pathlib.Path.glob`. All paths are
+  # relative to the directory containing the ``polycotylus.yaml``.
 
 
 # --------------------
@@ -174,14 +172,14 @@ test_files:
 # --------------------
 
 prefix_package_name: false
-  # Apply the Linux distribution's standard Python package prefix (e.g.
-  # ``numpy`` becomes ``py3-numpy`` on Alpine). Disable this if your package is
+  # If disabled, don't apply the Linux distribution's standard Python package
+  # prefix (e.g. ``py3-`` on Alpine or ``python-`` on Arch). If your package is
   # not primarily a library intended to be imported by other packages – rather
   # it's a standalone CLI tool or GUI application that merely happens to be
-  # written in Python.
+  # written in Python, then set this field to false.
 
 gui: true
-  # Set to true if your package contains GUI elements. Defaults to false but
+  # Set to true if for packages containing GUI elements. Defaults to false but
   # enables itself automatically if the ``gui-scripts`` field in the
   # ``pyproject.toml`` is non-empty. Setting this field will enable XVFB_
   # display virtualisation so that GUIs can be ran inside Docker containers.
@@ -229,16 +227,17 @@ desktop_entry_points:
     MimeType: image/bmp;image/gif;image/jpeg;image/png;image/tiff;video/mp4
     # Declare which file types your application can open. Desktops will respond
     # by adding your application to *Open With* dialogs in graphical file
-    # managers. See `mimetypes.types_map` for finding common mimetype names.
-    # Desktop file list items are delimited by ``;`` but you may write mimetypes
-    # on separate lines instead for readability/git friendliness.
+    # managers. See Python's `mimetypes.types_map` for finding common mimetype
+    # names. Desktop file list items are delimited by ``;`` but you may write
+    # mimetypes on separate lines instead for readability and/or git
+    # friendliness.
 
     icon: icon-source.svg
     # A path, relative to the directory containing the ``polycotylus.yaml``, to
     # an icon for the application. The desktop specification promotes using SVG
     # since it can be scaled to arbitrary sizes but I have yet to encounter a
     # desktop environment that actually will use SVGs (even if you take away all
-    # PNG alternatives) so a decent sized PNG is equally sufficient. The
+    # PNG alternatives) so a decent sized PNG is just as sufficient. The
     # provided icon should be square and either much larger than 128x128px or an
     # exact multiple in size to minimize resize aliasing. `polycotylus` will
-    # handle the image resize and conversions.
+    # handle the image resizing and conversion.
