@@ -110,9 +110,9 @@ class Arch(BaseDistribution):
             arch=architecture,
             url=self.project.url,
             license=license_names,
-            depends=self.dependencies,
-            makedepends=self.build_dependencies,
-            checkdepends=self.test_dependencies,
+            depends=self.dependencies(),
+            makedepends=self.build_dependencies(),
+            checkdepends=self.test_dependencies(),
             source=f'("{self.project.source_url.format(version="$pkgver")}")',
             sha256sums=["SKIP"],
         )
@@ -136,7 +136,7 @@ class Arch(BaseDistribution):
         return out
 
     def dockerfile(self):
-        dependencies = self.dependencies + self.build_dependencies + self.test_dependencies
+        dependencies = self.dependencies() + self.build_dependencies() + self.test_dependencies()
         return self._formatter(f"""
             FROM {self.image} AS base
 
@@ -149,10 +149,10 @@ class Arch(BaseDistribution):
             FROM base as build
             ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-            RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
+            RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies())}
 
             FROM base AS test
-            RUN pacman -Syu --noconfirm --needed {shlex.join(self.test_dependencies)}
+            RUN pacman -Syu --noconfirm --needed {shlex.join(self.test_dependencies())}
     """)
 
     def generate(self):

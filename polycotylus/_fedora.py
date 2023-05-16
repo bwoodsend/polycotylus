@@ -69,15 +69,13 @@ class Fedora(BaseDistribution):
             requirement.marker = None
         return str(requirement).replace(">=", " >= ")
 
-    @property
     def dependencies(self):
         out = [(self.python + self.project.supported_python).replace(">=", " >= ")]
         out += self._dependencies(self.project.dependencies)
         return _deduplicate(out)
 
-    @property
     def build_dependencies(self):
-        return _deduplicate(["python3-devel"] + super().build_dependencies[2:])
+        return _deduplicate(["python3-devel"] + super().build_dependencies()[2:])
 
     def spec(self):
         out = self._formatter(f"""
@@ -249,12 +247,12 @@ class Fedora(BaseDistribution):
     def build_builder_image(self):
         base = super().build_builder_image()
         command = ["yum", "install", "-y", "fedpkg", "python3dist(wheel)"] + \
-            self.build_dependencies + self.dependencies + self.test_dependencies
+            self.build_dependencies() + self.dependencies() + self.test_dependencies()
         return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)
 
     def build_test_image(self):
-        command = ["yum", "install", "-y"] + self.test_dependencies
+        command = ["yum", "install", "-y"] + self.test_dependencies()
         if self.project.gui:
             command.append("util-linux")
         return _docker.lazy_run(super().build_test_image(), command, tty=True,

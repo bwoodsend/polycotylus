@@ -181,13 +181,11 @@ class BaseDistribution(abc.ABC):
         out += dependencies.get(self.name, [])
         return list(filter(None, out))
 
-    @property
     def dependencies(self):
         out = [self.python + self.project.supported_python]
         out += self._dependencies(self.project.dependencies)
         return _deduplicate(out)
 
-    @property
     def build_dependencies(self):
         out = [self.python_package("wheel"), self.python_package("pip")]
         out += self._dependencies(self.project.build_dependencies)
@@ -203,7 +201,6 @@ class BaseDistribution(abc.ABC):
         out = [i for i in out if i not in disallowed]
         return _deduplicate(out)
 
-    @property
     def test_dependencies(self):
         out = self._dependencies(self.project.test_dependencies)
         if self.project.gui:

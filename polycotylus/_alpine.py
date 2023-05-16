@@ -102,9 +102,9 @@ class Alpine(BaseDistribution):
             arch=shlex.quote(architecture),
             license=shlex.quote(" ".join(license_names)),
             url=self.project.url,
-            depends=shlex.quote(" ".join(self.dependencies)),
-            makedepends=shlex.quote(" ".join(self.build_dependencies)),
-            checkdepends=shlex.quote(" ".join(self.test_dependencies)),
+            depends=shlex.quote(" ".join(self.dependencies())),
+            makedepends=shlex.quote(" ".join(self.build_dependencies())),
+            checkdepends=shlex.quote(" ".join(self.test_dependencies())),
             source=f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
             builddir='"$srcdir/_build"',
         )
@@ -180,10 +180,10 @@ class Alpine(BaseDistribution):
             RUN touch "/home/user/.abuild/{private.name}"
             RUN chown -R user /home/user/.abuild
             RUN cp "/etc/apk/keys/{public.name}" /home/user/.abuild/
-            RUN apk add {shlex.join(self.dependencies + self.build_dependencies + self.test_dependencies)}
+            RUN apk add {shlex.join(self.dependencies() + self.build_dependencies() + self.test_dependencies())}
 
             FROM base AS test
-            RUN apk add {shlex.join(self.test_dependencies)}
+            RUN apk add {shlex.join(self.test_dependencies())}
 
             # This seemingly redundant layer of indirection ensures that
             # xvfb-run (which calls exec) is never the top level process in the

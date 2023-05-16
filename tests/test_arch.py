@@ -83,7 +83,7 @@ def test_ubrotli():
     self.generate()
     assert "arch=(x86_64)" in self.pkgbuild()
     self.project.build_dependencies["arch"].append("gcc")
-    assert "gcc" not in self.build_dependencies
+    assert "gcc" not in self.build_dependencies()
     assert "gcc" not in self.pkgbuild()
 
     package = self.build()["main"]

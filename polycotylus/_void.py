@@ -60,9 +60,8 @@ class Void(BaseDistribution):
         cls._build_base_packages = re.findall(r"^([^>]+)", _read("base"))
         cls._python_version = re.search("pkgver: python3-([^_]+)", _read("/python-info"))[1]
 
-    @property
     def build_dependencies(self):
-        out = super().build_dependencies
+        out = super().build_dependencies()
         out.remove(self.python_package("pip"))
         # Build dependencies aren't allowed any version constraints.
         out = [re.split(" *[<>~=]", i)[0] for i in out]
@@ -78,8 +77,8 @@ class Void(BaseDistribution):
         return "python3-" + wheel_packaged_name
 
     def dockerfile(self):
-        dependencies = _deduplicate(self.dependencies + self.build_dependencies
-                                    + self.test_dependencies)
+        dependencies = _deduplicate(self.dependencies() + self.build_dependencies()
+                                    + self.test_dependencies())
         return self._formatter(f"""
             FROM {self.image} AS base
             RUN {self.mirror.install}
@@ -93,7 +92,7 @@ class Void(BaseDistribution):
             RUN xbps-install -ySu xbps git bash util-linux {shlex.join(dependencies)}
 
             FROM base AS test
-            RUN xbps-install -ySu xbps {shlex.join(self.test_dependencies)}
+            RUN xbps-install -ySu xbps {shlex.join(self.test_dependencies())}
         """)
 
     def template(self):
@@ -104,9 +103,9 @@ class Void(BaseDistribution):
             version=self.project.version,
             revision=1,
             build_style="python3-pep517",
-            hostmakedepends=quote(" ".join(self.build_dependencies)),
-            depends=quote(" ".join(self.dependencies)),
-            checkdepends=quote(" ".join(self.test_dependencies)),
+            hostmakedepends=quote(" ".join(self.build_dependencies())),
+            depends=quote(" ".join(self.dependencies())),
+            checkdepends=quote(" ".join(self.test_dependencies())),
             short_desc=quote(self.project.description),
             maintainer=quote(self.project.maintainer_slug),
             license=quote(", ".join(self.project.license_names)),
