@@ -147,6 +147,7 @@ def _tee_run(command, verbosity, **kwargs):
             chunks.append(chunk)
             if verbosity >= 2:
                 sys.stdout.buffer.write(chunk)
+                sys.stdout.flush()
         if verbosity >= 2:
             print()
     return p.returncode, b"".join(chunks).decode()
