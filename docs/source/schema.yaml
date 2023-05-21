@@ -173,12 +173,14 @@ test_files:
 # CLI/GUI only options
 # --------------------
 
-prefix_package_name: false
-  # Apply the Linux distribution's standard Python package prefix (e.g.
-  # ``numpy`` becomes ``py3-numpy`` on Alpine). Disable this if your package is
-  # not primarily a library intended to be imported by other packages – rather
-  # it's a standalone CLI tool or GUI application that merely happens to be
-  # written in Python.
+frontend: true
+  # If your package is not primarily a library intended to be imported by other
+  # Python packages – rather it's a standalone CLI tool or GUI application that
+  # merely happens to be written in Python – then set this field to ``true``.
+  # When enabled, `polycotylus` will not apply the Linux distribution's standard
+  # Python package prefix (e.g. ``py3-`` on Alpine or ``python-`` on Arch) and
+  # build for only one Python version on Linux distributions that provide more
+  # than one Python version.
 
 gui: true
   # Set to true if your package contains GUI elements. Defaults to false but

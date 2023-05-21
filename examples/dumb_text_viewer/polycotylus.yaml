@@ -6,7 +6,7 @@ dependencies:
   test:
     pip: -r test-requirements.txt
 
-prefix_package_name: false
+frontend: true
 
 desktop_entry_points:
   underwhelming_software-dumb_text_viewer:

@@ -130,7 +130,7 @@ class BaseDistribution(abc.ABC):
     def package_name(self):
         """The distro-normalized/sluggified version of this project's name,"""
         name = self.fix_package_name(self.project.name)
-        if self.project.prefix_package_name:
+        if not self.project.frontend:
             name = self.python_package_convention(name)
         return name
 

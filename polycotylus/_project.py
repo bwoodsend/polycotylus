@@ -49,7 +49,7 @@ class Project:
     gui: bool
     source_url: str
     source_top_level: str
-    prefix_package_name: bool
+    frontend: bool
     url: str
 
     @classmethod
@@ -321,7 +321,7 @@ class Project:
             desktop_entry_points=desktop_files,
             source_url=source,
             source_top_level=source_top_level,
-            prefix_package_name=polycotylus_options["prefix_package_name"],
+            frontend=polycotylus_options["frontend"],
             architecture=architecture,
             gui=gui,
             root=root,

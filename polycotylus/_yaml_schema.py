@@ -101,7 +101,7 @@ polycotylus_yaml = Map({
     Optional("maintainer"): Regex(maintainer_slug_re),
     Optional("gui"): Bool(),
     Optional("spdx"): MapPattern(Str(), EmptyDict()),
-    Optional("prefix_package_name", default=True): Bool(),
+    Optional("frontend", default=False): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),
     Optional("test_files", default=default_test_files): Seq(Str()),
     Optional("test_command"): Str(),
