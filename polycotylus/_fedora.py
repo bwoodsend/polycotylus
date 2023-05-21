@@ -11,7 +11,6 @@ import contextlib
 import shlex
 from functools import lru_cache
 
-import toml
 from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker
@@ -173,11 +172,7 @@ class Fedora(BaseDistribution):
         """)
         licenses = shlex.join(self.project.licenses).replace("'", '"')
         out += f"%license {licenses}\n"
-        options = toml.load(self.project.root / "pyproject.toml")
-        for variant in ("gui-scripts", "scripts"):
-            for script in options.get("project", {}).get(variant, ()):
-                out += f"%{{_bindir}}/{script}\n"
-        for script in options.get("tool", {}).get("poetry", {}).get("scripts", {}):
+        for script in sorted(self.project.scripts):
             out += f"%{{_bindir}}/{script}\n"
         for (_, name) in self.icons:
             out += f"%{{_datadir}}/icons/hicolor/*/apps/{name}.png\n"

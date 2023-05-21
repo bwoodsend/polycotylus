@@ -43,6 +43,7 @@ class Project:
     test_files: list
     license_names: list
     licenses: list
+    scripts: dict
     desktop_entry_points: dict
     architecture: object
     gui: bool
@@ -75,6 +76,8 @@ class Project:
         polycotylus_options = polycotylus_yaml.data
 
         if poetry_project := pyproject_options.get("tool", {}).get("poetry", {}):
+            # Copy all poetry configuration to wherever it would be if poetry
+            # followed PEP 621.
             try:
                 maintainers = poetry_project.get("maintainers") or poetry_project["authors"]
                 maintainers = [dict(zip(["name", "email"], re.match("([^<>]+?) *<(.+)>", i).groups())) for i in maintainers]
@@ -85,6 +88,7 @@ class Project:
                     "urls": {"homepage": poetry_project["homepage"]},
                     "maintainers": maintainers,
                     "dependencies": [],
+                    "scripts": poetry_project["scripts"],
                 }
                 for (name, version) in poetry_project["dependencies"].items():
                     # Poetry strongly encourages over-constraining versions
@@ -313,6 +317,7 @@ class Project:
             url=project["urls"]["homepage"],
             license_names=license_names,
             licenses=licenses,
+            scripts={**project.get("scripts", {}), **project.get("gui-scripts", {})},
             desktop_entry_points=desktop_files,
             source_url=source,
             source_top_level=source_top_level,
