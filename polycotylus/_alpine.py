@@ -81,7 +81,8 @@ class Alpine(BaseDistribution):
             f.write(self.project.tar())
 
     def apkbuild(self):
-        out = f"# Maintainer: {self.project.maintainer_slug}\n"
+        out = self._formatter.textblock()
+        out += f"# Maintainer: {self.project.maintainer_slug}"
         if self.project.architecture == "none":
             architecture = "noarch"
         elif self.project.architecture == "any":
@@ -113,29 +114,30 @@ class Alpine(BaseDistribution):
         out += "\n"
         out += self.define_py3ver()
 
-        out += self._formatter("""
+        out += """
             build() {
                 cd "$srcdir/%s"
                 rm -rf "$builddir"
-        """ % top_level)
+        """ % top_level
         out += self.pip_build_command(1, "$builddir")
         dist_info_name = re.sub("[-_]+", "_", self.project.name)
-        out += self._formatter(f"""
+        out.add_indented(f"""
             _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{dist_info_name}-$pkgver.dist-info"
             rm -f "$_metadata_dir/direct_url.json"
         """, 1)
         if "custom" in license_names:
             for license in self.project.licenses:
-                out += self._formatter(f"""
+                out.add_indented(f"""
                     install -Dm644 {shlex.quote(license)} -t "$pkgdir-doc/usr/share/licenses/{self.package_name}"
                 """, 1)
         for license in self.project.licenses:
-            out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
+            out.add_indented(f'rm -f "$_metadata_dir/{license}"', 1)
         out += self.install_desktop_files(1, dest="$builddir")
         out += self.install_icons(1)
-        out += "}\n\n"
+        out += "}"
+        out += "\n"
 
-        out += self._formatter("""
+        out += """
             check() {
                 cd "$srcdir/%s"
                 PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" %s
@@ -145,14 +147,14 @@ class Alpine(BaseDistribution):
                 mkdir -p "$(dirname "$pkgdir")"
                 cp -r "$builddir" "$pkgdir"
             }
-        """ % (top_level, self.project.test_command))
+        """ % (top_level, self.project.test_command)
         out += "\n"
-        out += self._formatter("""
+        out += """
             sha512sums="
             %s  %s-%s.tar.gz
             "
         """ % (hashlib.sha512(self.project.tar()).hexdigest(),
-               self.package_name, self.project.version))
+               self.package_name, self.project.version)
         return out
 
     def dockerfile(self):

@@ -22,6 +22,25 @@ class Formatter:
         text = re.sub("^ +", lambda m: len(m[0]) // 4 * self.indentation, text, flags=re.M)
         return textwrap.indent(text, self.indentation * level) + "\n"
 
+    def textblock(self):
+        return TextBlock(self)
+
+
+class TextBlock:
+    def __init__(self, formatter):
+        self._contents = []
+        self._formatter = formatter
+
+    def __iadd__(self, text):
+        self._contents.append(self._formatter(text))
+        return self
+
+    def add_indented(self, text, level):
+        self._contents.append(self._formatter(text, level))
+
+    def __str__(self):
+        return "".join(self._contents)
+
 
 class classproperty:
     def __init__(self, method):
