@@ -338,6 +338,10 @@ def _manjaro_preferred_mirror():
             return url
 
 
+def opensuse_last_sync_time(self: RequestHandler):
+    return float("inf")
+
+
 mirrors = {
     "arch":
         CachedMirror(
@@ -383,6 +387,17 @@ mirrors = {
             r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
             (_use_last_modified_header,),
             r"(.+-)([^_-]+_\d+)(\..+)",
+        ),
+    "opensuse":
+        CachedMirror(
+            "http://download.opensuse.org",
+            cache_root / "opensuse",
+            ["repomd.xml", "repomd.xml.key", "repomd.xml.asc"],
+            [],
+            8904,
+            "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
+            (opensuse_last_sync_time,),
+            r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
         ),
 }
 

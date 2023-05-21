@@ -74,6 +74,7 @@ dependencies:
     alpine: python3-dev gcc musl-dev
     arch manjaro: gcc
     fedora: python3-devel gcc
+    opensuse: gcc
     void: python3-devel gcc
       # System package build dependencies. Pure Python packages are unlikely to
       # need this section. Packages containing compiled extension modules will
@@ -120,7 +121,9 @@ spdx:
   # identifiers. Dual licensed software should use multiple keys. SPDX
   # exceptions_ can by appended after a ``WITH`` separator. This option does not
   # need to be set if `polycotylus` detects license `trove classifiers`_ and is
-  # able to map them to SPDX codes without ambiguity.
+  # able to map them to SPDX codes without ambiguity. Use ``nonfree:`` for
+  # closed source software or ``custom:`` if your open source license doesn't
+  # have an SDPX identifier.
   #
   # .. _SPDX: https://spdx.org/licenses/
   # .. _exceptions: https://spdx.org/licenses/exceptions-index.html

@@ -5,15 +5,17 @@ spdx:
 
 dependencies:
   build:
-    arch manjaro fedora void alpine: croc
+    arch manjaro: p7zip
+    void alpine opensuse: 7zip
+    fedora: p7zip-plugins
     python: sqlite3
     pip: pyperclip -r build-requirements.txt
   run:
-    arch manjaro fedora void alpine: jq
+    arch manjaro fedora void alpine opensuse: jq
     python: tkinter
     pip: TABULATE -r requirements.txt
   test:
-    arch manjaro fedora void alpine: cmatrix
+    arch manjaro fedora void alpine opensuse: nano
     python: sqlite3 tkinter
     pip: pytest[feet]
 

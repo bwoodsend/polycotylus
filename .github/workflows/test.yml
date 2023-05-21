@@ -18,6 +18,7 @@ jobs:
           - tests/test_arch.py tests/test_manjaro.py
           - tests/test_fedora.py
           - tests/test_void.py
+          - tests/test_opensuse.py
       fail-fast: false
 
     runs-on: ubuntu-latest

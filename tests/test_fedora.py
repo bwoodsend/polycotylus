@@ -13,16 +13,18 @@ from polycotylus.__main__ import cli
 import shared
 
 
-def test_pretty_spec():
-    self = Fedora(Project.from_root(shared.dumb_text_viewer))
-    spec = self.spec()
-
+def _check_values_align(spec):
     first, *others = re.finditer(r"^(\w+:( *))(.*)$", spec, flags=re.M)
     assert len(first[2]) >= 2
     for line in others:
         assert len(line[1]) == len(first[1])
         assert len(line[2]) >= 2
 
+
+def test_pretty_spec():
+    self = Fedora(Project.from_root(shared.dumb_text_viewer))
+    spec = self.spec()
+    _check_values_align(spec)
     assert "\n\n\n\n" not in spec
 
 

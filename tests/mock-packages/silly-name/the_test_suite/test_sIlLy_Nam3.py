@@ -15,7 +15,7 @@ def test_main():
 def test_dependencies():
     import sqlite3
     import tkinter
-    assert shutil.which("cmatrix")
+    assert shutil.which("nano")
     with pytest.raises(ImportError):
         import win32ctypes
 
