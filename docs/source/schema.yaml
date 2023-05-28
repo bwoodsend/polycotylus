@@ -153,7 +153,11 @@ test_command: pytest -k 'not unrunable_test'
   # runs its end to end test. If you want to invoke python, use just ``python``
   # instead of ``python3`` or ``/usr/bin/python`` so that `polycotylus` can
   # replace ``python`` with each Linux distribution's invocation convention or
-  # macros.
+  # macros. ``python -m unittest`` is strongly discouraged in favour of
+  # `pytest's unittest support`_ due to its rather dangerous behaviour of not
+  # failing if no tests are found.
+  #
+  # .. _`pytest's unittest support`: https://docs.pytest.org/en/7.3.x/how-to/unittest.html
 
 test_files:
   - tests

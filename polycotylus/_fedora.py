@@ -252,6 +252,8 @@ class Fedora(BaseDistribution):
         command = ["yum", "install", "-y"] + self.test_dependencies
         if self.project.gui:
             command.append("util-linux")
+        elif not self.test_dependencies:
+            return super().build_test_image()
         return _docker.lazy_run(super().build_test_image(), command, tty=True,
                                 volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)

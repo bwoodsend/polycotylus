@@ -1,3 +1,1 @@
-dependencies:
-  test:
-    pip: pytest
+test_command: python -m unittest discover tests 2>&1 | grep 'Ran 1 test'

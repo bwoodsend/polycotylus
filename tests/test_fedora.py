@@ -150,3 +150,13 @@ def test_poetry(tmp_path):
     self = Fedora(Project.from_root(tmp_path))
     self.generate()
     self.test(self.build()["main"])
+
+
+def test_unittest():
+<<<<<<< Updated upstream
+    self = Fedora(Project.from_root(bare_minimum))
+=======
+    self = Fedora(Project.from_root(shared.bare_minimum))
+    self.generate()
+>>>>>>> Stashed changes
+    self.test(self.build()["main"])
