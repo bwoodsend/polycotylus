@@ -11,6 +11,7 @@
 
 .. toctree::
     :caption: References
+    :maxdepth: 2
 
     schema
     package-managers

@@ -75,6 +75,7 @@
 .wy-menu-vertical li.toctree-l1,
 .wy-menu-vertical li.toctree-l2,
 .wy-menu-vertical li.current > a,
+.wy-menu-vertical li.current,
 .wy-menu-vertical li.toctree-l2.current > a {
   /* Make the text on top of it more readable. */
   background-color: #0000;
@@ -113,4 +114,22 @@
 }
 .rst-content section ul {
   line-height: 12px;
+}
+
+/* Make option names in the polycotylus.yaml reference look like API reference
+ * headings. */
+div[id="reference-polycotylus-yaml"] h3 {
+  font-size: 90%;
+  line-height: normal;
+  color: #2980b9;
+  display: table;
+  font-weight: 700;
+  margin: 6px 0;
+  line-height: normal;
+  background: #e7f2fa;
+  color: #2980b9;
+  border-top: 3px solid #6ab0de;
+  padding: 6px;
+  position: relative;
+  font-family: Lato,proxima-nova,Helvetica Neue,Arial,sans-serif;
 }
