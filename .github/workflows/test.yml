@@ -13,7 +13,7 @@ jobs:
         docker:
           - docker
         suite:
-          - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py
+          - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py tests/test_docs.py
           - tests/test_alpine.py tests/test_completion.py
           - tests/test_arch.py tests/test_manjaro.py
           - tests/test_fedora.py

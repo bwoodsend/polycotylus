@@ -69,9 +69,9 @@ dependencies:
       # pick them up. ``pip`` and ``wheel`` are also automatically added to this
       # list on distributions that don't handle this themselves.
 
-    alpine: gcc musl-dev python3-dev
+    alpine: python3-dev gcc musl-dev
     arch manjaro: gcc
-    fedora: gcc
+    fedora: python3-devel gcc
     void: python3-devel gcc
       # System package build dependencies. Pure Python packages are unlikely to
       # need this section. Packages containing compiled extension modules will

@@ -5,9 +5,9 @@ spdx:
 
 dependencies:
   build:
-    arch manjaro: brotli
+    arch manjaro: brotli gcc
     alpine: brotli-dev python3-dev gcc musl-dev
-    void: brotli-devel python3-devel
+    void: brotli-devel python3-devel gcc
     fedora: brotli-devel python3-devel gcc
   run:
     arch manjaro: brotli
