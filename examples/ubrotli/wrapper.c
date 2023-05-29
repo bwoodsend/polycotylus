@@ -49,16 +49,14 @@ static PyObject *decompress(PyObject *dummy, PyObject *args) {
     decompressed_length = output_size;
     BrotliDecoderResult status =
         BrotliDecoderDecompress(length, buffer, &decompressed_length, output);
-    if (status == BROTLI_DECODER_SUCCESS)
+    if (status == BROTLI_DECODER_SUCCESS) {
       break;
-    else {
-      if (decompressed_length) {
-        PyMem_Free(output);
-        output_size *= 4;
-      } else {
-        PyErr_SetString(PyExc_ValueError, "Invalid brotli-compressed buffer");
-        return NULL;
-      }
+    } else if (decompressed_length == output_size) {
+      PyMem_Free(output);
+      output_size *= 4;
+    } else {
+      PyErr_SetString(PyExc_ValueError, "Invalid brotli-compressed buffer");
+      return NULL;
     }
   }
   return PyBytes_FromStringAndSize((char *)output, decompressed_length);
