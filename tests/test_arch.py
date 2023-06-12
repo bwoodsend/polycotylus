@@ -6,7 +6,6 @@ import re
 import sys
 import textwrap
 
-from PIL import Image
 import pyzstd
 
 from polycotylus import _docker
@@ -52,14 +51,8 @@ def test_dumb_text_viewer():
     pyc_contents = {i: i.read_bytes() for i in pycache.iterdir()}
     assert len(pyc_contents) == 2
 
-    for size in [16, 24, 128]:
-        path = sysroot / f"usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png"
-        assert path.exists()
-        png = Image.open(path)
-        assert png.size == (size, size)
-        assert png.getpixel((0, 0))[3] == 0
-
     container = self.test(package)
+    shared.check_dumb_text_viewer_installation(container)
     installed = container.commit()
 
     with mirror:
@@ -73,9 +66,6 @@ def test_dumb_text_viewer():
             with tar.extractfile("__pycache__/" + pyc.name) as f:
                 assert pyc_contents[pyc] == f.read()
         assert len(tar.getmembers()) == 3
-    assert container.file(
-        "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg"
-    ).startswith(b"<svg")
 
 
 def test_ubrotli():

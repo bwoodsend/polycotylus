@@ -24,7 +24,8 @@ def test_ubrotli():
 def test_dumb_text_viewer():
     self = Void(Project.from_root(shared.dumb_text_viewer))
     self.generate()
-    self.test(self.build()["main"])
+    shared.check_dumb_text_viewer_installation(self.test(self.build()["main"]),
+                                               icon_sizes=(16, 48, 256))
 
 
 def test_png_source_icon(polycotylus_yaml):

@@ -131,6 +131,11 @@ class Void(BaseDistribution):
                     vcopy "{dest}.png" usr/share/icons/hicolor/${{size}}x${{size}}/apps/
                 """, 2)
             out += self._formatter("done", 1)
+            if any(source.endswith(".svg") for (source, _) in self.icons):
+                out += self._formatter("vmkdir usr/share/icons/hicolor/scalable/apps")
+                for (source, dest) in self.icons:
+                    if source.endswith(".svg"):  # pragma: no branch
+                        out += self._formatter(f'vcopy "{source}" usr/share/icons/hicolor/scalable/apps/{dest}.svg')
         for id in self.project.desktop_entry_points:
             out += self._formatter(f"vinstall .polycotylus/{id}.desktop 644 /usr/share/applications", 1)
 

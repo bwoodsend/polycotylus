@@ -61,9 +61,7 @@ def test_dumb_text_viewer():
     self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     container = self.test(self.build()["main"])
-    assert container.file("/usr/bin/dumb_text_viewer").startswith(b"#! /usr/bin/python3")
-    container.file("/usr/share/applications/underwhelming_software-dumb_text_viewer.desktop")
-    container.file("/usr/share/icons/hicolor/24x24/apps/underwhelming_software-dumb_text_viewer.png")
+    shared.check_dumb_text_viewer_installation(container, b"#! /usr/bin/python3")
     container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
 
 
@@ -153,10 +151,6 @@ def test_poetry(tmp_path):
 
 
 def test_unittest():
-<<<<<<< Updated upstream
-    self = Fedora(Project.from_root(bare_minimum))
-=======
     self = Fedora(Project.from_root(shared.bare_minimum))
     self.generate()
->>>>>>> Stashed changes
     self.test(self.build()["main"])

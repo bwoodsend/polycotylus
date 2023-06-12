@@ -2,7 +2,9 @@ import shlex
 import collections
 from fnmatch import fnmatch
 from pathlib import Path
+import io
 
+from PIL import Image
 import pytest
 
 from polycotylus import _docker, _exceptions
@@ -102,3 +104,19 @@ def qemu(cls):
             architecture in binary
 
     return test_multiarch
+
+
+def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
+                                        icon_sizes=(16, 24, 128)):
+    for size in icon_sizes:
+        raw = container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png")
+        png = Image.open(io.BytesIO(raw))
+        assert png.size == (size, size)
+        assert png.getpixel((0, 0))[3] == 0
+
+    assert "Comment[zh_CN]=讀取純文本文件".encode() in container.file(
+        "/usr/share/applications/underwhelming_software-dumb_text_viewer.desktop")
+    assert container.file(
+        "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg"
+    ).startswith(b"<svg")
+    assert container.file("/usr/bin/dumb_text_viewer").startswith(shebang)

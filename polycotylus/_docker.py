@@ -128,6 +128,8 @@ class run:
         path = Path("/", path)
         p = _run([docker, "container", "cp", f"{self.id}:{path}", "-"],
                  stdout=PIPE, stderr=PIPE)
+        if p.returncode:
+            raise FileNotFoundError(f"{self.id}:{path}")
         return TarFile("", "r", io.BytesIO(p.stdout))
 
     def file(self, path):
