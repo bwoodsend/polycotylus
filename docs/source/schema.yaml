@@ -6,7 +6,9 @@
 # actually a helpful structure or if I should stick to the conventional
 # alphabetic ordering.)
 
-# If unsure where to start, the following is a fairly ubiquitous base step::
+# If unsure where to start, the following is a fairly ubiquitous base step from
+# which you can try your first build and then follow whatever errors that leads
+# you to::
 #
 #    dependencies:
 #      test:

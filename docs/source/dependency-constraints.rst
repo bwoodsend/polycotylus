@@ -15,13 +15,13 @@ Java, to do at least one of the following:
     ``package~=2.2``) to block usage with potentially breaking unreleased
     versions of dependencies or *just to be on the safe side*.
 
-The majority of Linux distributions are *rolling builds* meaning that only the
-latest version of each package is available - the previous version being deleted
-as soon as a new one comes out. Practices 1 and 2 are therefore impossible since
+The majority of Linux distributions make only the latest version of each package
+available on their package repositories - the previous version being deleted as
+soon as a new one comes out. Practices 1 and 2 are therefore impossible since
 the package would almost never be installable and practice 3 would lead to a
 package that can only be installed when its latest release is newer than that of
 all its dependencies.
 
 For these reasons, any kind of version constraint which could block use with the
-latest version of another package is disallowed by most Linux repositories and
+latest version of another package is disallowed by Linux repositories and
 therefore by `polycotylus`.
