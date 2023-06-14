@@ -157,9 +157,7 @@ class BaseDistribution(abc.ABC):
 
     def pip_build_command(self, indentation, into="$pkgdir"):
         if self.project.setuptools_scm:
-            name = re.sub("[_.-]+", "_", self.project.name.upper())
-            declare_version = f'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
-            print(declare_version)
+            declare_version = 'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
         return self._formatter(f"""
             {declare_version if self.project.setuptools_scm else ""}
             {self.python_prefix}/bin/pip install --disable-pip-version-check --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
