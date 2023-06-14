@@ -41,7 +41,7 @@ class Alpine(BaseDistribution):
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):
-        with cls.mirror:
+        with cls.mirror.daemonized():
             container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 apk update
@@ -208,7 +208,7 @@ class Alpine(BaseDistribution):
                 assert private_key.stat().st_uid == os.getuid()
                 return public_key, private_key
 
-        with self.mirror:
+        with self.mirror.daemonized():
             container = _docker.run(self.image, f"""
                 {self.mirror.install}
                 apk add -q abuild
@@ -242,7 +242,7 @@ class Alpine(BaseDistribution):
             (private_key, f"/home/user/.abuild/{private_key.name}"),
             (self.distro_root / "dist", "/home/user/packages"),
         ]
-        with self.mirror:
+        with self.mirror.daemonized():
             _docker.run(base, "abuild -f", root=False, volumes=volumes, tty=True,
                         architecture=self.docker_architecture, post_mortem=True)
         _dist = self.distro_root / "dist" / self.architecture
@@ -259,7 +259,7 @@ class Alpine(BaseDistribution):
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        with self.mirror:
+        with self.mirror.daemonized():
             return _docker.run(base, f"""
                 sudo apk add /pkg/{package.name}
                 {self.project.test_command}

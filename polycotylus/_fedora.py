@@ -259,7 +259,7 @@ class Fedora(BaseDistribution):
                                 architecture=self.docker_architecture)
 
     def build(self):
-        with self.mirror:
+        with self.mirror.daemonized():
             _docker.run(self.build_builder_image(),
                         ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
                         tty=True, root=False,
@@ -283,7 +283,7 @@ class Fedora(BaseDistribution):
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(self.python_package(package))
         test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
-        with self.mirror:
+        with self.mirror.daemonized():
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.name}
                 {test_command}

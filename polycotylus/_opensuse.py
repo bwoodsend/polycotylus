@@ -37,7 +37,7 @@ class OpenSUSE(BaseDistribution):
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):
-        with cls.mirror:
+        with cls.mirror.daemonized():
             container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 zypper refresh
@@ -317,7 +317,7 @@ class OpenSUSE(BaseDistribution):
         command = ["build", f"--uid={os.getuid()}:{os.getgid()}", "--dist=tumbleweed", "--vm-network"]
         volumes = [(self.distro_root, "/io"),
                    (self.distro_root / "RPMS", "/var/tmp/build-root/home/abuild/rpmbuild/RPMS")]
-        with self.mirror:
+        with self.mirror.daemonized():
             _docker.run(self.build_builder_image(), command, "--privileged",
                         volumes=volumes, post_mortem=True, tty=True,
                         architecture=self.docker_architecture)
@@ -333,7 +333,7 @@ class OpenSUSE(BaseDistribution):
         return rpms
 
     def test(self, package):
-        with self.mirror:
+        with self.mirror.daemonized():
             base = self.build_test_image()
             volumes = [(package.parent, "/pkg")]
             for path in self.project.test_files:

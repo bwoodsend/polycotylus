@@ -47,7 +47,7 @@ class Void(BaseDistribution):
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):
-        with cls.mirror:
+        with cls.mirror.daemonized():
             container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 xbps-install -ySu xbps
@@ -167,7 +167,7 @@ class Void(BaseDistribution):
         self.inject_source()
 
     def build(self):
-        with self.mirror:
+        with self.mirror.daemonized():
             for command in [["./xbps-src", "-1", "binary-bootstrap"],
                             ["./xbps-src", "-1", "pkg", self.package_name]]:
                 _docker.run(self.build_builder_image(), command,
@@ -182,7 +182,7 @@ class Void(BaseDistribution):
         volumes = [(package.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
-        with self.mirror:
+        with self.mirror.daemonized():
             return _docker.run(base, f"""
                 sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
                 {self.project.test_command}

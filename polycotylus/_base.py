@@ -262,7 +262,7 @@ class BaseDistribution(abc.ABC):
         (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
 
     def build_builder_image(self):
-        with self.mirror:
+        with self.mirror.daemonized():
             return _docker.build(self.distro_root / "Dockerfile",
                                  self.project.root, target="build",
                                  architecture=self.docker_architecture)
@@ -272,7 +272,7 @@ class BaseDistribution(abc.ABC):
         raise NotImplementedError
 
     def build_test_image(self):
-        with self.mirror:
+        with self.mirror.daemonized():
             return _docker.build(self.distro_root / "Dockerfile",
                                  self.project.root, target="test",
                                  architecture=self.docker_architecture)

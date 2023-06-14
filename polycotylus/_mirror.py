@@ -11,10 +11,13 @@ from functools import wraps
 from fnmatch import fnmatch
 from pathlib import Path
 from urllib.request import urlopen, Request
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import email.utils
 import contextlib
 import collections
+import traceback
+import shlex
+import subprocess
 
 from polycotylus import _docker
 from polycotylus._docker import cache_root
@@ -88,6 +91,25 @@ class CachedMirror:
                     time.sleep(1)
             self.verbose = False
 
+    @contextlib.contextmanager
+    def daemonized(self):
+        try:
+            lock = urlopen(Request(f"http://localhost:{self.port}", method="KEEPALIVE"))
+        except (URLError, ConnectionResetError):
+            print(subprocess.run(shlex.join([sys.executable, "-m", "polycotylus._mirror", self.name, "--daemon"]) + " & disown", shell=True))
+            for i in range(100):
+                print("retry", i)
+                try:
+                    lock = urlopen(Request(f"http://localhost:{self.port}", method="KEEPALIVE"))
+                    break
+                except:
+                    time.sleep(0.1)
+            else:
+                raise
+        # ~ with contextlib.suppress(ConnectionResetError):
+        with lock:
+            yield
+
     def __enter__(self):
         with self._lock:
             # If multiple enters, avoid port competition by ensuring that there
@@ -109,10 +131,11 @@ class CachedMirror:
     def __exit__(self, *_):
         with self._lock:
             self._listeners -= 1
-            if self._listeners:
+            if self._listeners > 1:
                 return
         # Wait until all running downloads are complete to avoid competing over
         # ports if this mirror is re-enabled soon after.
+        print("shutdown")
         while self._in_progress:  # pragma: no cover
             time.sleep(.1)
         self._httpd.shutdown()
@@ -307,6 +330,15 @@ class RequestHandler(BaseHTTPRequestHandler):
         if self.parent.verbose:
             super().log_message(format, *args)
 
+    def do_KEEPALIVE(self):
+        self.send_response(200)
+        self.end_headers()
+        self.parent.__enter__()
+        try:
+            self.rfile.read()
+        finally:
+            self.parent.__exit__()
+
 
 def _alpine_sync_time(self):
     # Alpine repositories are only updated at most, once per hour and always on
@@ -400,10 +432,19 @@ mirrors = {
             r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
         ),
 }
+for (name, mirror) in mirrors.items():
+    mirror.name = name
+#sys.excepthook = lambda type, ex, *_: open("/tmp/log", "a").write("".join(traceback.format_exception(ex)))
 
 if __name__ == "__main__":
+    self = mirrors[sys.argv[1]]
+    if len(sys.argv) == 3 and sys.argv[2] == "--daemon":
+        with self:
+            while self._listeners <= 1:
+                time.sleep(0.1)
+            while self._listeners > 1:
+                time.sleep(0.1)
     if len(sys.argv) > 2:
-        import subprocess
         with mirrors[sys.argv[1]]:
             subprocess.run(sys.argv[2:])
     else:

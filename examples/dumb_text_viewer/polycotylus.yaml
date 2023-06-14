@@ -25,3 +25,7 @@ desktop_entry_points:
       ar: اقرأ ملفات النص العادي
       zh_CN: 讀取純文本文件
     icon: icon-source.svg
+
+test_command: |
+  xvfb-run pytest
+  cat polycotylus.yaml

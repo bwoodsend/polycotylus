@@ -32,7 +32,7 @@ class Arch(BaseDistribution):
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):
-        with cls.mirror:
+        with cls.mirror.daemonized():
             container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
                 pacman -Sy
@@ -166,7 +166,7 @@ class Arch(BaseDistribution):
         (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
 
     def build(self):
-        with self.mirror:
+        with self.mirror.daemonized():
             _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
                         volumes=[(self.distro_root, "/io")], root=False,
                         architecture=self.docker_architecture, tty=True, post_mortem=True)
@@ -176,7 +176,7 @@ class Arch(BaseDistribution):
         return {"main": package}
 
     def test(self, package):
-        with self.mirror:
+        with self.mirror.daemonized():
             base = self.build_test_image()
             volumes = [(package.parent, "/pkg")]
             for path in self.project.test_files:
