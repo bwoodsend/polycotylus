@@ -75,7 +75,9 @@ class run:
         if verbosity >= 1:
             print(human_friendly, flush=True)
 
-        p = _run([docker, "create"] + arguments, stdout=PIPE)
+        p = _run([docker, "create"] + arguments, stdout=PIPE, stderr=PIPE)
+        if p.returncode:  # pragma: no cover
+            raise SystemExit(p.stderr.decode())
         self.id = p.stdout.decode().splitlines()[-1]
         if interactive:
             if _run([docker, "start", "-ia", self.id]).returncode:
