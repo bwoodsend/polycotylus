@@ -62,9 +62,11 @@ class run:
                 arguments += ["--userns", "keep-id", "--user=user:wheel"]
             else:  # pragma: no cover
                 arguments += [f"--user={os.getuid()}"]
-        if docker.variant == "docker":
-            # https://github.com/moby/moby/issues/45436#issuecomment-1528445371
-            arguments += ["--ulimit", "nofile=1024:1048576"]
+        # import socket; print([l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0])
+        arguments += ["--add-host=host.docker.internal:192.168.50.30"]
+        # ~ if docker.variant == "docker":
+            # ~ # https://github.com/moby/moby/issues/45436#issuecomment-1528445371
+            # ~ arguments += ["--ulimit", "nofile=1024:1048576"]
 
         arguments.append(base)
         if isinstance(command, str):
@@ -178,6 +180,7 @@ def build(dockerfile, root, target=None, architecture=platform.machine(), verbos
     if target:
         command += ["--target", target]
     command += ["--pull", "--platform=linux/" + architecture]
+    command += ["--add-host=host.docker.internal:192.168.50.30"]
     if verbosity >= 1:
         print("$", shlex.join(command))
     returncode, output = _tee_run(command, verbosity, cwd=root)

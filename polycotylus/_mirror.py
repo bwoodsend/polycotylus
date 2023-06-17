@@ -57,7 +57,7 @@ class CachedMirror:
         self.index_patterns = index_patterns
         self.ignore_patterns = ignore_patterns
         self.port = port
-        if platform.system() in ("Darwin", "Windows"):  # pragma: no cover
+        if 1 or platform.system() in ("Darwin", "Windows"):  # pragma: no cover
             # Docker's --network=host option doesn't work on macOS. See
             # https://github.com/docker/for-mac/issues/1031
             # And http://0.0.0.0 doesn't work on Windows even without Docker.
