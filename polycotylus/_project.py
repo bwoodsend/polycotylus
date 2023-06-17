@@ -366,7 +366,8 @@ class Project:
         return gzip.compress(buffer.getvalue(), mtime=0)
 
     def _desktop_file(self, id, options):
-        out = {"Version": 1.0, "Type": "Application", "Terminal": False}
+        out = {"Version": 1.0, "Type": "Application", "Terminal": False,
+               "StartupNotify": False}
         out["Comment"] = self.description
 
         for (key, value) in options.items():
