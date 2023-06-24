@@ -15,7 +15,7 @@ from fnmatch import fnmatch
 
 import toml
 
-from polycotylus import _exceptions, _yaml_schema
+from polycotylus import _exceptions, _yaml_schema, _misc
 
 
 # When dropping support for Python 3.8, replace
@@ -400,14 +400,14 @@ class Project:
     def write_desktop_files(self):
         for (id, options) in self.desktop_entry_points.items():
             path = (self.root / ".polycotylus" / f"{id}.desktop")
-            path.write_text(self._desktop_file(id, options), "utf-8")
+            _misc.unix_write(path, self._desktop_file(id, options))
 
     def write_gitignore(self):
-        path = (self.root / ".polycotylus/.gitignore")
+        path = self.root / ".polycotylus/.gitignore"
         if self.desktop_entry_points:
-            path.write_text("*\n!.gitignore\n!*.desktop\n", encoding="utf-8")
+            _misc.unix_write(path, "*\n!.gitignore\n!*.desktop\n")
         else:
-            path.write_text("*\n")
+            _misc.unix_write(path, "*\n")
 
     def write_dockerignore(self):
         path = self.root / ".dockerignore"
@@ -432,7 +432,7 @@ def expand_pip_requirements(requirement, cwd, extras=None):
     if m := re.match("-r *([^ ].*)", requirement):
         # e.g. "-r requirements.txt"
         requirements_txt = cwd / m[1]
-        text = requirements_txt.read_text()
+        text = requirements_txt.read_text("utf-8")
         for child in re.findall(r"^ *([^#\n\r]+)", text, re.MULTILINE):
             yield from expand_pip_requirements(child.strip(),
                                                requirements_txt.parent)

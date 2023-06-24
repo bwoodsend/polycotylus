@@ -2,6 +2,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import platform
 
 import toml
 import pytest
@@ -11,6 +12,9 @@ from polycotylus._project import Project
 from polycotylus._fedora import Fedora
 from polycotylus.__main__ import cli
 import shared
+
+if platform.system() == "Windows":
+    pytest.skip("Fedora doesn't work on Windows")
 
 
 def _check_values_align(spec):
@@ -68,7 +72,7 @@ def test_dumb_text_viewer():
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
     self = Fedora(Project.from_root(shared.dumb_text_viewer))

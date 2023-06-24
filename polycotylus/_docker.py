@@ -14,6 +14,8 @@ import contextlib
 
 import appdirs
 
+from polycotylus import machine
+
 cache_root = Path(appdirs.user_cache_dir("polycotylus"))
 cache_root.mkdir(parents=True, exist_ok=True)
 
@@ -44,7 +46,7 @@ post_mortem = False
 class run:
     def __init__(self, base, command=None, *flags, volumes=(), check=True,
                  interactive=False, tty=False, root=True, post_mortem=False,
-                 architecture=platform.machine(), verbosity=None):
+                 architecture=machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
         if verbosity is None:
             verbosity = _verbosity()
@@ -60,8 +62,10 @@ class run:
         if not root:
             if docker.variant == "podman":
                 arguments += ["--userns", "keep-id", "--user=user:wheel"]
-            else:  # pragma: no cover
+            elif platform.system() != "Windows":
                 arguments += [f"--user={os.getuid()}"]
+            else:  # pragma: no cover
+                arguments += ["--user=1000"]
         if docker.variant == "docker":
             # https://github.com/moby/moby/issues/45436#issuecomment-1528445371
             arguments += ["--ulimit", "nofile=1024:1048576"]
@@ -171,7 +175,7 @@ def _audit_image(hash):
     return hash
 
 
-def build(dockerfile, root, target=None, architecture=platform.machine(), verbosity=None):
+def build(dockerfile, root, target=None, architecture=machine(), verbosity=None):
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
         verbosity = _verbosity()
@@ -180,7 +184,8 @@ def build(dockerfile, root, target=None, architecture=platform.machine(), verbos
     command += ["--pull", "--platform=linux/" + architecture]
     if verbosity >= 1:
         print("$", shlex.join(command))
-    returncode, output = _tee_run(command, verbosity, cwd=root)
+    returncode, output = _tee_run(command, verbosity, cwd=root,
+                                  env={"DOCKER_SCAN_SUGGEST": "false", **os.environ})
     if returncode:
         raise Error("$ " + shlex.join(command), output)
     return _audit_image(_parse_build_output(output))

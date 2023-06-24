@@ -126,7 +126,7 @@ def yaml_error(ex):
 
 
 def _read_text(path):
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     import strictyaml
 
     path = sys.argv[1]
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         contents = f.read()
     try:
         config = read(path).data

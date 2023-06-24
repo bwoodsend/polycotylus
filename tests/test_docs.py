@@ -11,7 +11,7 @@ def test_minimum_extension_module_build_dependencies():
     (which is otherwise untested) stays in sync with that of ubrotli's
     polycotylus.yaml (which is tested on all distributions) minus the brotli
     references."""
-    schema = Path(__file__, "../../docs/source/schema.yaml").resolve().read_text()
+    schema = Path(__file__, "../../docs/source/schema.yaml").resolve().read_text("utf-8")
     api_reference = strictyaml.load(schema.replace("$identifier", "identifier"),
                                     polycotylus._yaml_schema.polycotylus_yaml)
     ubrotli = polycotylus._yaml_schema.read(shared.ubrotli / "polycotylus.yaml")

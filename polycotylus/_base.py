@@ -7,7 +7,7 @@ from functools import lru_cache
 
 from packaging.requirements import Requirement
 
-from polycotylus import _docker, _exceptions, _misc
+from polycotylus import _docker, _exceptions, _misc, machine
 from polycotylus._mirror import mirrors
 
 
@@ -26,7 +26,7 @@ class BaseDistribution(abc.ABC):
 
     def __init__(self, project, architecture=None):
         self.project = project
-        self.architecture = architecture or platform.machine()
+        self.architecture = architecture or machine()
         if self.architecture not in self.supported_architectures:
             raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
                 Architecture "{self.architecture}" is not available on
@@ -34,7 +34,7 @@ class BaseDistribution(abc.ABC):
                 {sorted(self.supported_architectures)}.
             """))
         self.docker_architecture = self.supported_architectures[self.architecture]
-        if self.architecture != platform.machine():
+        if platform.system() == "Linux" and self.architecture != machine():
             qemu = f"qemu-{self.docker_architecture}-static"
             if not shutil.which(qemu):
                 raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
@@ -72,9 +72,10 @@ class BaseDistribution(abc.ABC):
 
     def _install_user(self, *groups):
         groups = ",".join(("wheel", *groups))
+        uid = 1000 if platform.system() == "Windows" else os.getuid()
         return f"""\
             RUN echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
-            RUN useradd --create-home --non-unique --uid {os.getuid()} --groups {groups} user"""
+            RUN useradd --create-home --non-unique --uid {uid} --groups {groups} user"""
 
     @classmethod
     def evaluate_requirements_marker(cls, requirement: Requirement):
@@ -257,7 +258,7 @@ class BaseDistribution(abc.ABC):
         self.project.write_gitignore()
         self.project.write_dockerignore()
         self.inject_source()
-        (self.distro_root / "Dockerfile").write_text(self.dockerfile(), "utf-8")
+        _misc.unix_write(self.distro_root / "Dockerfile", self.dockerfile())
 
     def build_builder_image(self):
         with self.mirror:

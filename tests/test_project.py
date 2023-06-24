@@ -11,6 +11,7 @@ from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
     AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
+from polycotylus import _misc
 from shared import dumb_text_viewer, bare_minimum, poetry_based, silly_name
 
 
@@ -127,7 +128,7 @@ def test_check_maintainer():
 
 def test_missing_pyproject_metadata(tmp_path):
     shutil.copy(bare_minimum / "polycotylus.yaml", tmp_path)
-    (tmp_path / "pyproject.toml").write_text("""
+    _misc.unix_write(tmp_path / "pyproject.toml", """
         [project]
 
         authors = [

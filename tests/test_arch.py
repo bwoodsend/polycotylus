@@ -1,10 +1,10 @@
 import io
 import subprocess
-import platform
 import tarfile
 import re
 import sys
 import textwrap
+import shutil
 
 import pyzstd
 
@@ -41,7 +41,7 @@ def test_dumb_text_viewer():
     pkgbuild = self.pkgbuild()
     assert pkgbuild.startswith(pkgbuild_prefix)
 
-    subprocess.run(["bash", str(self.distro_root / "PKGBUILD")], check=True)
+    subprocess.run([shutil.which("bash"), str(self.distro_root / "PKGBUILD")], check=True)
     sysroot = self.distro_root / "pkg/dumb-text-viewer"
     package = self.build()["main"]
 
@@ -84,7 +84,7 @@ def test_ubrotli():
             assert ".png" not in file
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
-        assert f"arch = {platform.machine()}" in pkginfo
+        assert "arch = x86_64" in pkginfo
 
     self.test(package)
 

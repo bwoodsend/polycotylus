@@ -1,6 +1,5 @@
 from argparse import ArgumentParser, Action
 import os
-import platform
 from importlib import resources
 import contextlib
 
@@ -37,7 +36,7 @@ parser.add_argument("--completion", action=CompletionAction,
                     choices=sorted(CompletionAction.files))
 parser.add_argument("--list-localizations", action=ListLocalizationAction,
                     choices=["language", "region", "modifier"])
-parser.add_argument("--architecture", default=platform.machine())
+parser.add_argument("--architecture", default=polycotylus.machine())
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
