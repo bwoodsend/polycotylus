@@ -7,7 +7,7 @@ import strictyaml
 from polycotylus._yaml_schema import polycotylus_yaml
 
 
-raw = Path(__file__).with_name("schema.yaml").read_text()
+raw = Path(__file__).with_name("schema.yaml").read_text("utf8")
 intro, raw = re.match("(.*?)(# ---.*)", raw, flags=re.DOTALL).groups()
 intro = re.sub("^# ?", "", intro, flags=re.M)
 lines = raw.splitlines(keepends=True)
@@ -106,5 +106,5 @@ while i < len(lines):
 
 content = "".join(heading + ["\n\n", intro] + toc + ["\n\n"] + body)
 rst = Path(__file__).with_name("schema.rst")
-if not rst.exists() or rst.read_text() != content:
-    rst.write_text(content)
+if not rst.exists() or rst.read_text("utf8") != content:
+    rst.write_text(content, "utf-8")

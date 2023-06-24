@@ -5,10 +5,11 @@ from textwrap import dedent
 import json
 import os
 import time
+import platform
 
 import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _misc
 
 
 def test_container_removal():
@@ -32,7 +33,7 @@ def test_interactive():
                        timeout=10, stdout=subprocess.PIPE)
     assert p.returncode == 0
     assert re.fullmatch(
-        br'(\$ (docker|podman) run --rm --network=host --platform=\S+ -i (--ulimit nofile=1024:1048576 )?alpine\n)?hello\n+', p.stdout)
+        br'(\$ (docker|podman) run --rm --network=host --platform=\S+ -i (--ulimit nofile=1024:1048576 )?alpine\r?\n)?hello\n+', p.stdout)
 
     code = dedent("""
         from polycotylus import _docker
@@ -132,7 +133,7 @@ def test_parse_build():
 
 def test_build(tmp_path):
     (tmp_path / "foo").write_text("hello")
-    (tmp_path / "cake").write_text("FROM alpine\nCOPY foo .\n")
+    _misc.unix_write(tmp_path / "cake", "FROM alpine\nCOPY foo .\n")
     image = _docker.build("cake", tmp_path)
     assert _docker.run(image, ["cat", "/foo"]).output == "hello"
 
@@ -151,12 +152,13 @@ def test_mount_permissions(tmp_path):
         echo some more secrets >> /io/secrets
     """, root=False, volumes=[(tmp_path, "/io")]).output == "some credentials"
     assert "more" in secret_file.read_text()
-    assert secret_file.stat().st_mode & 0o777 == 0o600
-    assert secret_file.stat().st_uid == os.getuid()
+    if platform.system() != "Windows":
+        assert secret_file.stat().st_mode & 0o777 == 0o600
+        assert secret_file.stat().st_uid == os.getuid()
 
 
 def test_verbosity(monkeypatch, capsys, tmp_path):
-    (tmp_path / "Dockerfile").write_text("FROM alpine\nRUN touch /foo\n")
+    _misc.unix_write(tmp_path / "Dockerfile", "FROM alpine\nRUN touch /foo\n")
     run = lambda: _docker.run(_docker.build("Dockerfile", tmp_path), "seq 10")
     command_re = re.compile(r"^\$.+", re.M)
     output_re = re.compile(r"^[^\$]+", re.M)

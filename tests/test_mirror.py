@@ -29,7 +29,7 @@ def _alpine_mirror(tmp_path):
 
 def test_basic(tmp_path):
     self = _alpine_mirror(tmp_path)
-    url = "http://0.0.0.0:9989/MIRRORS.txt"
+    url = "http://localhost:9989/MIRRORS.txt"
 
     with pytest.raises(URLError):
         urlopen(url).close()
@@ -82,23 +82,23 @@ def test_index_caching(tmp_path, monkeypatch):
         monkeypatch.setattr(time, "time", lambda: now)
 
         for file in (non_index, index):
-            with urlopen("http://0.0.0.0:9989/" + file) as response:
+            with urlopen("http://localhost:9989/" + file) as response:
                 response.read()
             assert (tmp_path / file).exists()
             (tmp_path / file).write_bytes(b"dummy value")
-            with urlopen("http://0.0.0.0:9989/" + file) as response:
+            with urlopen("http://localhost:9989/" + file) as response:
                 assert response.read() == b"dummy value"
             os.utime(tmp_path / file, (time.time() - 1_000_000,) * 2)
 
-        with urlopen("http://0.0.0.0:9989/" + non_index) as response:
+        with urlopen("http://localhost:9989/" + non_index) as response:
             assert response.read() == b"dummy value"
-        with urlopen("http://0.0.0.0:9989/" + index) as response:
+        with urlopen("http://localhost:9989/" + index) as response:
             assert response.read() != b"dummy value"
 
 
 def test_head(tmp_path):
     self = _alpine_mirror(tmp_path)
-    url = "http://0.0.0.0:9989/MIRRORS.txt"
+    url = "http://localhost:9989/MIRRORS.txt"
 
     with self:
         with urlopen(Request(url, method="HEAD")) as response:
@@ -118,7 +118,7 @@ def test_head(tmp_path):
         with pytest.raises(URLError):
             urlopen(Request(url + "cake", method="HEAD")).close()
 
-        with urlopen(Request("http://0.0.0.0:9989", method="HEAD")) as response:
+        with urlopen(Request("http://localhost:9989", method="HEAD")) as response:
             if not response.headers["Transfer-Encoding"] == "chunked":
                 assert int(response.headers["Content-Length"])
             assert not response.read()
@@ -133,14 +133,14 @@ def test_errors(tmp_path, path):
 
     with self:
         with pytest.raises(HTTPError) as error:
-            urlopen("http://0.0.0.0:9989" + path)
+            urlopen("http://localhost:9989" + path)
         assert error.value.code == 404
 
 
 def test_index_page_handling(tmp_path):
     self = _alpine_mirror(tmp_path)
     with self:
-        with urlopen("http://0.0.0.0:9989") as response:
+        with urlopen("http://localhost:9989") as response:
             content = response.read()
         assert b"edge" in content
         assert b"latest-stable" in content
@@ -149,7 +149,7 @@ def test_index_page_handling(tmp_path):
 
     self._base_url = "https://geo.mirror.pkgbuild.com/"
     with self:
-        with urlopen(Request("http://0.0.0.0:9989",
+        with urlopen(Request("http://localhost:9989",
                              headers={"Accept-Encoding": "gzip"})) as response:
             if response.headers["Transfer-Encoding"] == "chunked":
                 return
@@ -159,7 +159,7 @@ def test_index_page_handling(tmp_path):
 
 def test_concurrent(tmp_path):
     self = _alpine_mirror(tmp_path)
-    url = "http://0.0.0.0:9989/edge/main/x86_64/APKINDEX.tar.gz"
+    url = "http://localhost:9989/edge/main/x86_64/APKINDEX.tar.gz"
 
     with self:
         for i in range(3):
@@ -173,7 +173,7 @@ def test_concurrent(tmp_path):
 
 def test_kill_resume(tmp_path):
     self = _alpine_mirror(tmp_path)
-    url = "http://0.0.0.0:9989/edge/main/x86_64/APKINDEX.tar.gz"
+    url = "http://localhost:9989/edge/main/x86_64/APKINDEX.tar.gz"
     with self:
         with urlopen(url) as response:
             chunk = response.read(3233)
@@ -204,7 +204,7 @@ def test_abort_cleanup(tmp_path, monkeypatch):
 
     monkeypatch.setattr(shutil, "copyfileobj", _bogus_copy)
 
-    url = "http://0.0.0.0:9989/edge/main/x86_64/APKINDEX.tar.gz"
+    url = "http://localhost:9989/edge/main/x86_64/APKINDEX.tar.gz"
     cache = tmp_path / "edge/main/x86_64/APKINDEX.tar.gz"
     with self:
         urlopen(url).close()
@@ -238,7 +238,7 @@ obsolete_caches = {
         "./arm-stable/core/aarch64/archlinux-keyring-20230130-1-any.pkg.tar.xz.sig",
         "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst",
         "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst.sig",
-        "./stable/extra/x86_64/librsvg-2:2.55.1-1-x86_64.pkg.tar.zst",
+        "./stable/extra/x86_64/librsvg-2\uA7892.55.1-1-x86_64.pkg.tar.zst",
     ],
     "void": [
         "./current/aarch64/musl-1.1.24_12.aarch64-musl.xbps",
@@ -291,4 +291,5 @@ def test_prune(distro, monkeypatch):
     to_delete = []
     monkeypatch.setattr(os, "remove", to_delete.append)
     mirror._prune()
+    to_delete = [i.replace("\\", "/") for i in to_delete]
     assert sorted(to_delete) == sorted(obsolete_caches[distro])

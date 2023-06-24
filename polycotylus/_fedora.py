@@ -10,10 +10,11 @@ import re
 import contextlib
 import shlex
 from functools import lru_cache
+import platform
 
 from packaging.requirements import Requirement
 
-from polycotylus import _misc, _docker
+from polycotylus import _misc, _docker, _exceptions
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -40,6 +41,14 @@ class Fedora(BaseDistribution):
         "x86_64": "x86_64",
         "aarch64": "aarch64",
     }
+
+    def __init__(self, project, architecture=None):
+        if platform.system() == "Windows":  # pragma: no cover
+            # The mounting of dnf's cache onto the host filesystem requires UNIX
+            # permissions that Windows filesystems lack support for.
+            raise _exceptions.PolycotylusUsageError(
+                "Building for Fedora is not supported on Windows.")
+        super().__init__(project, architecture)
 
     available_packages = NotImplemented
 
@@ -209,6 +218,7 @@ class Fedora(BaseDistribution):
             RUN groupadd --users user mock
 
             RUN {self.dnf_config_install}
+            RUN mkdir -p /var/cache/mock /var/cache/dnf
 
             RUN mkdir /io && chown user /io
             WORKDIR /io
@@ -231,7 +241,7 @@ class Fedora(BaseDistribution):
 
     def generate(self):
         super().generate()
-        (self.distro_root / f"{self.package_name}.spec").write_text(self.spec())
+        _misc.unix_write(self.distro_root / f"{self.package_name}.spec", self.spec())
 
     @property
     def _mounted_caches(self):

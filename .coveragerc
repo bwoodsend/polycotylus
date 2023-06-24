@@ -12,6 +12,7 @@ exclude_lines =
 
     # Ignore docker/podman dependent code
     if .*(self|docker)\.variant.*:
+    if .*platform.system.. .= .Windows.:.*
 
     # Don't complain if non-runnable code isn't run:
     if __name__ == .__main__.:

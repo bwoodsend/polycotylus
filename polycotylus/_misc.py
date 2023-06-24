@@ -29,3 +29,14 @@ class classproperty:
 
     def __get__(self, instance, cls):
         return self.method(instance, cls)
+
+
+def unix_write(path, text):
+    """A Windows-proof equivalent to pathlib.Path(path).write_text(text).
+
+    * Always use utf-8
+    * Never convert LF line endings to CRLF
+
+    """
+    with open(path, "wb") as f:
+        f.write(text.encode())

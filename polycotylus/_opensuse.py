@@ -8,6 +8,7 @@ import re
 import os
 from functools import lru_cache
 from datetime import datetime
+import platform
 import shlex
 import itertools
 
@@ -311,10 +312,11 @@ class OpenSUSE(BaseDistribution):
     def generate(self):
         super().generate()
         (self.distro_root / "RPMS").mkdir(exist_ok=True)
-        (self.distro_root / (self.package_name + ".spec")).write_text(self.spec())
+        _misc.unix_write(self.distro_root / (self.package_name + ".spec"), self.spec())
 
     def build(self):
-        command = ["build", f"--uid={os.getuid()}:{os.getgid()}", "--dist=tumbleweed", "--vm-network"]
+        uid = "1000:1000" if platform.system() == "Windows" else f"{os.getuid()}:{os.getgid()}"
+        command = ["build", f"--uid={uid}", "--dist=tumbleweed", "--vm-network"]
         volumes = [(self.distro_root, "/io"),
                    (self.distro_root / "RPMS", "/var/tmp/build-root/home/abuild/rpmbuild/RPMS")]
         with self.mirror:

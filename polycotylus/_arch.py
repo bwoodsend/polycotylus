@@ -163,7 +163,7 @@ class Arch(BaseDistribution):
         with contextlib.suppress(FileNotFoundError):
             shutil.rmtree(self.distro_root / "pkg")
         super().generate()
-        (self.distro_root / "PKGBUILD").write_text(self.pkgbuild())
+        _misc.unix_write(self.distro_root / "PKGBUILD", self.pkgbuild())
 
     def build(self):
         with self.mirror:

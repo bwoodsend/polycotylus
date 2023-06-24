@@ -1,14 +1,14 @@
 import subprocess
 from pathlib import Path
-import platform
 import tarfile
 import shutil
 import re
+import platform
 
 import toml
 import pytest
 
-from polycotylus import _docker, _exceptions
+from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine
@@ -24,15 +24,15 @@ class TestCommon(shared.Base):
 
 
 def test_key_generation(tmp_path, monkeypatch):
-    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.project.maintainer = "Mr Cake"
     self.project.email = "foo@bar.com"
     public, private = self.abuild_keys()
     assert public.name.startswith("foo@bar")
     assert public.name.endswith(".rsa.pub")
-    assert "BEGIN PUBLIC" in public.read_text()
-    assert "BEGIN PRIVATE" in private.read_text()
+    assert "BEGIN PUBLIC" in public.read_text("utf-8")
+    assert "BEGIN PRIVATE" in private.read_text("utf-8")
 
     assert (public, private) == self.abuild_keys()
 
@@ -90,7 +90,7 @@ def test_dumb_text_viewer():
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
@@ -116,7 +116,7 @@ def test_ubrotli():
             assert "LICENSE" not in file
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
-        assert f"arch = {platform.machine()}" in pkginfo
+        assert f"arch = {machine()}" in pkginfo
         assert "license = Apache-2.0" in pkginfo
     assert len(apks) == 1
     self.test(apks["main"])
@@ -170,7 +170,7 @@ def test_license_handling(tmp_path):
 
     def _write_trove(trove):
         options["project"]["classifiers"] = [trove]
-        pyproject_toml.write_text(toml.dumps(options))
+        pyproject_toml.write_text(toml.dumps(options), "utf-8")
 
     # An SPDX recognised, OSI approved license.
     _write_trove("License :: OSI Approved :: MIT License")
@@ -205,7 +205,7 @@ def test_license_handling(tmp_path):
     (tmp_path / "LICENSE").write_text(
         "You may use this software as long as you are nice to kittens.")
     yaml = tmp_path / "polycotylus.yaml"
-    yaml.write_text(yaml.read_text() + "spdx:\n  kittens:\n")
+    yaml.write_text(yaml.read_text("utf-8") + "spdx:\n  kittens:\n")
     self = Alpine(Project.from_root(tmp_path))
     self.generate()
     apks = self.build()
@@ -248,6 +248,7 @@ def test_architecture_errors(monkeypatch):
         Alpine(Project.from_root(shared.ubrotli), "donkey")
 
     monkeypatch.setattr(shutil, "which", lambda x: None)
+    monkeypatch.setattr(platform, "system", lambda: "Linux")
     with pytest.raises(_exceptions.PolycotylusUsageError,
                        match='Emulating "aarch64" requires the "qemu-aarch64-static" command'):
         Alpine(Project.from_root(shared.ubrotli), "aarch64")

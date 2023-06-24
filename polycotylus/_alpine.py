@@ -10,6 +10,7 @@ from functools import lru_cache
 import hashlib
 from pathlib import Path
 import contextlib
+import platform
 
 from polycotylus import _misc, _docker
 from polycotylus._project import spdx_osi_approval
@@ -161,7 +162,7 @@ class Alpine(BaseDistribution):
             FROM {self.image} AS base
 
             RUN {self.mirror.install}
-            RUN echo -e {repr(public.read_text())} > "/etc/apk/keys/{public.name}"
+            RUN echo -e {repr(public.read_text("utf8"))} > "/etc/apk/keys/{public.name}"
 
             RUN apk add shadow sudo
             {self._install_user("abuild")}
@@ -198,14 +199,15 @@ class Alpine(BaseDistribution):
         abuild_dir = Path.home() / ".abuild"
         config = abuild_dir / "abuild.conf"
         if config.exists():
-            match = re.search("PACKAGER_PRIVKEY=([^\r\n]+)", config.read_text())
+            match = re.search("PACKAGER_PRIVKEY=([^\r\n]+)", config.read_text("utf-8"))
             if match:
                 private_key, = shlex.split(match[1])
                 private_key = Path(os.path.expandvars(private_key)).expanduser()
                 public_key = private_key.with_suffix(".rsa.pub")
                 assert private_key.exists()
                 assert public_key.exists()
-                assert private_key.stat().st_uid == os.getuid()
+                if platform.system() != "Windows":  # pragma: no cover
+                    assert private_key.stat().st_uid == os.getuid()
                 return public_key, private_key
 
         with self.mirror:
@@ -221,17 +223,17 @@ class Alpine(BaseDistribution):
             _, key, _ = sorted(tar.getnames(), key=len)
 
         if config.exists():
-            content = config.read_text().rstrip("\n") + "\n"
+            content = config.read_text("utf-8").rstrip("\n") + "\n"
         else:
             content = ""
         content += f"PACKAGER_PRIVKEY={shlex.quote(str(Path.home() / key))}\n"
-        config.write_text(content)
+        _misc.unix_write(config, content)
 
         return self.abuild_keys()
 
     def generate(self):
         super().generate()
-        (self.distro_root / "APKBUILD").write_text(self.apkbuild())
+        _misc.unix_write(self.distro_root / "APKBUILD", self.apkbuild())
         (self.distro_root / "dist").mkdir(exist_ok=True)
 
     def build(self):

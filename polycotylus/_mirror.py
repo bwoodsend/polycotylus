@@ -171,7 +171,11 @@ class RequestHandler(BaseHTTPRequestHandler):
     @property
     def cache(self):
         """The file path where this request should be cached."""
-        return self.parent.base_dir / self.path.lstrip("/")
+        # Some packages may contain colons (:) in their filenames. The colon is
+        # a prohibited character on Windows. Replace it with a nearly identical
+        # unicode equivalent.
+        path = self.path.lstrip("/").replace(":", "\uA789")
+        return self.parent.base_dir / path
 
     def do_GET(self):
         if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
@@ -322,7 +326,7 @@ def _use_last_modified_header(self: RequestHandler):
 
 def _manjaro_preferred_mirror():
     with contextlib.suppress(Exception):
-        url = (cache_root / "manjaro-mirror").read_text()
+        url = (cache_root / "manjaro-mirror").read_text("utf-8")
         urlopen(Request(url, method="HEAD")).close()
         return url
 
@@ -334,7 +338,7 @@ def _manjaro_preferred_mirror():
     for url in mirrors:  # pragma: no branch
         with contextlib.suppress(HTTPError):
             urlopen(Request(url, method="HEAD")).close()
-            (cache_root / "manjaro-mirror").write_text(url)
+            (cache_root / "manjaro-mirror").write_text(url, "utf-8")
             return url
 
 

@@ -1,6 +1,6 @@
-import subprocess
 import tarfile
 import io
+import os
 
 import pyzstd
 
@@ -19,6 +19,9 @@ def test_ubrotli():
     self = Void(Project.from_root(shared.ubrotli))
     self.generate()
     self.test(self.build()["main"])
+    for path in self.distro_root.rglob("*:*"):
+        assert 0, f"{path} will break Windows file systems"
+    assert os.listdir(self.void_packages_repo()) == [".git"]
 
 
 def test_dumb_text_viewer():
@@ -29,7 +32,7 @@ def test_dumb_text_viewer():
 
 
 def test_png_source_icon(polycotylus_yaml):
-    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text()
+    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
     self = Void(Project.from_root(shared.dumb_text_viewer))
@@ -45,19 +48,9 @@ def test_png_source_icon(polycotylus_yaml):
 
 def test_silly_named_package(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    # Mimic the local cache of the void-packages repo being out of date so that
-    # some dependencies will no longer be available.
     self = Void(Project.from_root(shared.silly_name))
-    cache = self.void_packages_repo()
-    hash = "f9bf46d6376a467b5f7dc21018f7a6dc9e6a3f2b"
-    for command in [["fetch", "--depth=1", "https://github.com/void-linux/void-packages", hash],
-                    ["reset", "--hard"], ["checkout", hash]]:
-        subprocess.run(["git", "-C", str(cache)] + command, check=True)
-
     self.generate()
     self.test(self.build()["main"])
-
-    assert hash not in subprocess.run(["git", "-C", str(cache), "log", "-n1"], check=True, stdout=subprocess.PIPE, text=True).stdout
 
 
 def test_poetry():

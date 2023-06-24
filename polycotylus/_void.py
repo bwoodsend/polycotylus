@@ -4,12 +4,12 @@ https://github.com/void-linux/void-packages/blob/master/Manual.md
 import re
 from functools import lru_cache
 import hashlib
-import contextlib
-import shutil
 import platform
 import shlex
 from urllib.request import urlopen
 import json
+import shutil
+import contextlib
 
 from polycotylus import _misc, _docker
 from polycotylus._mirror import cache_root
@@ -90,6 +90,7 @@ class Void(BaseDistribution):
             WORKDIR /io
 
             FROM base as build
+            RUN mkdir -p /io/srcpkgs/{self.package_name} /io/hostdir/binpkgs /io/hostdir/sources && chown -R user /io
             RUN xbps-install -ySu xbps git bash util-linux {shlex.join(dependencies)}
 
             FROM base AS test
@@ -149,33 +150,55 @@ class Void(BaseDistribution):
         url = self.project.source_url.format(version=self.project.version)
         name = PurePosixPath(urlparse(url).path).name
         path = self.distro_root / f"hostdir/sources/{self.package_name}-{self.project.version}/{name}"
-        path.parent.mkdir(parents=True)
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(self.project.tar())
 
     def generate(self):
         with contextlib.suppress(FileNotFoundError):
-            shutil.rmtree(self.distro_root)
-        self.distro_root.parent.mkdir(exist_ok=True, parents=True)
-        shutil.copytree(self.void_packages_repo(), self.distro_root, symlinks=True)
-        (self.distro_root / "Dockerfile").write_text(self.dockerfile())
+            shutil.rmtree(self.distro_root / "dist")
+        self.distro_root.mkdir(exist_ok=True, parents=True)
+        _misc.unix_write(self.distro_root / "Dockerfile", self.dockerfile())
         self.project.write_desktop_files()
         self.distro_root.chmod(0o777)
         self.project.write_gitignore()
         package_root = self.distro_root / "srcpkgs" / self.package_name
-        package_root.mkdir(parents=True)
-        (package_root / "template").write_text(self.template())
+        package_root.mkdir(parents=True, exist_ok=True)
+        _misc.unix_write(package_root / "template", self.template())
+
+        (self.distro_root / "dist").mkdir(exist_ok=True)
         self.inject_source()
 
     def build(self):
+        # To make things awkward, the void-packages repo in which everything
+        # must be built contains filenames with ':' in them meaning that git
+        # checkout/clone will fail on Windows where ':' is an illegal character.
+        # To work around this, we need to do some elaborate mounting so that the
+        # offending file paths exist in the docker container only:
+        #  - Fetch (but do not checkout to) the git commit we need outside the container
+        #  - Mount the .git directory into the docker container
+        #  - Mount the template file, source tarball and build output directories
+        #    to somewhere on the host
+        #  - Checkout the working tree inside the container
+        #  - Run the build
+        volumes = [
+            (self.void_packages_repo() / ".git", "/io/.git"),
+            (self.distro_root / "srcpkgs" / self.package_name, f"/io/srcpkgs/{self.package_name}"),
+            (self.distro_root / "dist", "/io/hostdir/binpkgs"),
+            (self.distro_root / "hostdir/sources", "/io/hostdir/sources"),
+        ]
+        mirror_url = "http://0.0.0.0:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
         with self.mirror:
-            for command in [["./xbps-src", "-1", "binary-bootstrap"],
-                            ["./xbps-src", "-1", "pkg", self.package_name]]:
-                _docker.run(self.build_builder_image(), command,
-                            "--privileged", root=False,
-                            volumes=[(self.distro_root, "/io")], tty=True,
-                            architecture=self.docker_architecture, post_mortem=True)
-        name = f"{self.package_name}-{self.project.version}_1.{platform.machine()}-musl.xbps"
-        return {"main": self.distro_root / "hostdir/binpkgs" / name}
+            _docker.run(self.build_builder_image(), f"""
+                git config --global --add safe.directory /io
+                git config core.symlinks true
+                git checkout {self._void_packages_head()} -- .
+                sed -r -i 's|https://repo-default.voidlinux.org|{mirror_url}|g' etc/xbps.d/repos-*
+                ./xbps-src -1 binary-bootstrap
+                ./xbps-src -1 pkg {self.package_name}
+            """, "--privileged", root=False, tty=True, post_mortem=True,
+                        volumes=volumes, architecture=self.docker_architecture)
+        name = f"{self.package_name}-{self.project.version}_1.{self.architecture}-musl.xbps"
+        return {"main": self.distro_root / "dist" / name}
 
     def test(self, package):
         base = self.build_test_image()
@@ -189,11 +212,12 @@ class Void(BaseDistribution):
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
 
+    @lru_cache()
     def _void_packages_head(self):
         """Fetch the commit SHA1 corresponding to the latest completed build
         from https://build.voidlinux.org/builders/aarch64-musl_builder
         (replacing aarch64 with the current architecture)."""
-        url = f"https://build.voidlinux.org/json/builders/{platform.machine()}-musl_builder/builds?"
+        url = f"https://build.voidlinux.org/json/builders/{self.architecture}-musl_builder/builds?"
         for j in range(-1, -10, -3):  # pragma: no branch
             _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
             with urlopen(_url) as response:
@@ -210,28 +234,17 @@ class Void(BaseDistribution):
         # repositories so to build anything, we need to clone everything.
         # Currently, a shallow clone is about 12MB whereas a conventional clone
         # is 558MB.
-        from subprocess import run, PIPE, DEVNULL, STDOUT
+        from subprocess import run, PIPE, STDOUT
         cache = cache_root / "void-packages"
         commit = self._void_packages_head()
         if not (cache / ".git").is_dir():  # pragma: no cover
-            run(["git", "init", "-q", str(cache)], stderr=PIPE, check=True)
-        if run(["git", "-C", str(cache), "log", "-n1", "--pretty=%H"],
-               stdout=PIPE, stderr=DEVNULL).stdout.strip().decode() == commit:
-            return cache
-        p = run(["git", "-C", str(cache), "cat-file", "-e", commit],
+            run(["git", "init", "-q", str(cache), "--initial-branch=master"],
+                stderr=PIPE, check=True)
+        p = run(["git", "-C", str(cache), "log", commit],
                 stdout=PIPE, stderr=STDOUT)
-        assert p.returncode in (0, 1), p.stdout
         if p.returncode:  # pragma: no cover
             command = ["git", "-C", str(cache), "fetch", "--depth=1", "--progress",
                        "https://github.com/void-linux/void-packages", commit]
             run(command, stdout=None if _docker._verbosity() >= 2 else PIPE, check=True)
-        run(["git", "-C", str(cache), "reset", "--hard"], stdout=DEVNULL, stderr=DEVNULL)
-        run(["git", "-C", str(cache), "checkout", commit], stdout=DEVNULL, stderr=DEVNULL)
-        self._void_packages_inject_mirror(cache)
-        return cache
 
-    @staticmethod
-    def _void_packages_inject_mirror(root):
-        for path in (root / "etc/xbps.d").glob("repos-*"):
-            path.write_bytes(path.read_bytes().replace(
-                b"https://repo-default.voidlinux.org", b"http://0.0.0.0:8902"))
+        return cache
