@@ -7,7 +7,7 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch"
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manjaro" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from opensuse" -a 'x86_64 aarch64'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void" -a 'x86_64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void" -a 'aarch64 armv6l armv7l x86_64'
 
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'
 complete -c polycotylus -f -l post-mortem -d 'Enter container on error'

@@ -175,13 +175,13 @@ def _audit_image(hash):
     return hash
 
 
-def build(dockerfile, root, target=None, architecture=machine(), verbosity=None):
+def build(dockerfile, root, *flags, target=None, architecture=machine(), verbosity=None):
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
         verbosity = _verbosity()
     if target:
         command += ["--target", target]
-    command += ["--pull", "--platform=linux/" + architecture]
+    command += ["--pull", "--platform=linux/" + architecture, *flags]
     if verbosity >= 1:
         print("$", shlex.join(command))
     returncode, output = _tee_run(command, verbosity, cwd=root,

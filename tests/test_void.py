@@ -18,10 +18,19 @@ class TestCommon(shared.Base):
 def test_ubrotli():
     self = Void(Project.from_root(shared.ubrotli))
     self.generate()
-    self.test(self.build()["main"])
+    native_xbps = self.build()["main"]
+    self.test(native_xbps)
     for path in self.distro_root.rglob("*:*"):
         assert 0, f"{path} will break Windows file systems"
     assert os.listdir(self.void_packages_repo()) == [".git"]
+    native_builder = self
+
+    self = Void(Project.from_root(shared.ubrotli), architecture="armv6l")
+    self.generate()
+    self.test(self.build()["main"])
+
+    assert native_xbps.exists()
+    native_builder.test(native_xbps)
 
 
 def test_dumb_text_viewer():

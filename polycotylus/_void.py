@@ -8,8 +8,6 @@ import platform
 import shlex
 from urllib.request import urlopen
 import json
-import shutil
-import contextlib
 
 from polycotylus import _misc, _docker
 from polycotylus._mirror import cache_root
@@ -34,15 +32,29 @@ class Void(BaseDistribution):
     _formatter = _misc.Formatter()
     supported_architectures = {
         "x86_64": "x86_64",
-        # "aarch64": "aarch64",  # unshare barfs out on these. I don't
-        # "armv6l": "arm/v6",    # understand why. Void on non-x86_64 seems
-        # "armv7l": "arm/v7",    # unpopular anyway.
+        "aarch64": "aarch64",
+        "armv6l": "arm",
+        "armv7l": "arm",
     }
 
     @_misc.classproperty
     def image(self, _):
         architecture = "x86_64" if self is None else self.architecture
         return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}-musl"
+
+    def build_builder_image(self):
+        with self.mirror:
+            return _docker.build(
+                self.distro_root / "Dockerfile", self.project.root,
+                "--build-arg=architecture=" + self.architecture,
+                target="build", architecture=self.docker_architecture)
+
+    def build_test_image(self):
+        with self.mirror:
+            return _docker.build(
+                self.distro_root / "Dockerfile", self.project.root,
+                "--build-arg=architecture=" + self.architecture,
+                target="test", architecture=self.docker_architecture)
 
     @classmethod
     @lru_cache()
@@ -57,7 +69,7 @@ class Void(BaseDistribution):
             """, tty=True)
         _read = lambda path: container.file(path).decode()
         cls._available_packages = re.findall(r"\[-\] ([^ ]+)-[^ ]", _read("/all"))
-        cls._build_base_packages = re.findall(r"^([^>]+)", _read("base"))
+        cls._build_base_packages = re.findall(r"^([^>]+)", _read("base"), flags=re.M)
         cls._python_version = re.search("pkgver: python3-([^_]+)", _read("/python-info"))[1]
 
     @property
@@ -78,10 +90,13 @@ class Void(BaseDistribution):
         return "python3-" + wheel_packaged_name
 
     def dockerfile(self):
-        dependencies = _deduplicate(self.dependencies + self.build_dependencies
-                                    + self.test_dependencies)
+        dependencies = _deduplicate(
+            [re.sub("^chroot-", "", i) for i in self.build_base_packages() if i != "base-files"]
+            + self.dependencies + self.build_dependencies
+            + self.test_dependencies)
         return self._formatter(f"""
-            FROM {self.image} AS base
+            ARG architecture
+            FROM ghcr.io/void-linux/void-linux:latest-mini-${{architecture}}-musl AS base
             RUN {self.mirror.install}
             RUN xbps-install -ySu xbps bash shadow sudo
             CMD ["/bin/bash"]
@@ -91,6 +106,8 @@ class Void(BaseDistribution):
 
             FROM base as build
             RUN mkdir -p /io/srcpkgs/{self.package_name} /io/hostdir/binpkgs /io/hostdir/sources && chown -R user /io
+            ENV GIT_DISCOVERY_ACROSS_FILESYSTEM 1
+            ENV SOURCE_EPOCH 0
             RUN xbps-install -ySu xbps git bash util-linux {shlex.join(dependencies)}
 
             FROM base AS test
@@ -154,8 +171,6 @@ class Void(BaseDistribution):
         path.write_bytes(self.project.tar())
 
     def generate(self):
-        with contextlib.suppress(FileNotFoundError):
-            shutil.rmtree(self.distro_root / "dist")
         self.distro_root.mkdir(exist_ok=True, parents=True)
         _misc.unix_write(self.distro_root / "Dockerfile", self.dockerfile())
         self.project.write_desktop_files()
@@ -165,7 +180,7 @@ class Void(BaseDistribution):
         package_root.mkdir(parents=True, exist_ok=True)
         _misc.unix_write(package_root / "template", self.template())
 
-        (self.distro_root / "dist").mkdir(exist_ok=True)
+        (self.distro_root / "musl").mkdir(exist_ok=True)
         self.inject_source()
 
     def build(self):
@@ -183,22 +198,25 @@ class Void(BaseDistribution):
         volumes = [
             (self.void_packages_repo() / ".git", "/io/.git"),
             (self.distro_root / "srcpkgs" / self.package_name, f"/io/srcpkgs/{self.package_name}"),
-            (self.distro_root / "dist", "/io/hostdir/binpkgs"),
             (self.distro_root / "hostdir/sources", "/io/hostdir/sources"),
         ]
         mirror_url = "http://0.0.0.0:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
         with self.mirror:
-            _docker.run(self.build_builder_image(), f"""
+            container = _docker.run(self.build_builder_image(), f"""
                 git config --global --add safe.directory /io
                 git config core.symlinks true
                 git checkout {self._void_packages_head()} -- .
                 sed -r -i 's|https://repo-default.voidlinux.org|{mirror_url}|g' etc/xbps.d/repos-*
-                ./xbps-src -1 binary-bootstrap
+                echo 'XBPS_CHROOT_CMD=ethereal\\nXBPS_ALLOW_CHROOT_BREAKOUT=yes' > etc/conf
+                ln -s / masterdir
                 ./xbps-src -1 pkg {self.package_name}
-            """, "--privileged", root=False, tty=True, post_mortem=True,
-                        volumes=volumes, architecture=self.docker_architecture)
+            """, "--privileged", tty=True, post_mortem=True, volumes=volumes,
+                                    architecture=self.docker_architecture)
         name = f"{self.package_name}-{self.project.version}_1.{self.architecture}-musl.xbps"
-        return {"main": self.distro_root / "dist" / name}
+        (self.distro_root / "musl" / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
+        repodata = f"{self.architecture}-musl-repodata"
+        (self.distro_root / "musl" / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
+        return {"main": self.distro_root / "musl" / name}
 
     def test(self, package):
         base = self.build_test_image()

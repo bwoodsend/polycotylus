@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: |
-          if grep -E 'alpine|manjaro' <<< '${{ matrix.suite }}' ; then
+          if grep -E 'alpine|manjaro|void' <<< '${{ matrix.suite }}' ; then
             sudo apt-get update
             sudo apt-get install -y qemu-user-static
           fi
