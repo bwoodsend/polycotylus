@@ -29,4 +29,4 @@ def test_minimum_extension_module_build_dependencies():
 
 def test_dependency_categories():
     documented = re.search(r"``(alpine\|[|a-z]+)``", schema)[1].split("|")
-    assert documented == sorted(polycotylus.distributions)
+    assert documented == sorted(i for i in polycotylus.distributions if ":" not in i)

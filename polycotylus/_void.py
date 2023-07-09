@@ -16,6 +16,7 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 class Void(BaseDistribution):
     python_prefix = "/usr"
+    name = "void"
     python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
@@ -36,25 +37,28 @@ class Void(BaseDistribution):
         "armv6l": "arm",
         "armv7l": "arm",
     }
+    libc = "glibc"
+    libc_tag = ""
 
     @_misc.classproperty
-    def image(self, _):
+    def image(self, cls):
         architecture = "x86_64" if self is None else self.architecture
-        return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}-musl"
+        return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{cls.libc_tag}"
+
+    def _build_image(self, target):
+        base_packages = [re.sub("^chroot-", "", i) for i in self.build_base_packages() if i != "base-files"]
+        with self.mirror:
+            return _docker.build(
+                self.distro_root / "Dockerfile", self.project.root,
+                f"--build-arg=tag=latest-mini-{self.architecture}{self.libc_tag}",
+                f"--build-arg=base_packages={shlex.join(base_packages)}",
+                target=target, architecture=self.docker_architecture)
 
     def build_builder_image(self):
-        with self.mirror:
-            return _docker.build(
-                self.distro_root / "Dockerfile", self.project.root,
-                "--build-arg=architecture=" + self.architecture,
-                target="build", architecture=self.docker_architecture)
+        return self._build_image("build")
 
     def build_test_image(self):
-        with self.mirror:
-            return _docker.build(
-                self.distro_root / "Dockerfile", self.project.root,
-                "--build-arg=architecture=" + self.architecture,
-                target="test", architecture=self.docker_architecture)
+        return self._build_image("test")
 
     @classmethod
     @lru_cache()
@@ -91,13 +95,13 @@ class Void(BaseDistribution):
 
     def dockerfile(self):
         dependencies = _deduplicate(
-            [re.sub("^chroot-", "", i) for i in self.build_base_packages() if i != "base-files"]
-            + self.dependencies + self.build_dependencies
+            self.dependencies + self.build_dependencies
             + self.test_dependencies)
         return self._formatter(f"""
-            ARG architecture
-            FROM ghcr.io/void-linux/void-linux:latest-mini-${{architecture}}-musl AS base
+            ARG tag
+            FROM ghcr.io/void-linux/void-linux:${{tag}} AS base
             RUN {self.mirror.install}
+            RUN rm -f /etc/xbps.d/noextract.conf
             RUN xbps-install -ySu xbps bash shadow sudo
             CMD ["/bin/bash"]
             {self._install_user()}
@@ -105,10 +109,11 @@ class Void(BaseDistribution):
             WORKDIR /io
 
             FROM base as build
+            ARG base_packages
             RUN mkdir -p /io/srcpkgs/{self.package_name} /io/hostdir/binpkgs /io/hostdir/sources && chown -R user /io
             ENV GIT_DISCOVERY_ACROSS_FILESYSTEM 1
             ENV SOURCE_EPOCH 0
-            RUN xbps-install -ySu xbps git bash util-linux {shlex.join(dependencies)}
+            RUN xbps-install -ySu xbps git bash util-linux ${{base_packages}} {shlex.join(dependencies)}
 
             FROM base AS test
             RUN xbps-install -ySu xbps {shlex.join(self.test_dependencies)}
@@ -180,7 +185,7 @@ class Void(BaseDistribution):
         package_root.mkdir(parents=True, exist_ok=True)
         _misc.unix_write(package_root / "template", self.template())
 
-        (self.distro_root / "musl").mkdir(exist_ok=True)
+        (self.distro_root / self.libc).mkdir(exist_ok=True)
         self.inject_source()
 
     def build(self):
@@ -212,11 +217,11 @@ class Void(BaseDistribution):
                 ./xbps-src -1 pkg {self.package_name}
             """, "--privileged", tty=True, post_mortem=True, volumes=volumes,
                                     architecture=self.docker_architecture)
-        name = f"{self.package_name}-{self.project.version}_1.{self.architecture}-musl.xbps"
-        (self.distro_root / "musl" / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
-        repodata = f"{self.architecture}-musl-repodata"
-        (self.distro_root / "musl" / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
-        return {"main": self.distro_root / "musl" / name}
+        name = f"{self.package_name}-{self.project.version}_1.{self.architecture}{self.libc_tag}.xbps"
+        (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
+        repodata = f"{self.architecture}{self.libc_tag}-repodata"
+        (self.distro_root / self.libc / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
+        return {"main": self.distro_root / self.libc / name}
 
     def test(self, package):
         base = self.build_test_image()
@@ -234,8 +239,9 @@ class Void(BaseDistribution):
     def _void_packages_head(self):
         """Fetch the commit SHA1 corresponding to the latest completed build
         from https://build.voidlinux.org/builders/aarch64-musl_builder
-        (replacing aarch64 with the current architecture)."""
-        url = f"https://build.voidlinux.org/json/builders/{self.architecture}-musl_builder/builds?"
+        (replacing aarch64 with the current architecture and deleting -musl if
+        building for glibc)."""
+        url = f"https://build.voidlinux.org/json/builders/{self.architecture}{self.libc_tag}_builder/builds?"
         for j in range(-1, -10, -3):  # pragma: no branch
             _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
             with urlopen(_url) as response:
@@ -266,3 +272,11 @@ class Void(BaseDistribution):
             run(command, stdout=None if _docker._verbosity() >= 2 else PIPE, check=True)
 
         return cache
+
+
+class VoidMusl(Void):
+    libc = "musl"
+    libc_tag = "-musl"
+
+
+VoidGlibc = Void

@@ -5,7 +5,7 @@ import os
 import pyzstd
 
 from polycotylus._project import Project
-from polycotylus._void import Void
+from polycotylus._void import Void, VoidMusl
 import shared
 
 
@@ -16,7 +16,7 @@ class TestCommon(shared.Base):
 
 
 def test_ubrotli():
-    self = Void(Project.from_root(shared.ubrotli))
+    self = VoidMusl(Project.from_root(shared.ubrotli))
     self.generate()
     native_xbps = self.build()["main"]
     self.test(native_xbps)
@@ -25,16 +25,24 @@ def test_ubrotli():
     assert os.listdir(self.void_packages_repo()) == [".git"]
     native_builder = self
 
-    self = Void(Project.from_root(shared.ubrotli), architecture="armv6l")
+    self = Void(Project.from_root(shared.ubrotli))
+    self.generate()
+    glibc_xbps = self.build()["main"]
+    self.test(glibc_xbps)
+    glibc_builder = self
+
+    self = VoidMusl(Project.from_root(shared.ubrotli), architecture="armv6l")
     self.generate()
     self.test(self.build()["main"])
 
     assert native_xbps.exists()
+    assert glibc_xbps.exists()
     native_builder.test(native_xbps)
+    glibc_builder.test(glibc_xbps)
 
 
 def test_dumb_text_viewer():
-    self = Void(Project.from_root(shared.dumb_text_viewer))
+    self = VoidMusl(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     shared.check_dumb_text_viewer_installation(self.test(self.build()["main"]),
                                                icon_sizes=(16, 48, 256))
@@ -44,7 +52,7 @@ def test_png_source_icon(polycotylus_yaml):
     original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     polycotylus_yaml(
         original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
-    self = Void(Project.from_root(shared.dumb_text_viewer))
+    self = VoidMusl(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.template()
     packages = self.build()
@@ -57,12 +65,12 @@ def test_png_source_icon(polycotylus_yaml):
 
 def test_silly_named_package(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Void(Project.from_root(shared.silly_name))
+    self = VoidMusl(Project.from_root(shared.silly_name))
     self.generate()
     self.test(self.build()["main"])
 
 
 def test_poetry():
-    self = Void(Project.from_root(shared.poetry_based))
+    self = VoidMusl(Project.from_root(shared.poetry_based))
     self.generate()
     self.test(self.build()["main"])
