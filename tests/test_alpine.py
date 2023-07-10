@@ -11,7 +11,7 @@ import pytest
 from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
-from polycotylus._alpine import Alpine
+from polycotylus._alpine import Alpine, Alpine317
 import shared
 
 mirror = mirrors["alpine"]
@@ -63,7 +63,8 @@ def test_dumb_text_viewer():
     _docker.run(Alpine.image, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")])
     apks = self.build()
-    assert len(apks) == 1
+    assert len(apks) == 2
+    assert "pyc" in apks
     apk = apks["main"]
 
     with tarfile.open(apk) as tar:
@@ -114,6 +115,8 @@ def test_ubrotli():
     self = Alpine(Project.from_root(shared.ubrotli))
     self.generate()
     assert "arch=all" in self.apkbuild()
+    assert "-m compile" not in self.apkbuild()
+    assert "$pkgname-pyc" not in self.apkbuild()
 
     apks = self.build()
     with tarfile.open(apks["main"]) as tar:
@@ -228,22 +231,30 @@ def test_license_handling(tmp_path):
 
 def test_silly_named_package(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Alpine(Project.from_root(shared.silly_name))
-    self.generate()
-    assert "pywin32-ctypes" not in self.apkbuild()
-    assert "colorama" in self.apkbuild()
-    apks = self.build()
-    installed = self.test(apks["main"]).commit()
-    script = "apk info -a py3-99---s1lly---name---packag3--x--y--z"
-    container = _docker.run(installed, script)
-    assert """🚀 🦄 "quoted" 'quoted again' $$$""" in container.output
-    assert "license:\ncustom" in container.output
+    all_apks = []
+    for _Alpine in (Alpine, Alpine317):
+        self = _Alpine(Project.from_root(shared.silly_name))
+        self.generate()
+        assert "pywin32-ctypes" not in self.apkbuild()
+        assert "colorama" in self.apkbuild()
+        apks = self.build()
+        installed = self.test(apks["main"]).commit()
+        script = "apk info -a py3-99---s1lly---name---packag3--x--y--z"
+        container = _docker.run(installed, script)
+        assert """🚀 🦄 "quoted" 'quoted again' $$$""" in container.output
+        assert "license:\ncustom" in container.output
+        assert ("pyc" in apks) is (_Alpine is Alpine)
+        all_apks.extend(apks.values())
 
-    with tarfile.open(apks["doc"]) as tar:
-        path = "usr/share/licenses/py3-99---s1lly---name---packag3--x--y--z/The license file"
-        assert path in tar.getnames()
-        with tar.extractfile(path) as f:
-            assert "🦄" in f.read().decode()
+        with tarfile.open(apks["doc"]) as tar:
+            path = "usr/share/licenses/py3-99---s1lly---name---packag3--x--y--z/The license file"
+            assert path in tar.getnames()
+            with tar.extractfile(path) as f:
+                assert "🦄" in f.read().decode()
+
+    for apk in all_apks:
+        assert apk.exists()
+    assert len(set(all_apks)) == 5
 
 
 test_multiarch = shared.qemu(Alpine)

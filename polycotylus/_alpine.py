@@ -18,7 +18,9 @@ from polycotylus._base import BaseDistribution
 
 
 class Alpine(BaseDistribution):
-    image = "alpine:3.17"
+    name = "alpine"
+    version = "3.18"
+    image = "alpine:3.18"
     python_prefix = "/usr"
     python = "python3"
     python_extras = {
@@ -109,8 +111,14 @@ class Alpine(BaseDistribution):
             source=f'"$pkgname-$pkgver.tar.gz::{self.project.source_url.format(version="$pkgver")}"',
             builddir='"$srcdir/_build"',
         )
+        subpackages = []
+        from packaging.version import Version
+        if self.project.contains_py_files and Version(self.version) >= Version("v3.18"):
+            subpackages.append("$pkgname-pyc")
         if "custom" in license_names:
-            out += _misc.variables(subpackages="$pkgname-doc")
+            subpackages.append("$pkgname-doc")
+        if subpackages:
+            out += 'subpackages="{}"\n'.format(" ".join(subpackages))
         out += "\n"
         out += self.define_py3ver()
 
@@ -234,7 +242,7 @@ class Alpine(BaseDistribution):
     def generate(self):
         super().generate()
         _misc.unix_write(self.distro_root / "APKBUILD", self.apkbuild())
-        (self.distro_root / "dist").mkdir(exist_ok=True)
+        (self.distro_root / self.version).mkdir(exist_ok=True)
 
     def build(self):
         public_key, private_key = self.abuild_keys()
@@ -242,18 +250,20 @@ class Alpine(BaseDistribution):
         volumes = [
             (self.distro_root, "/io"),
             (private_key, f"/home/user/.abuild/{private_key.name}"),
-            (self.distro_root / "dist", "/home/user/packages"),
+            (self.distro_root / self.version, "/home/user/packages"),
         ]
         with self.mirror:
             _docker.run(base, "abuild -f", root=False, volumes=volumes, tty=True,
                         architecture=self.docker_architecture, post_mortem=True)
-        _dist = self.distro_root / "dist" / self.architecture
-        apk, = _dist.glob(f"{self.package_name}-{self.project.version}-r*.apk")
-        _stem = re.sub(r"^(.*)(-.*-r\d+)$", r"\1-doc\2", apk.stem)
-        doc = apk.with_name(_stem + apk.suffix)
+        _dist = self.distro_root / self.version / self.architecture
+        apk = _dist / f"{self.package_name}-{self.project.version}-r1.apk"
+        doc = _dist / f"{self.package_name}-doc-{self.project.version}-r1.apk"
+        pyc = _dist / f"{self.package_name}-pyc-{self.project.version}-r1.apk"
         apks = {"main": apk}
         if doc.exists():
             apks["doc"] = doc
+        if pyc.exists():
+            apks["pyc"] = pyc
         return apks
 
     def test(self, package):
@@ -267,3 +277,11 @@ class Alpine(BaseDistribution):
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
+
+
+class Alpine317(Alpine):
+    version = "3.17"
+    image = "alpine:3.17"
+
+
+Alpine318 = Alpine

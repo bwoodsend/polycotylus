@@ -159,11 +159,15 @@ class BaseDistribution(abc.ABC):
     def pip_build_command(self, indentation, into="$pkgdir"):
         if self.project.setuptools_scm:
             declare_version = 'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
-        return self._formatter(f"""
+        out = self._formatter(f"""
             {declare_version if self.project.setuptools_scm else ""}
             {self.python_prefix}/bin/pip install --disable-pip-version-check --no-compile --prefix="{into}{self.python_prefix}" --no-warn-script-location --no-deps --no-build-isolation .
-            {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "{into}" "{into}{self.python_prefix}/lib/"
         """, indentation)
+        if self.project.contains_py_files:
+            out += self._formatter(f"""
+                {self.python_prefix}/bin/python -m compileall --invalidation-mode=unchecked-hash -s "{into}" "{into}{self.python_prefix}/lib/"
+            """, indentation)
+        return out
 
     @property
     def icons(self):

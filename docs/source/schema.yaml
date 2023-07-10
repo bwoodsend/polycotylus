@@ -146,6 +146,12 @@ architecture: aarch64 armhf armv7 ppc64le x86 x86_64
   # packages are found in `dependencies.build.$distribution`; ``noarch``
   # otherwise.
 
+contains_py_files: false
+  # Whether or not the distributed parts (i.e. not including tests or build
+  # scripts) of your package contains ``.py`` files. Setting to ``false`` will
+  # disable any Python bytecode compilation steps and prevent a ``-pyc``
+  # subpackage being generated on Alpine.
+
 maintainer: Your Name <your.email@address.com>
   # Contact details for whoever's job it will be to fix it if there are issues.
   # This must be a real human being – not an organization. If non-ambiguous,
