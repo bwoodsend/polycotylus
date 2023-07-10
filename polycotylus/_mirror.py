@@ -376,7 +376,7 @@ mirrors = {
             ["APKINDEX.tar.gz"],
             [],
             8901,
-            r"sed -r -i 's|^.*/v\d+\.\d+/|http://0.0.0.0:8901/v3.17/|g' /etc/apk/repositories",
+            r"sed -r -i 's|^.*/(v\d+\.\d+)/|http://0.0.0.0:8901/\1/|g' /etc/apk/repositories",
             (_alpine_sync_time, _use_last_modified_header),
             r"(.+-)([^-]+-r\d+)(\.apk)",
         ),

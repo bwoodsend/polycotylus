@@ -43,6 +43,7 @@ class Project:
     test_files: list
     license_names: list
     licenses: list
+    contains_py_files: bool
     scripts: dict
     desktop_entry_points: dict
     architecture: object
@@ -320,6 +321,7 @@ class Project:
             url=project["urls"]["homepage"],
             license_names=license_names,
             licenses=licenses,
+            contains_py_files=polycotylus_options["contains_py_files"],
             scripts={**project.get("scripts", {}), **project.get("gui-scripts", {})},
             desktop_entry_points=desktop_files,
             source_url=source,
