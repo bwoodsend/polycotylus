@@ -10,10 +10,12 @@ from ._project import Project
 from ._alpine import Alpine
 from ._arch import Arch
 from ._manjaro import Manjaro
-from ._fedora import Fedora
+from ._fedora import Fedora, Fedora37, Fedora38
 from ._void import Void, VoidGlibc, VoidMusl
 from ._opensuse import OpenSUSE
 
 distributions = {i.name: i for i in (Alpine, Arch, Fedora, Manjaro, Void, OpenSUSE)}
+distributions["fedora:37"] = Fedora37
+distributions["fedora:38"] = Fedora38
 distributions["void:glibc"] = VoidGlibc
 distributions["void:musl"] = VoidMusl

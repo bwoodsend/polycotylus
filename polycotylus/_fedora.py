@@ -20,6 +20,9 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 
 class Fedora(BaseDistribution):
+    name = "fedora"
+    version = "38"
+    image = "fedora:38"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tkinter"],
@@ -65,7 +68,7 @@ class Fedora(BaseDistribution):
     @lru_cache()
     def python_version(cls):
         command = ["python3", "-c", "import sys; print('{}.{}.{}'.format(*sys.version_info))"]
-        return _docker.run("fedora:37", command, tty=True).output.strip()
+        return _docker.run(cls.image, command, tty=True).output.strip()
 
     @classmethod
     def python_package(cls, requirement):
@@ -212,7 +215,7 @@ class Fedora(BaseDistribution):
 
     def dockerfile(self):
         return self._formatter(f"""
-            FROM fedora:37 AS base
+            FROM {self.image} AS base
 
             {self._install_user()}
             RUN groupadd --users user mock
@@ -271,7 +274,7 @@ class Fedora(BaseDistribution):
     def build(self):
         with self.mirror:
             _docker.run(self.build_builder_image(),
-                        ["fedpkg", "--release", "f37", "compile", "--", "-bb"],
+                        ["fedpkg", "--release", "f" + self.version, "compile", "--", "-bb"],
                         tty=True, root=False,
                         volumes=[(self.distro_root, "/io")] + self._mounted_caches,
                         architecture=self.docker_architecture, post_mortem=True)
@@ -279,7 +282,7 @@ class Fedora(BaseDistribution):
         machine = "noarch" if self.project.architecture == "none" else self.architecture
         pattern = re.compile(
             fr"{re.escape(self.package_name)}(?:-([^-]+))?-{self.project.version}.*\.{machine}\.rpm")
-        for path in (self.distro_root / machine).glob("*.fc37.*.rpm"):
+        for path in (self.distro_root / machine).glob(f"*.fc{self.version}.*.rpm"):
             if m := pattern.match(path.name):
                 rpms[m[1] or "main"] = path
         assert "main" in rpms
@@ -299,3 +302,11 @@ class Fedora(BaseDistribution):
                 {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                                architecture=self.docker_architecture)
+
+
+class Fedora37(Fedora):
+    version = "37"
+    image = "fedora:37"
+
+
+Fedora38 = Fedora

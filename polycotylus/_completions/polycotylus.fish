@@ -1,6 +1,7 @@
 set -l distributions alpine arch fedora manjaro opensuse void
+set -l fedora_variants fedora:37 fedora:38
 set -l void_variants void:musl void:glibc
-set -l all_variants $distributions $void_variants
+set -l all_variants $distributions $fedora_variants $void_variants
 
 complete -c polycotylus -f
 complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_variants" -a "$distributions"
@@ -15,6 +16,7 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from opens
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void $void_variants" -a 'aarch64 armv6l armv7l x86_64'
 
 # Suggest variants of distributions only if the user has already started typing the distribution's name.
+complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- f (commandline -t)' -a "$fedora_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'

@@ -9,7 +9,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
-from polycotylus._fedora import Fedora
+from polycotylus._fedora import Fedora, Fedora37
 from polycotylus.__main__ import cli
 import shared
 
@@ -55,7 +55,7 @@ def test_ubrotli():
     self = Fedora(Project.from_root(shared.ubrotli))
     self.generate()
     (self.distro_root / self.architecture).mkdir(exist_ok=True)
-    (self.distro_root / self.architecture / f"python3-ubrotli-0.2.0-1.fc37.{self.architecture}.rpm").write_bytes(b"")
+    (self.distro_root / self.architecture / f"python3-ubrotli-0.2.0-1.fc38.{self.architecture}.rpm").write_bytes(b"")
     packages = self.build()
     assert "main" in packages
     assert "debuginfo" in packages
@@ -91,7 +91,15 @@ def test_silly_named_package(monkeypatch):
     assert "certifi" not in self.spec()
     assert "setuptools" not in self.spec()
     assert "colorama" not in self.spec()
-    self.test(self.build()["main"])
+    rpm = self.build()["main"]
+    self.test(rpm)
+
+    self = Fedora37(Project.from_root(shared.silly_name))
+    rpm37 = self.build()["main"]
+    self.test(rpm37)
+
+    assert rpm.exists()
+    assert rpm != rpm37
 
 
 def test_test_command(polycotylus_yaml):
