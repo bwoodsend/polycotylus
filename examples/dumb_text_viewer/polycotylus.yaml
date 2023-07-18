@@ -11,7 +11,7 @@ frontend: true
 desktop_entry_points:
   underwhelming_software-dumb_text_viewer:
     Name: Dumb Text Viewer
-    Exec: dumb_text_viewer %U
+    Exec: dumb_text_viewer %u
     GenericName: Text Viewer
     MimeType: |
       text/css;text/csv;text/html;text/plain;text/richtext;
@@ -25,3 +25,8 @@ desktop_entry_points:
       ar: اقرأ ملفات النص العادي
       zh_CN: 讀取純文本文件
     icon: icon-source.svg
+    actions:
+      pink-mode:
+        Name: Pink Mode
+        Exec: dumb_text_viewer --pink-mode %u
+        icon: pink-mode.svg

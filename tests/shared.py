@@ -113,10 +113,13 @@ def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
         png = Image.open(io.BytesIO(raw))
         assert png.size == (size, size)
         assert png.getpixel((0, 0))[3] == 0
+        container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer-pink-mode.png")
 
     assert "Comment[zh_CN]=讀取純文本文件".encode() in container.file(
         "/usr/share/applications/underwhelming_software-dumb_text_viewer.desktop")
     assert container.file(
         "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg"
     ).startswith(b"<svg")
+    assert b'fill="#fe55fe"' in container.file(
+        "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer-pink-mode.svg")
     assert container.file("/usr/bin/dumb_text_viewer").startswith(shebang)

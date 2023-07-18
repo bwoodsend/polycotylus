@@ -167,9 +167,14 @@ class BaseDistribution(abc.ABC):
 
     @property
     def icons(self):
-        return [(i["icon"]["source"], i["icon"]["id"])
-                for i in self.project.desktop_entry_points.values()
-                if "icon" in i]
+        icons = []
+        for desktop_file in self.project.desktop_entry_points.values():
+            if icon := desktop_file.get("icon"):  # pragma: no branch
+                icons.append((icon["source"], icon["id"]))
+            for action in desktop_file.get("actions", {}).values():
+                if icon := action.get("icon"):
+                    icons.append((icon["source"], icon["id"]))
+        return _deduplicate(icons)
 
     def _dependencies(self, dependencies):
         out = []

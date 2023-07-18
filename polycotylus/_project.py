@@ -286,6 +286,9 @@ class Project:
         for (id, desktop_file) in desktop_files.items():
             if isinstance(icon := desktop_file.get("icon"), str):
                 desktop_file["icon"] = {"id": id, "source": icon}
+            for (action_id, action) in desktop_file.get("actions", {}).items():
+                if isinstance(icon := action.get("icon"), str):
+                    action["icon"] = {"id": id + "-" + action_id, "source": icon}
 
         test_files = []
         for pattern in polycotylus_options["test_files"]:
@@ -385,6 +388,8 @@ class Project:
                         out[key] = translation
                     else:
                         out[f"{key}[{locale}]"] = translation
+            elif key == "actions":
+                out["Actions"] = "".join(i + ";" for i in value)
             elif key == "icon":
                 out["Icon"] = value["id"]
             else:
@@ -392,10 +397,19 @@ class Project:
 
         for (key, value) in out.items():
             if not isinstance(value, str):
+                assert key != "Comment"
                 out[key] = json.dumps(value)
         out = "".join(f"{key}={out[key]}\n" for key in sorted(out))
+        out = "[Desktop Entry]\n" + out
 
-        return "[Desktop Entry]\n" + out
+        for (action_id, action_options) in options.get("actions", {}).items():
+            action = {"Name": action_options["Name"], "Exec": action_options["Exec"]}
+            if "icon" in action_options:
+                action["Icon"] = action_options["icon"]["id"]
+            out += f"\n[Desktop Action {action_id}]\n"
+            out += "".join(f"{key}={action[key]}\n" for key in sorted(action))
+
+        return out
 
     def write_desktop_files(self):
         for (id, options) in self.desktop_entry_points.items():

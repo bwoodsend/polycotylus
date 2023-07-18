@@ -254,3 +254,18 @@ desktop_entry_points:
     # provided icon should be square and either much larger than 128x128px or an
     # exact multiple in size to minimize resize aliasing. `polycotylus` will
     # handle the image resize and conversions.
+
+    actions:
+      $action-identifier:
+        Name: Some Custom Mode
+        Exec: my_application --some-custom-mode %F
+        icon: another-icon.svg
+        # Desktop files support alternative launch modes, such as an incognito
+        # mode for a web browser; these are referred to as *desktop file
+        # actions*. Actions require an identifier, name and launch command and
+        # may also take its own icon. The identifier may be any unique string
+        # made up of only lowercase ASCII letters and hyphens. ``Name``,
+        # ``Exec`` and ``icon`` take the same argument formats as their global
+        # counterparts (`Name <desktop_entry_points.$identifier.Name>`, `Exec
+        # <desktop_entry_points.$identifier.Exec>` and `icon
+        # <desktop_entry_points.$identifier.icon>`).

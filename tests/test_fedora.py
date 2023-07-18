@@ -3,6 +3,8 @@ import shlex
 import shutil
 import subprocess
 import platform
+import tarfile
+import io
 
 import toml
 import pytest
@@ -71,11 +73,16 @@ def test_dumb_text_viewer():
     container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
 
 
-def test_png_source_icon(polycotylus_yaml):
-    original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
-    polycotylus_yaml(
-        original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
-    self = Fedora(Project.from_root(shared.dumb_text_viewer))
+def test_png_source_icon(tmp_path, polycotylus_yaml):
+    _raw = Project.from_root(shared.dumb_text_viewer).tar()
+    with tarfile.open("", "r", io.BytesIO(_raw)) as tar:
+        tar.extractall(tmp_path)
+    config = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
+    config = config.replace("icon-source.svg", "dumb_text_viewer/icon.png")
+    config = re.sub(".*pink-mode.svg", "", config)
+    subprocess.run(["git", "init", str(tmp_path / "dumb_text_viewer-0.1.0")])
+    polycotylus_yaml(config)
+    self = Fedora(Project.from_root(tmp_path / "dumb_text_viewer-0.1.0"))
     self.generate()
     assert "svg" not in self.spec()
     container = self.test(self.build()["main"])

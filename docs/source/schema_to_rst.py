@@ -62,6 +62,14 @@ while i < len(lines):
             yaml[key].append(m[2])
             i += 1
         value = yaml
+    if key == "actions":
+        chunk = []
+        while not comment_re.match(lines[i]):
+            chunk.append(lines[i])
+            i += 1
+        yaml[key] = strictyaml.load("".join(chunk)).data
+        value = yaml
+
 
     paths[indentation] = key
     path = [j for (i, j) in paths.items() if len(i) <= len(indentation)]

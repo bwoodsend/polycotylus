@@ -91,8 +91,8 @@ def test_dumb_text_viewer():
 
 def test_png_source_icon(polycotylus_yaml):
     original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
-    polycotylus_yaml(
-        original.replace("icon-source.svg", "dumb_text_viewer/icon.png"))
+    polycotylus_yaml(re.sub("(icon-source|pink-mode).svg",
+                            "dumb_text_viewer/icon.png", original))
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.apkbuild()

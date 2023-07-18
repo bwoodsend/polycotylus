@@ -7,7 +7,7 @@ favicon = str(Path(__file__).with_name("icon.png").resolve())
 
 
 class TextViewerWidget:
-    def __init__(self, root, initial=None):
+    def __init__(self, root, initial=None, pink_mode=False):
         frame = tkinter.Frame(root)
         frame.grid(row=0, column=0, sticky=W + E)
         self.open_button = tkinter.Button(frame, text='Open',
@@ -26,6 +26,12 @@ class TextViewerWidget:
 
         self.textbox = ScrolledText(frame, width=100, height=30)
         self.textbox.grid(row=0, column=0, sticky=E + W + N + S)
+
+        if pink_mode:
+            self.textbox["fg"] = "#F0F"
+            frame["bg"] = "pink"
+            root["bg"] = "pink"
+            self.open_button["fg"] = "#FF00FF"
 
         if initial:
             self.open(initial)
