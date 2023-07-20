@@ -339,8 +339,11 @@ class Project:
         for flag in ("-ocz", "-dz"):
             p = subprocess.run(["git", "ls-files", "--exclude-standard", flag],
                                text=True, cwd=str(self.root),
-                               stdout=subprocess.PIPE)
-            assert p.returncode == 0
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if "not a git repository" in p.stderr:
+                raise _exceptions.PolycotylusUsageError(
+                    "Not a git repository. Polycotylus must be ran from inside a git project.")
+            assert p.returncode == 0, p.stderr
             outputs.append(re.findall("[^\x00]+", p.stdout))
         files = [i for i in outputs[0] if i not in outputs[1]]
         buffer = io.BytesIO()

@@ -103,6 +103,13 @@ def test_png_source_icon(polycotylus_yaml):
         assert ".svg" not in file
 
 
+def test_not_a_git_repo_error(tmp_path):
+    for file in ["pyproject.toml", "polycotylus.yaml", "LICENSE"]:
+        shutil.copy(shared.bare_minimum / file, tmp_path)
+    with pytest.raises(_exceptions.PolycotylusUsageError, match="git"):
+        Alpine(Project.from_root(tmp_path)).generate()
+
+
 def test_ubrotli():
     self = Alpine(Project.from_root(shared.ubrotli))
     self.generate()
