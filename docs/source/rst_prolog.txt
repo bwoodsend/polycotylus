@@ -9,3 +9,17 @@
 .. py:currentmodule:: polycotylus
 
 .. _XVFB: https://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml
+.. _glibc: https://www.gnu.org/software/libc/
+.. _musl: https://musl.libc.org/
+.. _fish: https://fishshell.com/
+.. _Docker: https://www.docker.com/
+.. _Podman: https://podman.io/
+.. _OrbStack: https://docs.orbstack.dev/
+.. _`Docker Desktop for macOS`: https://docs.docker.com/desktop/install/mac-install/
+.. _`Docker Desktop for Windows`: https://docs.docker.com/desktop/install/windows-install/
+.. _setuptools: https://setuptools.pypa.io/en/latest/userguide/index.html
+.. _Poetry: https://python-poetry.org/
+.. _SPDX: https://spdx.org/licenses/
+.. _qemu: https://www.qemu.org/
+
+.. highlight:: bash

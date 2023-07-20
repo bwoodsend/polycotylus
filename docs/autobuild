@@ -1,1 +1,1 @@
-sphinx-autobuild --open-browser --watch ../polycotylus ./source ./build --ignore "*~"
+sphinx-autobuild --open-browser --watch ../polycotylus --watch ../README.rst ./source ./build --ignore "*~"

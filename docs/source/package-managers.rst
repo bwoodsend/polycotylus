@@ -1,3 +1,5 @@
+.. _package_manager_cheat_sheet:
+
 ===========================
 Package manager cheat sheet
 ===========================
@@ -158,3 +160,125 @@ This reference should answer those questions.
 
         # List a package's files:
         xbps-query -Rf python3
+
+
+Working with local packages
+...........................
+
+.. tab:: Alpine
+
+    Alpine packages are gzipped tarballs (albeit with some nonstandard headers
+    used for signing). For the most part, you can interact with them using the
+    standard ``tar`` command.
+
+    ::
+
+        # Install local package
+        apk add package-1.2.3-r1.apk
+
+        # List package's contents
+        tar tf package-1.2.3-r1.apk
+
+        # Extract package's contents
+        tar xf package-1.2.3-r1.apk
+
+        # Read package's metadata
+        tar xOf package-1.2.3-r1.apk .PKGINFO
+
+
+.. tab:: Arch/Manjaro
+
+    Arch packages are tarballs with `Zstandard
+    <https://facebook.github.io/zstd/>`_ compression. For the most part, you can
+    interact with them using the standard ``tar`` command provided that you have
+    the ``zstd`` command also installed.
+
+    ::
+
+        # Install local package
+        pacman -U --noconfirm package-1.2.3-1-any.pkg.tar.zst
+
+        # List package's contents
+        tar tf package-1.2.3-1-any.pkg.tar.zst
+
+        # Extract package's contents
+        tar xf package-1.2.3-1-any.pkg.tar.zst
+
+        # Read package's metadata
+        tar xOf package-1.2.3-1-any.pkg.tar.zst .PKGINFO
+
+
+.. tab:: Fedora
+
+    Fedora RPMs are a custom file format consisting of an embedded cpio archive
+    (containing the files) plus some added metadata. The embedded cpio can be
+    accessed via ``bsdcpio``. The metadata is untouchable without the distro
+    specific ``rpm`` command.
+
+    ::
+
+        # Install local package
+        dnf install -y package-1.2.3-1.fc38.noarch.rpm
+
+        # List package's contents
+        bsdcpio -itF package-1.2.3-1.fc38.noarch.rpm
+
+        # Extract package's contents
+        bsdcpio -idF package-1.2.3-1.fc38.noarch.rpm
+
+        # Read package's metadata. Not possible with cross distribution tools.
+        rpm --query --info package-1.2.3-1.fc38.noarch.rpm
+        rpm --query --requires package-1.2.3-1.fc38.noarch.rpm
+
+
+.. tab:: OpenSUSE
+
+    OpenSUSE RPMs are a custom file format consisting of an embedded cpio archive
+    (containing the files) plus some added metadata. The embedded cpio can be
+    accessed via ``bsdcpio``. The metadata is untouchable without the distro
+    specific ``rpm`` command.
+
+    ::
+
+        # Install local package
+        zypper install -y package-1.2.3-0.noarch.rpm
+
+        # List package's contents
+        bsdcpio -itF package-1.2.3-0.noarch.rpm
+
+        # Extract package's contents
+        bsdcpio -idF package-1.2.3-0.noarch.rpm
+
+        # Read package's metadata. Not possible with cross distribution tools.
+        rpm --query --info package-1.2.3-0.noarch.rpm
+        rpm --query --requires package-1.2.3-0.noarch.rpm
+
+
+.. tab:: Void
+
+    Void packages are tarballs with `Zstandard
+    <https://facebook.github.io/zstd/>`_ compression. For the most part, you can
+    interact with them using the standard ``tar`` command provided that you have
+    the ``zstd`` command also installed. Installing a local package is slightly
+    more painful than it is on other distributions because ``xbps`` does not
+    support installing packages outside of repositories. You need to generate a
+    local repository (which `polycotylus` does for you if you preserve the
+    ``*-repodata`` file).
+
+    ::
+
+        # Install local package:
+        # - Assuming the package and *-repodata file are in the current working directory)
+        xbps-install --repository "$PWD" package
+        # - Or without the *-repodata file
+        xbps-rindex -a *.xbps
+        xbps-install --repository "$PWD" package
+
+        # List package's contents
+        tar tf package-1.2.3_1.x86_64.xbps
+
+        # Extract package's contents
+        tar xf package-1.2.3_1.x86_64.xbps
+
+        # Read package's metadata
+        tar xOf package-1.2.3_1.x86_64.xbps ./props.plist

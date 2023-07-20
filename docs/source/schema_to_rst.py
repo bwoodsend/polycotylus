@@ -13,6 +13,10 @@ intro = re.sub("^# ?", "", intro, flags=re.M)
 lines = raw.splitlines(keepends=True)
 
 heading = ["""
+.. module:: polycotylus.yaml
+
+.. _`polycotylus-yaml`:
+
 ===============================
 Reference: ``polycotylus.yaml``
 ===============================
@@ -26,7 +30,7 @@ caption_re = re.compile("# -{20}")
 list_re = re.compile("( *)- ([^ ].*)")
 blank_re = re.compile(" *\n")
 
-toc = []
+toc = ["-----------------\nTable of contents\n-----------------\n\n"]
 body = []
 paths = {}
 i = 0
@@ -73,8 +77,9 @@ while i < len(lines):
     paths[indentation] = key
     path = [j for (i, j) in paths.items() if len(i) <= len(indentation)]
     title = ".".join(path)
+    body.append(f"\n\n.. module:: {title}\n\n")
     body.append(f"\n\n{'.' * len(title)}\n{title}\n{'.' * len(title)}\n\n")
-    toc.append(indentation * 2 + f"- :ref:`{key} <{'.'.join(path)}>`\n")
+    toc.append(indentation * 2 + f"- :mod:`{key} <{'.'.join(path)}>`\n")
     while i < len(lines):
         line = lines[i]
         i += 1
@@ -111,7 +116,7 @@ while i < len(lines):
             "\n",
         ]
 
-content = "".join(heading + ["\n\n", intro] + toc + ["\n\n"] + body)
+content = "".join(heading + ["\n\n", intro, "\n\n"] + toc + ["\n\n"] + body)
 rst = Path(__file__).with_name("schema.rst")
 if not rst.exists() or rst.read_text("utf8") != content:
     rst.write_text(content, "utf-8")

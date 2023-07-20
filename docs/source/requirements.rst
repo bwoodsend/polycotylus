@@ -1,45 +1,59 @@
-=======================
-Prerequisites checklist
-=======================
+=====================
+Package Prerequisites
+=====================
 
-#.  Your source code is stored in a git repository and, if this project is to be
-    submitted to public repositories, is hosted by some service that allows you
-    to download the repo at any given commit in ``.tar.gz`` format without
-    credentials or SSH keys. GitHub, GitLab, Gerrit and Sourceforge are all such
-    suitable hosts.
+`polycotylus` is picky about what it builds. It's requirements are listed below.
+There are builtin checks for most of these so feel free to skip/skim-read all
+but the first two.
+
+#.  Your source code must be in a git repository.
 
 #.  Your project should be a ``pip install``-able Python distribution as if it were
-    going to be uploaded to PyPI -- certainly not the usual assortment of
-    ``.py`` files arranged in some imitation of a Java or C++ project layout
-    with a ``requirements.txt`` that is so often misassumed to be proper Python
-    packaging! See the `Python packaging tutorial
-    <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`_ for
-    how this is done.
+    going to be uploaded to PyPI -- **not** just an assortment of ``.py`` files
+    and a ``requirements.txt``! See the `Python packaging tutorial
+    <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`_.
 
 #.  All your dependencies, including build and test dependencies must already be
-    available on each Linux distribution's package repositories. Very few Linux
+    available on each Linux distribution's package repositories. Few Linux
     distributions support either vendoring unavailable dependencies or mixing
-    system package managers with pip and none of them do it well so
-    `polycotylus` does not allow them either.
+    system package managers with pip and those that do do it very badly hence
+    `polycotylus` does not allow it either.
 
 #.  Core metadata is stored using the :pep:`621` `pyproject.toml
     <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/>`_
-    rather than the legacy ``setup.py`` or ``setup.cfg`` files. `polycotylus`
-    expects to find:
+    rather than the legacy ``setup.py`` or ``setup.cfg`` files. Specifically,
+    `polycotylus` expects to find:
 
-    - `name <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#name>`_
-    - `version <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#version>`_
-    - `description <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#description>`_ (a short one-line variant)
-    - `dependencies <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dependencies-optional-dependencies>`_
-    - `urls <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#urls>`_
+    - `name
+      <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#name>`_
+
+    - `version
+      <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#version>`_
+      (or a ``[tool.setuptools_scm]`` section for :ref:`setuptools_scm based
+      projects <setuptools_scm_support>`)
+
+    - `description
+      <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#description>`_
+      (a short one-line variant)
+
+    - `dependencies
+      <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dependencies-optional-dependencies>`_
+      (if you have any)
+
+    - `urls
+      <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#urls>`_
+
+    (A special exemption is made for :ref:`poetry <poetry_support>`.)
 
 #.  Your package should have a fully autonomous test suite.
 
 #.  The package must not write into its own installation directory at runtime.
-    This is important because, since the installation directory will be owned by
-    root, it won't be writable. This applies to settings, caches, logs, implicit
+    This is because the installation directory will be owned by root, meaning
+    that it won't be writable. This applies to settings, caches, logs, implicit
     working state dumps, dynamically generated resources or anything else that
-    would violate the immutability of the package.  ::
+    would violate the immutability of the package.
+
+    .. code-block:: python
 
       from pathlib import Path
       # This bad - it will lead to permission errors!
@@ -50,23 +64,22 @@ Prerequisites checklist
       settings = Path(appdirs.user_config_dir("my-application"), "settings.json")
 
 
-When anything goes wrong in `polycotylus`, you'll by up to your neck in docker
-containers where you'll have limited ability to debug and any adjustments you
-make will require a rebuild to propagate. It's therefore encouraged that you
-flush out non `polycotylus` related packaging errors (usually data file
-collection related) outside of `polycotylus` by doing a one-off manual dummy run
-through the flows in a clean virtual environment (e.g. using `venv`).
-Polycotylus's internal workflow essentially boils down to the generic steps
-below. If you can make it through them without it going pear-shaped then
-`polycotylus` *should* behave itself too.
+Doing a trial run
+.................
+
+When anything goes wrong in `polycotylus`, you'll be deep inside a Docker
+container where you'll have limited ability to debug and any adjustments you
+make will require a rebuild to propagate. If you want flush out non
+`polycotylus` related packaging errors (usually data file collection related)
+outside of `polycotylus` then you can do so with just a clean virtual
+environment (e.g. using `venv`). Polycotylus's internal workflow essentially
+boils down to the generic steps below. If you can make it through them without
+trouble then `polycotylus` should be a lot easier.
 ::
 
     curl -L https://github.com/your/project/archive/refs/tags/version.tar.gz | tar xz
     cd project-version
     pip install .
     pip install your test requirements
-    rm -rf src
+    rm -r src
     pytest
-
-If your project already has continuous integration (CI/CD) set up, then you can
-skip the above since CI/CD will be doing it already.
