@@ -55,7 +55,7 @@ def cli(argv=None):
         artifacts = self.build()
         self.test(artifacts["main"])
     except polycotylus.PolycotylusUsageError as ex:
-        raise SystemExit(str(ex))
+        raise SystemExit("Error: " + str(ex))
     print(f"Built {len(artifacts)} artifact{'s' if len(artifacts) != 1 else ''}:")
     for (variant, path) in artifacts.items():
         print(f"{variant}: {path}")

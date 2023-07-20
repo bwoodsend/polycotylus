@@ -144,7 +144,7 @@ def test_cli(monkeypatch, capsys):
     capture = capsys.readouterr()
     assert "Built 3 artifacts:\n" in capture.out
 
-    with pytest.raises(SystemExit, match='^Architecture "ppc64le" '):
+    with pytest.raises(SystemExit, match='^Error: Architecture "ppc64le" '):
         cli(["fedora", "--architecture=ppc64le"])
 
 
