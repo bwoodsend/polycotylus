@@ -1,3 +1,5 @@
+.. _dependency_locking:
+
 ======================================
 Dependency locking/Reproducible builds
 ======================================
