@@ -21,6 +21,8 @@ To switch between Docker_ and Podman_, use the following commands::
     polycotylus --configure docker=
 
 
+.. _podman_caveats:
+
 Caveats
 .......
 

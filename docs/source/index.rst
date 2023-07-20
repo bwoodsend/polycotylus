@@ -11,6 +11,7 @@
     overview
     requirements
     example-library
+    example-gui
 
 
 .. toctree::

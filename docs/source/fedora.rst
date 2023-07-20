@@ -20,8 +20,7 @@ Fedora will build up to three packages for one build:
 * ``debugsource``: Contains the source code for any compiled binaries. Created
   only if your project contains compiled code.
 
-It's up to you whether or not you think the debug packages are likely to be
-needed.
+It's up to you whether or not you expect to need the debug packages.
 
 
 Target Fedora version

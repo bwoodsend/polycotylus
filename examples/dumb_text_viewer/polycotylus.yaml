@@ -1,32 +1,6 @@
-source_url: https://github.com/bwoodsend/dumb_text_viewer/archive/refs/tags/{version}.tar.gz
-
+# polycotylus.yaml
 dependencies:
   run:
     python: tkinter
   test:
     pip: -r test-requirements.txt
-
-frontend: true
-
-desktop_entry_points:
-  underwhelming_software-dumb_text_viewer:
-    Name: Dumb Text Viewer
-    Exec: dumb_text_viewer %u
-    GenericName: Text Viewer
-    MimeType: |
-      text/css;text/csv;text/html;text/plain;text/richtext;
-      text/tab-separated-values;text/x-python;text/x-setext;
-      text/x-sgml;text/x-vcard;text/xml;application/x-php;
-      application/x-httpd-php3;application/x-httpd-php4;
-      application/x-httpd-php5;application/xml
-    Comment:
-      : Read plain text files
-      es: Leer archivos de texto sin formato
-      ar: اقرأ ملفات النص العادي
-      zh_CN: 讀取純文本文件
-    icon: icon-source.svg
-    actions:
-      pink-mode:
-        Name: Pink Mode
-        Exec: dumb_text_viewer --pink-mode %u
-        icon: pink-mode.svg

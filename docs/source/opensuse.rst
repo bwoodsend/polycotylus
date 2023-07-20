@@ -34,6 +34,8 @@ If you have `frontend` mode on, `polycotylus` will build one package. Otherwise,
 you'll get three.
 
 
+.. _opensuse_caveats:
+
 Caveats
 .......
 

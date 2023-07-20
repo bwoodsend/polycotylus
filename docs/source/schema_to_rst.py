@@ -13,6 +13,8 @@ intro = re.sub("^# ?", "", intro, flags=re.M)
 lines = raw.splitlines(keepends=True)
 
 heading = ["""
+.. module:: polycotylus.yaml
+
 .. _`polycotylus-yaml`:
 
 ===============================

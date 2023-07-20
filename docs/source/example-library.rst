@@ -34,7 +34,9 @@ quickest and has the best diagnostics. ::
 
     polycotylus alpine
 
-Oh dear, false start! ::
+Oh dear, false start!
+
+.. code-block:: text
 
     Error: Polycotylus can't determine the SPDX license type. The Trove
     classifier 'License :: OSI Approved :: Apache Software License' could refer
@@ -53,7 +55,7 @@ them. In this case, we can manually check the contents of ``ubrotli``\ 's
 ``LICENSE`` file and see that it's specifically an Apache version 2.0 license
 and since there is no *Apache version 2.0* trove classifier on
 `pypi.org/classifiers <https://pypi.org/classifiers/>`_, we'll have to set the
-`spdx` key in the ``polycotylus.yaml`` like the error suggests.
+`spdx` key in the `polycotylus.yaml` like the error suggests.
 
 .. code-block:: yaml
 
@@ -253,10 +255,10 @@ versions and architectures are available.
 Building for the second distribution (Fedora)
 .............................................
 
-Looking back at our current ``polycotylus.yaml``, you can probably guess that
-most of the configuration will apply to all Linux distributions but those two
-lines with ``alpine`` in them are going to need equivalents for every other
-Linux distribution.
+Looking back at our current `polycotylus.yaml`, you can probably guess that most
+of the configuration will apply to all Linux distributions but those two lines
+with ``alpine`` in them are going to need equivalents for every other Linux
+distribution.
 
 Our next Linux distribution will be Fedora. Hopefully you can guess that the
 build command is ``polycotylus fedora`` although we'll append the
