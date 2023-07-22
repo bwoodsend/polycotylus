@@ -1,0 +1,10 @@
+#! /usr/bin/make -f
+include /usr/share/dpkg/pkg-info.mk
+export PYBUILD_NAME=ubrotli
+export PYBUILD_SYSTEM=pyproject
+export PYBUILD_TEST_PYTEST = 1
+export PYBUILD_BEFORE_TEST=cp -r {dir}/pytest.ini {dir}/test_ubrotli.py {build_dir}
+export PYBUILD_AFTER_TEST=rm -rf {build_dir}/pytest.ini {build_dir}/test_ubrotli.py
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild

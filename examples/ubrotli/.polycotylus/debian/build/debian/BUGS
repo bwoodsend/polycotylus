@@ -1,0 +1,20 @@
+1. python3.6 unittest failure
+   Forwarded: https://github.com/esnme/ultrajson/issues/307
+   Affects: 1.35
+
+> test_sortKeys (__main__.UltraJSONTests) ... Fatal Python error: ./python/objToJSON.c:934 object at 0x7f89ab0cab48 has negative ref count -1
+> 
+> Current thread 0x00007f89ad62c740 (most recent call first):
+>   File "tests/tests.py3", line 931 in test_sortKeys
+>   File "/usr/lib/python3.6/unittest/case.py", line 605 in run
+>   File "/usr/lib/python3.6/unittest/case.py", line 653 in __call__
+>   File "/usr/lib/python3.6/unittest/suite.py", line 122 in run
+>   File "/usr/lib/python3.6/unittest/suite.py", line 84 in __call__
+>   File "/usr/lib/python3.6/unittest/suite.py", line 122 in run
+>   File "/usr/lib/python3.6/unittest/suite.py", line 84 in __call__
+>   File "/usr/lib/python3.6/unittest/runner.py", line 176 in run
+>   File "/usr/lib/python3.6/unittest/main.py", line 256 in runTests
+>   File "/usr/lib/python3.6/unittest/main.py", line 95 in __init__
+>   File "tests/tests.py3", line 959 in <module>
+> Aborted
+

@@ -113,10 +113,10 @@ class Debian(BaseDistribution):
             {self._install_user()}
 
             ENV DEBEMAIL="{self.project.email}" DEBFULLNAME="{self.project.maintainer}"
-            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts fish {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)}
+            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts fish python3-all-dev:any pybuild-plugin-pyproject {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)}
 
-            RUN mkdir /io
-            WORKDIR /io
+            RUN mkdir -p /io/build && chown -R user /io
+            WORKDIR /io/build
         """)
 
     def control(self):
@@ -176,7 +176,8 @@ class Debian(BaseDistribution):
 
     def build(self):
         with self.mirror:
-            _docker.run(self.build_builder_image(), ["fish"], volumes=[(self.distro_root, "/io")], interactive=True, tty=True, root=False)
+            _docker.run(self.build_builder_image(), ["debuild", "-i", "-us", "-uc", "-b"],
+             volumes=[(self.distro_root, "/io")], tty=True, root=False, post_mortem=True)
 
     def test(self, package):
         pass

@@ -442,6 +442,7 @@ mirrors = {
             "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
             (opensuse_last_sync_time,),
             r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
+        ),
     "debian":
         CachedMirror(
             "http://deb.debian.org/",
