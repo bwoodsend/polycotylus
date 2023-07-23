@@ -144,8 +144,10 @@ class run:
                 return f.read()
 
     def commit(self):
-        return _audit_image(_run([docker, "commit", self.id], stdout=PIPE,
-                                 text=True).stdout.strip())
+        command = [docker, "commit", self.id]
+        if docker.variant == "podman":
+            command.append("-q")
+        return _audit_image(_run(command, stdout=PIPE, text=True).stdout.strip())
 
 
 def _tee_run(command, verbosity, **kwargs):

@@ -7,15 +7,16 @@ jobs:
   main:
     strategy:
       matrix:
-        python:
-          - 3.11
-          - 3.8
-        docker:
-          - docker
+        _:
+          - python: 3.11
+            docker: docker
+          - python: 3.8
+            docker: podman
         suite:
           - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py tests/test_docs.py
           - tests/test_alpine.py tests/test_completion.py
-          - tests/test_arch.py tests/test_manjaro.py
+          - tests/test_arch.py
+          - tests/test_manjaro.py
           - tests/test_fedora.py
           - tests/test_void.py
           - tests/test_opensuse.py
@@ -29,7 +30,25 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix._.python }}
+
+      - name: Install recent podman
+        if: matrix._.docker == 'podman'
+        # Even the latest version of podman available on the latest version of
+        # Ubuntu is hopelessly out of date. Install from the semi-official
+        # PPA. https://podman.io/docs/installation#ubuntu
+        run: |
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://download.opensuse.org/repositories/devel:kubic:libcontainers:unstable/xUbuntu_$(lsb_release -rs)/Release.key \
+            | gpg --dearmor \
+            | sudo tee /etc/apt/keyrings/devel_kubic_libcontainers_unstable.gpg > /dev/null
+          echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/devel_kubic_libcontainers_unstable.gpg]\
+              https://download.opensuse.org/repositories/devel:kubic:libcontainers:unstable/xUbuntu_$(lsb_release -rs)/ /" \
+            | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list > /dev/null
+          sudo apt-get update
+          sudo apt-get -y install podman
+
       - run: |
           if grep -E 'alpine|manjaro|void' <<< '${{ matrix.suite }}' ; then
             sudo apt-get update
@@ -40,7 +59,7 @@ jobs:
       - run: pip install -e .[test]
       - run: pytest --cov-fail-under=0 -sv ${{ matrix.suite }}
         env:
-          docker: ${{ matrix.docker }}
+          docker: ${{ matrix._.docker }}
       - run: mv .coverage .coverage-$(uuidgen)
       - uses: actions/upload-artifact@v3
         with:

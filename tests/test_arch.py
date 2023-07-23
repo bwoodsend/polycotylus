@@ -119,13 +119,25 @@ def test_post_mortem(polycotylus_yaml):
         "ps -f --no-headers 1",
         "echo Made it!!",
     ])
-    p = subprocess.run([sys.executable, "-c", script], input=post_mortem_script,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                       text=True, cwd=str(shared.bare_minimum))
-    assert p.returncode == 1, p.stdout
-    lines = p.stdout.splitlines()
-    assert lines[-1] == "Made it!!"
-    assert "/bash" in lines[-2]
+    p = subprocess.Popen([sys.executable, "-c", script], stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, cwd=str(shared.bare_minimum))
+    lines = []
+    while True:
+        assert p.poll() is None, "".join(lines)
+        lines.append(p.stdout.readline())
+        if "Entering post-mortem debug shell." in lines[-1]:
+            assert "pacman" in p.stdout.readline()
+            assert ".zst" in p.stdout.readline()
+            assert "cat polycotylus.yaml" in p.stdout.readline()
+            assert p.stdout.readline().isspace()
+            break
+    p.stdin.write(post_mortem_script)
+    p.stdin.close()
+    assert p.wait() == 1
+    post_mortem_output = p.stdout.readlines()
+    assert post_mortem_output[-1].strip() == "Made it!!"
+    assert "/bash" in post_mortem_output[-2]
 
 
 def test_poetry():
