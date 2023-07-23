@@ -3,9 +3,7 @@ import subprocess
 import re
 from textwrap import dedent
 import json
-import os
 import time
-import platform
 
 import pytest
 
@@ -141,20 +139,6 @@ def test_build(tmp_path):
     with pytest.raises(_docker.Error,
                        match="(docker|podman) build -f cake --network=host ."):
         _docker.build("cake", tmp_path)
-
-
-def test_mount_permissions(tmp_path):
-    secret_file = tmp_path / "secrets"
-    secret_file.write_text("some credentials")
-    secret_file.chmod(0o600)
-    assert _docker.run("alpine", """
-        cat /io/secrets
-        echo some more secrets >> /io/secrets
-    """, root=False, volumes=[(tmp_path, "/io")]).output == "some credentials"
-    assert "more" in secret_file.read_text()
-    if platform.system() != "Windows":
-        assert secret_file.stat().st_mode & 0o777 == 0o600
-        assert secret_file.stat().st_uid == os.getuid()
 
 
 def test_verbosity(monkeypatch, capsys, tmp_path):

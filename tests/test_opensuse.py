@@ -4,6 +4,9 @@ import polycotylus
 import shared
 import test_fedora
 
+pytestmark = pytest.mark.skipif(polycotylus._docker.docker.variant == "podman",
+                                reason="OpenSUSE with podman is not supported")
+
 
 class TestCommon(shared.Base):
     cls = polycotylus.OpenSUSE
