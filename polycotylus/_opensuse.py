@@ -35,13 +35,13 @@ class OpenSUSE(BaseDistribution):
     imagemagick = "ImageMagick"
     font = "dejavu-fonts"
 
-    def __init__(self, project, architecture=None):
-        if _docker.docker.variant == "podman":  # pragma: no cover
-            # The mounting of dnf's cache onto the host filesystem requires UNIX
-            # permissions that Windows filesystems lack support for.
-            raise _exceptions.PolycotylusUsageError(
-                "Building for OpenSUSE is not supported with podman.")
-        super().__init__(project, architecture)
+    # ~ def __init__(self, project, architecture=None):
+        # ~ if _docker.docker.variant == "podman":  # pragma: no cover
+            # ~ # The mounting of dnf's cache onto the host filesystem requires UNIX
+            # ~ # permissions that Windows filesystems lack support for.
+            # ~ raise _exceptions.PolycotylusUsageError(
+                # ~ "Building for OpenSUSE is not supported with podman.")
+        # ~ super().__init__(project, architecture)
 
     @classmethod
     @lru_cache()
@@ -278,6 +278,9 @@ class OpenSUSE(BaseDistribution):
         out = self._formatter(f"""
             FROM {self.image} as base
             RUN {self.mirror.install}
+            RUN zypper install -y shadow
+            RUN groupadd --non-unique --gid {os.getgid()} wheel
+            {self._install_user()}
 
             RUN mkdir /io
             WORKDIR /io
