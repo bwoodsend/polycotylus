@@ -1,12 +1,13 @@
-from argparse import ArgumentParser, Action
+import argparse
 import os
 from importlib import resources
+import re
 import contextlib
 
 import polycotylus
 
 
-class CompletionAction(Action):
+class CompletionAction(argparse.Action):
     files = {
         "fish": "polycotylus.fish",
     }
@@ -17,7 +18,7 @@ class CompletionAction(Action):
         parser.exit()
 
 
-class ListLocalizationAction(Action):
+class ListLocalizationAction(argparse.Action):
     def __call__(self, parser, namespace, key, option_string=None):
         from polycotylus._yaml_schema import localizations
         with contextlib.suppress(BrokenPipeError):
@@ -28,12 +29,38 @@ class ListLocalizationAction(Action):
         parser.exit()
 
 
-parser = ArgumentParser("polycotylus",
-                        description="Convert Python packages to Linux ones.")
+class ConfigureAction(argparse.Action):
+    def __call__(self, parser, namespace, key, option_string=None):
+        if not key:
+            for option in polycotylus._configuration.options:
+                print(f"{option}={polycotylus._configuration.read(option) or ''}")
+        else:
+            for argument in key:
+                match = re.fullmatch(r"([a-z]+)=(.*)", argument)
+                if match:
+                    if match[2]:
+                        polycotylus._configuration.write(*match.groups())
+                    else:
+                        polycotylus._configuration.clear(match[1])
+                else:
+                    print(polycotylus._configuration.read(argument) or "")
+        parser.exit()
+
+
+parser = argparse.ArgumentParser(
+    "polycotylus",
+    description="Convert Python packages to Linux ones.",
+    formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("distribution", choices=sorted(polycotylus.distributions))
 parser.add_argument("--quiet", "-q", action="count", default=-2)
 parser.add_argument("--completion", action=CompletionAction,
                     choices=sorted(CompletionAction.files))
+parser.add_argument("--configure", nargs="*", action=ConfigureAction,
+                    help="Manipulate global settings. This is an overloaded syntax:\n"
+                    "  * List all settings:  polycotylus --configure\n"
+                    "  * Read a setting:     polycotylus --configure docker\n"
+                    "  * Write a setting:    polycotylus --configure docker=podman\n"
+                    "  * Clear a setting:    polycotylus --configure docker=")
 parser.add_argument("--list-localizations", action=ListLocalizationAction,
                     choices=["language", "region", "modifier"])
 parser.add_argument("--architecture", default=polycotylus.machine())
@@ -43,13 +70,13 @@ parser.add_argument("--post-mortem", action="store_true",
 
 
 def cli(argv=None):
-    assert isinstance(argv, list) or argv is None
-    options = parser.parse_args(argv)
-    os.environ["POLYCOTYLUS_VERBOSITY"] = str(max(-options.quiet, 0))
-    polycotylus._docker.post_mortem = options.post_mortem
-
-    cls = polycotylus.distributions[options.distribution]
     try:
+        assert isinstance(argv, list) or argv is None
+        options = parser.parse_args(argv)
+        os.environ["POLYCOTYLUS_VERBOSITY"] = str(max(-options.quiet, 0))
+        polycotylus._docker.post_mortem = options.post_mortem
+
+        cls = polycotylus.distributions[options.distribution]
         self = cls(polycotylus.Project.from_root("."), options.architecture)
         self.generate()
         artifacts = self.build()

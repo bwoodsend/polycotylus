@@ -11,10 +11,11 @@ import json
 import time
 import sys
 import contextlib
+from functools import lru_cache
 
 import appdirs
 
-from polycotylus import machine
+from polycotylus import machine, _configuration
 
 cache_root = Path(appdirs.user_cache_dir("polycotylus"))
 cache_root.mkdir(parents=True, exist_ok=True)
@@ -23,24 +24,39 @@ cache_root.mkdir(parents=True, exist_ok=True)
 class DockerInfo(str):
     @staticmethod
     def __new__(cls):
-        self = super().__new__(cls, os.environ.get("docker", "docker"))
+        return super().__new__(cls, (_configuration.read("docker") or "docker").strip())
+
+    @lru_cache()
+    def _info(self):
         p = _run([self, "--version"], stdout=PIPE, stderr=STDOUT, text=True)
         m = re.match("(docker|podman) version ([^, ]+)", p.stdout.lower())
-        self.variant, self.version = m.groups()
-        if self.variant == "podman":
-            if tuple(map(int, re.findall(r"\d+", self.version))) < (4, 3, 1):
+        variant, version = m.groups()
+        if variant == "podman":
+            if tuple(map(int, re.findall(r"\d+", version))) < (4, 3, 1):
                 # Note that there may be versions after 3.4.4 which also work.
                 # If ``podman run echo -n hello > /dev/null && podman logs -l``
                 # prints hello, this version is usable.
                 raise SystemExit("This version of podman is unsupported. "
                                  "At least 4.3.1 is needed")
-        return self
+        return variant, version
+
+    @property
+    def variant(self):
+        return self._info()[0]
+
+    @property
+    def version(self):
+        return self._info()[1]
 
 
 docker = DockerInfo()
-images_cache = cache_root / docker.variant
-images_cache.mkdir(exist_ok=True)
 post_mortem = False
+
+
+def images_cache():
+    cache = cache_root / docker.variant
+    cache.mkdir(exist_ok=True)
+    return cache
 
 
 class run:
@@ -111,7 +127,7 @@ class run:
                         interactive=True, root=root, architecture=architecture,
                         verbosity=0)
                     _run([docker, "image", "rm", image], stderr=DEVNULL, stdout=DEVNULL)
-                    (images_cache / image).unlink()
+                    (images_cache() / image).unlink()
 
                     raise SystemExit(1)
 
@@ -164,9 +180,9 @@ def _tee_run(command, verbosity, **kwargs):
 
 
 def _audit_image(hash):
-    path = images_cache / hash
+    path = images_cache() / hash
     path.write_bytes(b"")
-    caches = list(images_cache.iterdir())
+    caches = list(images_cache().iterdir())
     if len(caches) > 100:  # pragma: no cover
         # Apply a dumb least recently used deletion policy for old polycotylus
         # generated docker image caches.

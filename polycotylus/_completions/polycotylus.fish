@@ -3,12 +3,13 @@ set -l alpine_variants alpine:3.17 alpine:3.18
 set -l fedora_variants fedora:37 fedora:38
 set -l void_variants void:musl void:glibc
 set -l all_variants $distributions $alpine_variants $fedora_variants $void_variants
+set -l atomic_flags --completion --list-localizations --configure
 
 complete -c polycotylus -f
-complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_variants" -a "$distributions"
+complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_variants $atomic_flags" -a "$distributions"
 
 # The --architecture flag – if a Linux distribution is already selected, offer only architectures valid on that distribution.
-complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_variants" -a 'aarch64 armv7 ppc64le x86 x86_64'
+complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_variants $atomic_flags" -a 'aarch64 armv7 ppc64le x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from alpine $alpine_variants" -a 'aarch64 armv7 ppc64le x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch" -a 'x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
@@ -27,3 +28,4 @@ complete -c polycotylus -f -s h -l help -d 'Show help'
 
 complete -c polycotylus -x -l completion -n "not __fish_seen_subcommand_from $all_variants" -a 'fish' -d 'Generate shell completions'
 complete -c polycotylus -x -l list-localizations -n "not __fish_seen_subcommand_from $all_variants" -a 'language region modifier'
+complete -c polycotylus -l configure -n "not __fish_seen_subcommand_from $all_variants" -d 'List/get/set/clear global settings'

@@ -70,7 +70,6 @@ while i < len(lines):
         yaml[key] = strictyaml.load("".join(chunk)).data
         value = yaml
 
-
     paths[indentation] = key
     path = [j for (i, j) in paths.items() if len(i) <= len(indentation)]
     title = ".".join(path)
