@@ -69,9 +69,9 @@ def test_ubrotli():
     self.test(rpms["main"])
 
 
-def test_silly_named_package(monkeypatch):
+def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.silly_name))
+    self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.kitchen_sink))
     test_fedora._check_values_align(self.spec())
     self.generate()
     rpms = self.build()

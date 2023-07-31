@@ -12,7 +12,7 @@ from polycotylus._project import Project, expand_pip_requirements, \
 from polycotylus._exceptions import PolycotylusYAMLParseError, \
     AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
 from polycotylus import _misc
-from shared import dumb_text_viewer, bare_minimum, poetry_based, silly_name
+from shared import dumb_text_viewer, bare_minimum, poetry_based, kitchen_sink
 
 
 def test_tar_reproducibility():
@@ -246,7 +246,7 @@ def test_maintainer(pyproject_toml, polycotylus_yaml):
 def test_missing_setuptools_scm(monkeypatch):
     monkeypatch.setitem(sys.modules, "setuptools_scm", None)
     with pytest.raises(PolycotylusUsageError, match="install setuptools-scm"):
-        Project.from_root(silly_name)
+        Project.from_root(kitchen_sink)
 
 
 def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml):

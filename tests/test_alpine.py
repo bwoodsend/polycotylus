@@ -229,11 +229,11 @@ def test_license_handling(tmp_path):
             assert f.read().endswith(b"kittens.")
 
 
-def test_silly_named_package(monkeypatch):
+def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     all_apks = []
     for _Alpine in (Alpine, Alpine317):
-        self = _Alpine(Project.from_root(shared.silly_name))
+        self = _Alpine(Project.from_root(shared.kitchen_sink))
         self.generate()
         assert "pywin32-ctypes" not in self.apkbuild()
         assert "colorama" in self.apkbuild()

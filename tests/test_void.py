@@ -64,9 +64,9 @@ def test_png_source_icon(polycotylus_yaml):
         assert ".svg" not in file
 
 
-def test_silly_named_package(monkeypatch):
+def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = VoidMusl(Project.from_root(shared.silly_name))
+    self = VoidMusl(Project.from_root(shared.kitchen_sink))
     self.generate()
     self.test(self.build()["main"])
 

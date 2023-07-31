@@ -91,9 +91,9 @@ def test_png_source_icon(tmp_path, polycotylus_yaml):
         container.file("/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg")
 
 
-def test_silly_named_package(monkeypatch):
+def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Fedora(Project.from_root(shared.silly_name))
+    self = Fedora(Project.from_root(shared.kitchen_sink))
     self.generate()
     assert "certifi" not in self.spec()
     assert "setuptools" not in self.spec()
@@ -101,7 +101,7 @@ def test_silly_named_package(monkeypatch):
     rpm = self.build()["main"]
     self.test(rpm)
 
-    self = Fedora37(Project.from_root(shared.silly_name))
+    self = Fedora37(Project.from_root(shared.kitchen_sink))
     rpm37 = self.build()["main"]
     self.test(rpm37)
 

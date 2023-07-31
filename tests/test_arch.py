@@ -89,9 +89,9 @@ def test_ubrotli():
     self.test(package)
 
 
-def test_silly_named_package(monkeypatch):
+def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Arch(Project.from_root(shared.silly_name))
+    self = Arch(Project.from_root(shared.kitchen_sink))
     self.generate()
     package = self.build()["main"]
     installed = self.test(package).commit()
