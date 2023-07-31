@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from polycotylus import _docker, _misc
+from polycotylus import _docker, _misc, machine
 
 
 def test_container_removal():
@@ -183,3 +183,30 @@ def test_lazy_run_timeout(monkeypatch):
     next_week = time.time() + 3600 * 24 * 7
     monkeypatch.setattr(time, "time", lambda: next_week)
     assert _docker.lazy_run("alpine", command) != old
+
+
+def test_pull(capfd, monkeypatch):
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "2")
+    _docker.pull.cache_clear()
+    _docker.pull("alpine", machine())
+    output = capfd.readouterr()
+    assert re.match(r"\$ (docker|podman) pull --platform=.* alpine", output.out)
+    assert len(re.findall(".+", output.out)) > 1
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "1")
+    _docker.pull.cache_clear()
+    _docker.pull("alpine", machine())
+    output = capfd.readouterr()
+    assert re.match(r"\$ (docker|podman) pull --platform=.* alpine", output.out)
+    assert len(re.findall(".+", output.out)) == 1
+
+    monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "0")
+    _docker.pull.cache_clear()
+    _docker.pull("alpine", machine())
+    output = capfd.readouterr()
+    assert output.out == ""
+
+    with pytest.raises(_docker.Error,
+                       match=r"(?s)pull --platform=linux/sausage docker.io/library/alpine.*sausage"):
+        monkeypatch.setenv("POLYCOTYLUS_VERBOSITY", "2")
+        _docker.pull("docker.io/library/alpine", "sausage")

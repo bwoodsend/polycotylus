@@ -43,6 +43,7 @@ class BaseDistribution(abc.ABC):
                     package manager.
                 """))
             _docker.setup_binfmt()
+        _docker.pull(self.image, self.docker_architecture)
 
     @property
     def distro_root(self):

@@ -67,7 +67,7 @@ class run:
         if verbosity is None:
             verbosity = _verbosity()
         __tracebackhide__ = True
-        arguments = ["--network=host", "--platform=linux/" + architecture]
+        arguments = ["--network=host", f"--platform=linux/{architecture}"]
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
         if interactive:
@@ -179,6 +179,17 @@ def _tee_run(command, verbosity, **kwargs):
     return p.returncode, b"".join(chunks).decode()
 
 
+@lru_cache()
+def pull(image, architecture):
+    verbosity = _verbosity()
+    command = [docker, "pull", f"--platform=linux/{architecture}", image]
+    if verbosity >= 1:
+        print("$", shlex.join(command))
+    p = _run(command, stdout=None if verbosity >= 2 else PIPE, stderr=PIPE)
+    if p.returncode:
+        raise Error("$ " + shlex.join(command), p.stderr.decode())
+
+
 def _audit_image(hash):
     path = images_cache() / hash
     path.write_bytes(b"")
@@ -199,7 +210,7 @@ def build(dockerfile, root, *flags, target=None, architecture=machine(), verbosi
         verbosity = _verbosity()
     if target:
         command += ["--target", target]
-    command += ["--pull", "--platform=linux/" + architecture, *flags]
+    command += [f"--platform=linux/{architecture}", *flags]
     if verbosity >= 1:
         print("$", shlex.join(command))
     returncode, output = _tee_run(command, verbosity, cwd=root,
