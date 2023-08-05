@@ -2,7 +2,7 @@
 name = "blahblahblah"
 description = "..."
 authors = [
-    { name="Brénainn Woodsend", email="bwoodsend@gmail.com" },
+    { name="The blahblahblah team", email="support@blahblahblah.com" },
 ]
 version = "1.2.3"
 license = { file="LICENSE" }
@@ -16,4 +16,4 @@ classifiers = [
 
 [project.optional-dependencies]
 abc = ["pyperclip", "numpy"]
-xyz = ["humanize"]
+xyz = ["coverage"]

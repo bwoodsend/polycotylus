@@ -5,3 +5,5 @@ cake
 
 
 haggis  # extra noise
+pytest-flake8
+black

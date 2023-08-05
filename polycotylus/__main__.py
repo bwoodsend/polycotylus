@@ -47,6 +47,12 @@ class ConfigureAction(argparse.Action):
         parser.exit()
 
 
+class PresubmitCheckAction(argparse.Action):
+    def __call__(self, parser, namespace, key, option_string=None):
+        self = polycotylus.Project.from_root(".")
+        parser.exit(self.presubmit())
+
+
 parser = argparse.ArgumentParser(
     "polycotylus",
     description="Convert Python packages to Linux ones.",
@@ -67,6 +73,8 @@ parser.add_argument("--architecture", default=polycotylus.machine())
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
+parser.add_argument("--presubmit-check", action=PresubmitCheckAction, nargs=0,
+                    help="Run checks specific to submitting a package to official repositories")
 
 
 def cli(argv=None):

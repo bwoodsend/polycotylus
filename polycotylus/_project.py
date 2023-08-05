@@ -191,7 +191,6 @@ class Project:
                         maintainer: your name <your@email.org>"
                     """))
             maintainer, = maintainers
-        check_maintainer(maintainer["name"])
 
         if polycotylus_options.get("spdx"):
             license_names = list(polycotylus_options["spdx"])
@@ -216,13 +215,13 @@ class Project:
         extras = project.get("optional-dependencies", {})
         for requirement in dependencies.get("test", {}).get("pip", []):
             test_dependencies += expand_pip_requirements(
-                requirement, root, extras)
+                requirement, root, "polycotylus.yaml", extras)
         dependencies.setdefault("test", {})["pip"] = test_dependencies
         # Collect built time PyPI dependencies.
         _pip_build = dependencies.setdefault("build", {}).setdefault("pip", [])
         pip_build = []
         for item in _pip_build:
-            for dependency in expand_pip_requirements(item, root):
+            for dependency in expand_pip_requirements(item, root, "polycotylus.yaml"):
                 pip_build.append(Dependency(dependency, "polycotylus.yaml"))
         for dependency in pyproject_options.get("build-system", {}).get("requires", []):
             pip_build.append(Dependency(dependency, "pyproject.toml"))
@@ -231,7 +230,7 @@ class Project:
         _pip_run = dependencies.setdefault("run", {}).setdefault("pip", [])
         pip_run = []
         for item in _pip_run:
-            for dependency in expand_pip_requirements(item, root):
+            for dependency in expand_pip_requirements(item, root, "polycotylus.yaml"):
                 pip_run.append(Dependency(dependency, "polycotylus.yaml"))
         pip_run += [Dependency(i, "pyproject.toml") for i in project.get("dependencies", [])]
         dependencies["run"]["pip"] = pip_run
@@ -438,6 +437,55 @@ class Project:
             return
         path.write_bytes(original + b".polycotylus\n")
 
+    def presubmit_missing_build_backend(self):
+        pyproject_options = toml.load(str(self.root / "pyproject.toml"))
+        if pyproject_options.get("build-system", {}).get("build-backend") is None:
+            raise _exceptions.PresubmitCheckError(_exceptions._unravel("""
+                No build backend specified via the build-system.build-backend
+                key in the pyproject.toml. Pip/build correctly defaults to
+                setuptools but Fedora does not handle this case properly. Add
+                    [build-system]
+                    requires = ["setuptools>=61.0"]
+                    build-backend = "setuptools.build_meta"
+                to your pyproject.toml to keep fedpkg happy.
+            """))
+
+    def presubmit_nonfunctional_dependencies(self):
+        prohibited = []
+        for package in self.test_dependencies["pip"]:
+            _package = re.sub("[._-]+", "-", package)
+            if re.fullmatch(
+                # Linters
+                ".*flake8.*|pylint|pyflakes|bandit|beniget|mccabe|pep8"
+                "|pep8-naming|pycodestyle|pydocstyle|pytest-flake[s8]|ruff"
+                "|safety|codespell|mypy(-extensions)?"
+                # Formatters
+                "|autopep8|autoflake|black|yapf|isort|blue"
+                # Coverage
+                "|coverage(py)?|pytest-cov|coverage-.*-plugin|codecov"
+                "|covdefaults|coveralls",
+                    _package):
+                prohibited.append(package)
+        if prohibited:
+            raise _exceptions.NonFunctionalTestDependenciesError(prohibited)
+
+    def presubmit(self):
+        checks = {
+            "Implicit build backend": self.presubmit_missing_build_backend,
+            "Nonfunctional dependencies": self.presubmit_nonfunctional_dependencies,
+            "Human maintainer": lambda: check_maintainer(self.maintainer),
+        }
+        exit_code = 0
+        for (i, (name, method)) in enumerate(checks.items(), start=1):
+            try:
+                method()
+                print("✅", name, flush=True)
+            except _exceptions.PresubmitCheckError as ex:
+                exit_code += (1 << i)
+                print("❌", name + ":")
+                print(textwrap.indent(str(ex), "    ") + "", flush=True)
+        return exit_code
+
 
 class Dependency(str):
     @staticmethod
@@ -447,21 +495,22 @@ class Dependency(str):
         return self
 
 
-def expand_pip_requirements(requirement, cwd, extras=None):
+def expand_pip_requirements(requirement, cwd, source, extras=None):
     if m := re.match("-r *([^ ].*)", requirement):
         # e.g. "-r requirements.txt"
         requirements_txt = cwd / m[1]
         text = requirements_txt.read_text("utf-8")
         for child in re.findall(r"^ *([^#\n\r]+)", text, re.MULTILINE):
             yield from expand_pip_requirements(child.strip(),
-                                               requirements_txt.parent)
+                                               requirements_txt.parent,
+                                               requirements_txt)
 
     elif m := re.match(r" *([^]]+) *\[([^]]+)\]", requirement):
         if m[1] == ".":
             # e.g. ".[test]"
             for group in re.findall("[^ ,]+", m[2]):
                 for extra in extras[group]:
-                    yield from expand_pip_requirements(extra, cwd)
+                    yield from expand_pip_requirements(extra, cwd, "pyproject.toml")
         else:
             # e.g. "package[extra]"
             # Ignore extras from other packages. Figuring out what an extra
@@ -469,16 +518,16 @@ def expand_pip_requirements(requirement, cwd, extras=None):
             # available on each Linux distribution, downloading the wheel from
             # PyPI for whatever that version is, then fishing the metadata out
             # from the wheel.
-            yield m[1]
+            yield Dependency(m[1], source)
 
     else:
-        yield requirement
+        yield Dependency(requirement, source)
 
 
 def check_maintainer(name):
     if re.search(r"\b(the|team|et al\.?|contributors|and|development|developers"
                  r"|llc|inc\.?|limited)\b", name.lower()):
-        raise _exceptions.PolycotylusUsageError(
+        raise _exceptions.PresubmitCheckError(
             f'Maintainer "{name}" appears to be a generic team or organization '
             'name. Linux repositories require personal contact details. '
             "Set them in the polycotylus.yaml.\n"

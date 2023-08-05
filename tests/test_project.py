@@ -9,8 +9,8 @@ import pytest
 
 from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
-from polycotylus._exceptions import PolycotylusYAMLParseError, \
-    AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusUsageError
+from polycotylus._exceptions import PolycotylusUsageError, PresubmitCheckError, \
+    AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusYAMLParseError
 from polycotylus import _misc
 from shared import dumb_text_viewer, bare_minimum, poetry_based, kitchen_sink
 
@@ -28,14 +28,14 @@ def test_tar_reproducibility():
 
 
 def test_expand_pip_requirements():
-    assert list(expand_pip_requirements("numpy", ".")) == ["numpy"]
+    assert list(expand_pip_requirements("numpy", ".", "")) == ["numpy"]
 
     root = Path(__file__,
                 "../mock-packages/complex-test-requirements").resolve()
     self = Project.from_root(root)
     assert self.test_dependencies["pip"] == [
-        "pyperclip", "numpy", "humanize", "soup", "cake", "hippo", "feet",
-        "socks", "haggis"
+        "pyperclip", "numpy", "coverage", "soup", "cake", "hippo", "mypy",
+        "feet", "socks", "haggis", "pytest-flake8", "black", "pyflakes"
     ]
 
 
@@ -122,7 +122,7 @@ def test_check_maintainer():
         check_maintainer(name)
     for name in ["Bob and contributors", "The NumPy development team",
                  "Poncy Titles Inc."]:
-        with pytest.raises(PolycotylusUsageError):
+        with pytest.raises(PresubmitCheckError):
             check_maintainer(name)
 
 
@@ -230,10 +230,6 @@ def test_maintainer(pyproject_toml, polycotylus_yaml):
     with pytest.raises(PolycotylusUsageError, match=""):
         self = Project.from_root(bare_minimum)
 
-    polycotylus_yaml("maintainer: The maintainers <foo@mail.com>")
-    with pytest.raises(PolycotylusUsageError, match="generic"):
-        self = Project.from_root(bare_minimum)
-
     polycotylus_yaml("maintainer: Mr Hippo < hippo@mail.com  > \n")
     self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
@@ -280,3 +276,62 @@ def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml):
     subprocess.run(["git", "tag", "v10.2.3.post3"], cwd=str(tmp_path), check=True)
     with pytest.raises(PolycotylusUsageError, match='.*version "10.2.3.post3" .* "post"'):
         Project.from_root(tmp_path)
+
+
+def test_presubmit_lint(capsys, monkeypatch, polycotylus_yaml):
+    from polycotylus.__main__ import cli
+
+    monkeypatch.chdir(dumb_text_viewer)
+    with pytest.raises(SystemExit) as ex:
+        cli(["--presubmit-check"])
+    assert ex.value.code == 0
+    assert capsys.readouterr().out == """\
+✅ Implicit build backend
+✅ Nonfunctional dependencies
+✅ Human maintainer
+"""
+
+    monkeypatch.chdir(bare_minimum)
+    with pytest.raises(SystemExit) as ex:
+        cli(["--presubmit-check"])
+    assert ex.value.code == 2
+    assert capsys.readouterr().out == """\
+❌ Implicit build backend:
+    No build backend specified via the build-system.build-backend key in the pyproject.toml. Pip/build correctly defaults to setuptools but Fedora does not handle this case properly. Add
+        [build-system]
+        requires = ["setuptools>=61.0"]
+        build-backend = "setuptools.build_meta"
+    to your pyproject.toml to keep fedpkg happy.
+✅ Nonfunctional dependencies
+✅ Human maintainer
+"""
+
+    monkeypatch.chdir(Path(__file__, "../../tests/mock-packages/complex-test-requirements").resolve())
+    with pytest.raises(SystemExit) as ex:
+        cli(["--presubmit-check"])
+    assert ex.value.code == 14
+    assert capsys.readouterr().out == """\
+❌ Implicit build backend:
+    No build backend specified via the build-system.build-backend key in the pyproject.toml. Pip/build correctly defaults to setuptools but Fedora does not handle this case properly. Add
+        [build-system]
+        requires = ["setuptools>=61.0"]
+        build-backend = "setuptools.build_meta"
+    to your pyproject.toml to keep fedpkg happy.
+❌ Nonfunctional dependencies:
+      - coverage      (from pyproject.toml)
+      - mypy          (from foo/bar/../yet-more-requirements.txt)
+      - pytest-flake8 (from requirements.txt)
+      - black         (from requirements.txt)
+      - pyflakes      (from polycotylus.yaml)
+    Linux distributions do not allow linters, formatters or coverage tools in testing. Such checks do not reflect the correctness of packaging and when new versions of these tools come out, they bring new and stricter rules which break builds unnecessarily (bear in mind that Linux distributions can not pin the versions of these tools).
+❌ Human maintainer:
+    Maintainer "The blahblahblah team" appears to be a generic team or organization name. Linux repositories require personal contact details. Set them in the polycotylus.yaml.
+        maintainer: your name <your@email.org>
+"""
+
+    polycotylus_yaml("maintainer: The maintainers <foo@mail.com>")
+    self = Project.from_root(".")
+    assert self.presubmit() == 10
+    polycotylus_yaml("maintainer: Real person <foo@mail.com>")
+    self = Project.from_root(".")
+    assert self.presubmit() == 2

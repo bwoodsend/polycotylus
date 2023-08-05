@@ -62,3 +62,27 @@ class PackageUnavailableError(PolycotylusUsageError):
             {self.package} to {self.distribution.title()} Linux's package
             repositories before you can build your own project.
         """)
+
+
+class PresubmitCheckError(Exception):
+    pass
+
+
+class NonFunctionalTestDependenciesError(PresubmitCheckError):
+    def __init__(self, packages):
+        self.packages = packages
+
+    def __str__(self):
+        padding = max(map(len, self.packages))
+        out = ""
+        for package in self.packages:
+            out += f"  - {package.ljust(padding)} (from {package.origin})\n"
+        out += _unravel("""
+            Linux distributions do not allow linters, formatters or coverage
+            tools in testing. Such checks do not reflect the correctness of
+            packaging and when new versions of these tools come out, they bring
+            new and stricter rules which break builds unnecessarily (bear in
+            mind that Linux distributions can not pin the versions of these
+            tools).
+        """)
+        return out
