@@ -4,10 +4,11 @@ import re
 from textwrap import dedent
 import json
 import time
+from pathlib import Path
 
 import pytest
 
-from polycotylus import _docker, _misc
+from polycotylus import _docker, _misc, _configuration
 
 
 def test_container_removal():
@@ -183,3 +184,11 @@ def test_lazy_run_timeout(monkeypatch):
     next_week = time.time() + 3600 * 24 * 7
     monkeypatch.setattr(time, "time", lambda: next_week)
     assert _docker.lazy_run("alpine", command) != old
+
+
+def test_too_old_podman(monkeypatch):
+    fake_podman = Path(__file__).with_name("fake-podman.ps1")
+    monkeypatch.setattr(_configuration, "read", lambda _: str(fake_podman))
+    with pytest.raises(SystemExit, match="version of podman is unsupported"):
+        docker = _docker.DockerInfo()
+        docker.version
