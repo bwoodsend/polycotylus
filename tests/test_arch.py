@@ -31,7 +31,10 @@ license=(MIT)
 class TestCommon(shared.Base):
     cls = Arch
     base_image = "archlinux"
-    package_install = "pacman -Sy --noconfirm --needed"
+    # Strictly speaking, the following should be a full system upgrade (-Syu)
+    # but that makes the test very slow so instead just upgrade the most
+    # troublesome dependency glibc.
+    package_install = "pacman -Sy --noconfirm --needed glibc"
 
 
 def test_dumb_text_viewer():
