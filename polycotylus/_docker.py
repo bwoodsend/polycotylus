@@ -70,7 +70,7 @@ class run:
         arguments = ["--network=host", "--platform=linux/" + architecture]
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
-        if interactive:
+        if interactive or command:
             arguments.append("-it" if tty else "-i")
         elif tty:  # pragma: no cover
             arguments.append("-t")
