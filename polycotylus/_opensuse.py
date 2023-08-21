@@ -283,10 +283,19 @@ class OpenSUSE(BaseDistribution):
             WORKDIR /io
 
             FROM base AS build
-            RUN zypper install -y which fish osc build perl-XML-Parser hostname python3-pip python3-setuptools
+            RUN zypper install -y which osc build perl-XML-Parser hostname python3-pip python3-setuptools awk
+            # OpenSUSE's build tool "build" creates a fakeroot environment in
+            # which it reinstalls all the base packages plus some core build
+            # tools and all the declared dependencies. Unfortunately, it
+            # downloads them one at a time in separate zypper processes meaning
+            # that even bare-bones packages take several minutes to build – even
+            # when polycotylus's package cache is able to serve zypper the
+            # packages immediately. To work around this, symlink `build` and
+            # zypper's caches together (so they share a cache) then have zypper
+            # download (but not install) all the above packages.
             RUN mkdir -p /var/cache/build
             RUN for repo in /etc/zypp/repos.d/*.repo; do name=$(basename -s .repo $repo); hash=$(echo -n zypp://$name | md5sum | grep -Eo '[a-f0-9]+') ; ln -s /var/cache/zypp/packages/$name /var/cache/build/$hash ; done
-            RUN zypper install -dfy rpm-build $(zypper search --installed-only | grep 'i. |' | grep -v openSUSE | awk '{{ print $3 }}') python-rpm-macros update-alternatives {shlex.join(dependencies)}
+            RUN zypper install -dfy rpm-build $(zypper search --installed-only --type=package | grep 'i. |' | awk '{{ print $3 }}') python-rpm-macros update-alternatives {shlex.join(dependencies)}
 
             FROM base AS test
             RUN zypper install -y shadow sudo
