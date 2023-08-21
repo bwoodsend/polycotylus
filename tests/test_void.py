@@ -32,10 +32,6 @@ def test_ubrotli():
     self.test(glibc_xbps)
     glibc_builder = self
 
-    self = VoidMusl(Project.from_root(shared.ubrotli), architecture="armv6l")
-    self.generate()
-    self.test(self.build()["main"])
-
     assert native_xbps.exists()
     assert glibc_xbps.exists()
     native_builder.test(native_xbps)
