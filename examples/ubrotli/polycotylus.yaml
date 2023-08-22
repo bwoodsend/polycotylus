@@ -15,7 +15,7 @@ dependencies:
   run:
     alpine: brotli-libs
     arch manjaro: brotli
-    fedora: brotli
+    fedora: libbrotli
     opensuse: brotli
     void: brotli
   test:
