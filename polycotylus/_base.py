@@ -30,8 +30,9 @@ class BaseDistribution(abc.ABC):
                 {sorted(self.supported_architectures)}.
             """))
         self.docker_architecture = self.supported_architectures[self.architecture]
-        if platform.system() == "Linux" and self.architecture != machine():
-            qemu = f"qemu-{self.docker_architecture}-static"
+        if platform.system() == "Linux" and {"amd64": "x86_64", "arm64": "aarch64"}.get(self.architecture, self.architecture) != machine():
+            qemu_architecture = {"amd64": "x86_64", "arm64": "aarch64", "mips64le": "mips64el"}.get(self.docker_architecture, self.docker_architecture)
+            qemu = f"qemu-{qemu_architecture.split('/')[0]}-static"
             if not shutil.which(qemu):
                 raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
                     Missing qemu emulator: Emulating "{self.architecture}"

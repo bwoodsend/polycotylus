@@ -332,7 +332,9 @@ class Project:
     def maintainer_slug(self):
         return f"{self.maintainer} <{self.email}>"
 
-    def tar(self):
+    def tar(self, prefix=None):
+        if prefix is None:
+            prefix = self.source_top_level.format(version=self.version)
         outputs = []
         for flag in ("-ocz", "-dz"):
             p = subprocess.run(["git", "ls-files", "--exclude-standard", flag],
@@ -351,7 +353,6 @@ class Project:
             return tar_info
 
         with tarfile.TarFile("", mode="w", fileobj=buffer) as tar:
-            top_level = self.source_top_level.format(version=self.version)
             for file in files:
                 if str(file) == "pyproject.toml":
                     options = toml.load(self.root / file)
@@ -361,11 +362,11 @@ class Project:
                             "requires": ["setuptools>=61.0"],
                         }
                         patched = toml.dumps(options).encode()
-                        info = tarfile.TarInfo(str(PurePosixPath(top_level, file)))
+                        info = tarfile.TarInfo(str(PurePosixPath(prefix, file)))
                         info.size = len(patched)
                         tar.addfile(info, io.BytesIO(patched))
                         continue
-                tar.add(self.root / file, PurePosixPath(top_level, file),
+                tar.add(self.root / file, PurePosixPath(prefix, file),
                         filter=_strip_mtime)
         return gzip.compress(buffer.getvalue(), mtime=0)
 

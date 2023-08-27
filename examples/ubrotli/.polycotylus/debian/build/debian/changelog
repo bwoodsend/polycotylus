@@ -1,5 +1,0 @@
-ubrotli (0.1.0-1) unstable; urgency=low
-
-  * Initial release (Closes: #790447)
-
- -- Sandro Tosi <morph@debian.org>  Mon, 29 Jun 2015 11:37:26 -0400

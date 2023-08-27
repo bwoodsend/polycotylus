@@ -8,8 +8,10 @@ import shlex
 import re
 import textwrap
 from functools import lru_cache
+import tarfile
+import io
 
-from polycotylus import _misc, _docker
+from polycotylus import _misc, _docker, machine
 from polycotylus._base import BaseDistribution
 
 
@@ -17,6 +19,7 @@ class ControlFile:
     """
     https://www.debian.org/doc/debian-policy/ch-controlfields#syntax-of-control-files
     """
+
     def __init__(self):
         self._paragraphs = []
 
@@ -33,7 +36,7 @@ class ControlFile:
                     first, *lines = value.strip("\n").split("\n")
                     out.append(f"{key}: {first}")
                     for line in lines:
-                        out.append(" ; " + line)
+                        out.append(" " * (len(key) + 2) + line)
                 else:
                     out.append(key + ": " + value)
             out.append("")
@@ -41,7 +44,7 @@ class ControlFile:
 
 
 class Debian(BaseDistribution):
-    python = "python3"
+    python = "python3:any"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tk"],
@@ -52,14 +55,17 @@ class Debian(BaseDistribution):
         "readline": ["libreadline8"],
         "bz2": ["libbz2-1.0"],
     }
-    image = "debian:unstable"
+    image = "debian:unstable-slim"
     supported_architectures = {
-        "aarch64": "aarch64",
-        "armv7": "arm",
-        "ppc64le": "ppc64le",
+        "amd64": "x86_64",
+        "arm64": "aarch64",
+        "armel": "arm/v5",
+        "armhf": "arm/v7",
+        "i386": "i386",
+        "mips64el": "mips64le",
+        "ppc64el": "ppc64le",
+        "riscv64": "riscv64",
         "s390x": "s390x",
-        "x86": "i386",
-        "x86_64": "x86_64",
     }
     _formatter = _misc.Formatter("\t")
     pkgdir = "$builddir"
@@ -68,16 +74,28 @@ class Debian(BaseDistribution):
     xvfb_run = "xvfb"
     font = "fonts-dejavu"
 
+    def __init__(self, package, architecture=None):
+        if architecture is None:
+            architecture = machine()
+            architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(architecture, architecture)
+        super().__init__(package, architecture)
+
     @classmethod
     @lru_cache()
-    def available_packages(cls):
+    def _package_manager_queries(cls):
         with cls.mirror:
-            output = _docker.run(cls.image, f"""
+            container = _docker.run(cls.image, f"""
                 {cls.mirror.install}
-                apt-get update -qq
-                apt list -qq
-            """, verbosity=0).output
-        return set(re.findall(r"^([^\n/]+)/", output, re.M))
+                apt-get update
+                apt list -qq > /available
+                apt list --installed -qq > /installed
+                echo n | apt-get install build-essential > /build-essential || true
+            """, tty=True)
+        _read = lambda path: container.file(path).decode()
+        cls._available_packages = set(re.findall("^([^/\n]+)/", _read("/available"), flags=re.M))
+        preinstalled = set(re.findall("^([^/\n]+)/", _read("/installed"), flags=re.M))
+        build_essential = {j for i in re.findall(r"  .*", _read("/build-essential")) for j in i.split()}
+        cls._build_base_packages = preinstalled.union(build_essential)
 
     @classmethod
     def build_base_packages(self):
@@ -99,8 +117,10 @@ class Debian(BaseDistribution):
 
     def inject_source(self):
         self.distro_root.mkdir(exist_ok=True, parents=True)
-        with open(self.distro_root / (self.source_name + ".tar.gz"), "wb") as f:
+        with open(self.distro_root / (self.source_name + ".tar.orig.gz"), "wb") as f:
             f.write(self.project.tar())
+        with tarfile.open("", "r", io.BytesIO(self.project.tar(""))) as tar:
+            tar.extractall(self.distro_root / "build")
 
     def dockerfile(self):
         return self._formatter(f"""
@@ -122,13 +142,13 @@ class Debian(BaseDistribution):
     def control(self):
         writer = ControlFile()
         writer.add_paragraph(
-            Source=self.package_name,
+            Source=self.project.name,
             Section="python",
             Priority="optional",
             Maintainer=self.project.maintainer_slug,
-            Build_Depends=", ".join(["debhelper (>= 11~)", "dh-python", "python3-all"] + [re.split("[<>=@]", i)[0] for i in self.build_dependencies]),
+            Build_Depends=",\n".join(["debhelper-compat (= 13)", "dh-python", "python3-all"] + [re.split("[<>=@]", i)[0] for i in self.build_dependencies]),
             X_Python3_Version=self.project.supported_python,
-            Standards_Version="4.5.1",
+            Standards_Version="4.6.2",
             Homepage=self.project.url,
             Rules_Requires_Root="no",
         )
@@ -136,7 +156,7 @@ class Debian(BaseDistribution):
             Package=self.package_name,
             Architecture={"any": "any", "noarch": "all"}.get(self.project.architecture) or " ".join(self.project.architectures),
             **(dict(Multi_Arch="foreign") if self.project.architecture != "noarch" else {}),
-            Depends=", ".join(re.split("[<>=@]", i)[0] for i in self.dependencies),
+            Depends=",\n".join(["${misc:Depends}", "${python3:Depends}", "${shlibs:Depends}"] + [re.split("[<>=@]", i)[0] for i in self.dependencies]),
             Description=self.project.description,
         )
         return str(writer)
@@ -168,16 +188,70 @@ class Debian(BaseDistribution):
 
     def generate(self):
         super().generate()
-        debian_root = self.distro_root / self.source_name / "debian"
+        debian_root = self.distro_root / "build" / "debian"
         debian_root.mkdir(exist_ok=True, parents=True)
         (debian_root / "control").write_text(self.control())
         (debian_root / "tests").mkdir(exist_ok=True)
         (debian_root / "tests" / "control").write_text(self.test_control())
+        _misc.unix_write(debian_root / "changelog", f"""\
+{self.project.name} ({self.project.version}-1) unstable; urgency=low
+
+  * Initial release (Closes: #123)
+
+ -- {self.project.maintainer_slug}  {english_date()}
+""")
+        _misc.unix_write(debian_root / "rules", self._formatter("""
+            #! /usr/bin/make -f
+            include /usr/share/dpkg/pkg-info.mk
+            export PYBUILD_NAME=ubrotli
+            export PYBUILD_SYSTEM=pyproject
+            export PYBUILD_TEST_PYTEST = 1
+            export PYBUILD_BEFORE_TEST=cp -r {dir}/pytest.ini {dir}/test_ubrotli.py {build_dir}
+            export PYBUILD_AFTER_TEST=rm -rf {build_dir}/pytest.ini {build_dir}/test_ubrotli.py
+
+            %:
+                dh $@ --with python3 --buildsystem=pybuild
+        """))
+        _misc.unix_write(debian_root / "watch", self._formatter("""
+            version=3
+            opts=uversionmangle=s/(rc|a|b|c)/~$1/ \\
+            https://pypi.debian.net/ubrotli/ubrotli-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))
+        """))
+        (debian_root / "upstream").mkdir(exist_ok=True)
+        _misc.unix_write(debian_root / "upstream" / "metadata", self._formatter("""
+            Bug-Database: https://github.com/ultrajson/ultrajson/issues
+            Bug-Submit: https://github.com/ultrajson/ultrajson/issues/new
+            Repository: https://github.com/ultrajson/ultrajson.git
+            Repository-Browse: https://github.com/ultrajson/ultrajson
+        """))
+        (debian_root / "source").mkdir(exist_ok=True)
+        _misc.unix_write(debian_root / "source" / "format", "3.0 (quilt)\n")
 
     def build(self):
         with self.mirror:
             _docker.run(self.build_builder_image(), ["debuild", "-i", "-us", "-uc", "-b"],
-             volumes=[(self.distro_root, "/io")], tty=True, root=False, post_mortem=True)
+                        volumes=[(self.distro_root, "/io")], tty=True, root=False, post_mortem=True, architecture=self.docker_architecture)
+        path = self.distro_root / f"{self.package_name}_{self.project.version}-1_{self.architecture}.deb"
+        assert path.exists(), path
+        debug = path.with_name(f"{self.package_name}-dbgsym_{self.project.version}-1_{self.architecture}.deb")
+        packages = {"main": path}
+        if debug.exists():
+            packages["dbgsym"] = debug
+        return packages
 
     def test(self, package):
-        pass
+        with self.mirror:
+            _docker.run(self.build_builder_image(), f"""
+                sudo apt-get update
+                sudo apt-get install -y '/io/{package.name}'
+                {self.project.test_command}
+            """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
+            post_mortem=True, architecture=self.docker_architecture)
+
+
+def english_date():
+    from datetime import datetime
+    date = datetime.now().astimezone()
+    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.month - 1]
+    day = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday()]
+    return date.strftime(f"{day}, %d {month} %Y %H:%M:%S %z")
