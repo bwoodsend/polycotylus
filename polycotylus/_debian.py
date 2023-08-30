@@ -96,6 +96,7 @@ class Debian(BaseDistribution):
         preinstalled = set(re.findall("^([^/\n]+)/", _read("/installed"), flags=re.M))
         build_essential = {j for i in re.findall(r"  .*", _read("/build-essential")) for j in i.split()}
         cls._build_base_packages = preinstalled.union(build_essential)
+        cls._python_version = re.search("\npython3/.* (\d+\.\d+\.\d+)-", _read("/available"))[1]
 
     @classmethod
     def build_base_packages(self):
@@ -113,11 +114,11 @@ class Debian(BaseDistribution):
 
     @property
     def source_name(self):
-        return f"{self.package_name}-{self.project.version}"
+        return f"{re.sub('[._-]+', '-', self.project.name.lower())}_{self.project.version}"
 
     def inject_source(self):
         self.distro_root.mkdir(exist_ok=True, parents=True)
-        with open(self.distro_root / (self.source_name + ".tar.orig.gz"), "wb") as f:
+        with open(self.distro_root / (self.source_name + ".orig.tar.gz"), "wb") as f:
             f.write(self.project.tar())
         with tarfile.open("", "r", io.BytesIO(self.project.tar(""))) as tar:
             tar.extractall(self.distro_root / "build")
@@ -142,19 +143,18 @@ class Debian(BaseDistribution):
     def control(self):
         writer = ControlFile()
         writer.add_paragraph(
-            Source=self.project.name,
+            Source=re.sub("[._-]+", "-", self.project.name.lower()),
             Section="python",
             Priority="optional",
             Maintainer=self.project.maintainer_slug,
             Build_Depends=",\n".join(["debhelper-compat (= 13)", "dh-python", "python3-all"] + [re.split("[<>=@]", i)[0] for i in self.build_dependencies]),
-            X_Python3_Version=self.project.supported_python,
             Standards_Version="4.6.2",
             Homepage=self.project.url,
             Rules_Requires_Root="no",
         )
         writer.add_paragraph(
             Package=self.package_name,
-            Architecture={"any": "any", "noarch": "all"}.get(self.project.architecture) or " ".join(self.project.architectures),
+            Architecture={"any": "any", "none": "all"}.get(self.project.architecture) or " ".join(self.project.architecture),
             **(dict(Multi_Arch="foreign") if self.project.architecture != "noarch" else {}),
             Depends=",\n".join(["${misc:Depends}", "${python3:Depends}", "${shlibs:Depends}"] + [re.split("[<>=@]", i)[0] for i in self.dependencies]),
             Description=self.project.description,
@@ -194,20 +194,21 @@ class Debian(BaseDistribution):
         (debian_root / "tests").mkdir(exist_ok=True)
         (debian_root / "tests" / "control").write_text(self.test_control())
         _misc.unix_write(debian_root / "changelog", f"""\
-{self.project.name} ({self.project.version}-1) unstable; urgency=low
+{re.sub("[._-]+", "-", self.project.name.lower())} ({self.project.version}-1) unstable; urgency=low
 
   * Initial release (Closes: #123)
 
  -- {self.project.maintainer_slug}  {english_date()}
 """)
-        _misc.unix_write(debian_root / "rules", self._formatter("""
+        test_files = shlex.join(f"{{dir}}/{i}" for i in self.project.test_files)
+        _misc.unix_write(debian_root / "rules", self._formatter(f"""
             #! /usr/bin/make -f
             include /usr/share/dpkg/pkg-info.mk
             export PYBUILD_NAME=ubrotli
             export PYBUILD_SYSTEM=pyproject
             export PYBUILD_TEST_PYTEST = 1
-            export PYBUILD_BEFORE_TEST=cp -r {dir}/pytest.ini {dir}/test_ubrotli.py {build_dir}
-            export PYBUILD_AFTER_TEST=rm -rf {build_dir}/pytest.ini {build_dir}/test_ubrotli.py
+            export PYBUILD_BEFORE_TEST=cp -r {test_files} {{build_dir}}
+            export PYBUILD_AFTER_TEST=rm -rf {test_files}
 
             %:
                 dh $@ --with python3 --buildsystem=pybuild
@@ -229,7 +230,7 @@ class Debian(BaseDistribution):
 
     def build(self):
         with self.mirror:
-            _docker.run(self.build_builder_image(), ["debuild", "-i", "-us", "-uc", "-b"],
+            _docker.run(self.build_builder_image(), ["debuild", "-i", "-us", "-uc"],
                         volumes=[(self.distro_root, "/io")], tty=True, root=False, post_mortem=True, architecture=self.docker_architecture)
         path = self.distro_root / f"{self.package_name}_{self.project.version}-1_{self.architecture}.deb"
         assert path.exists(), path
