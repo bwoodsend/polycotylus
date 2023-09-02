@@ -90,6 +90,38 @@ def test_dockerignore(tmp_path):
     assert path.stat() == old
 
 
+def test_comments_in_polycotylus_yaml(polycotylus_yaml):
+    polycotylus_yaml("""
+        dependencies:
+            run:
+                pip: |
+                    # blah de blah
+                    numpy
+                    pyperclip  # don't eat me!
+                      #
+                        octopus
+                    foo bar # pop
+                    # -r some-nonexistent-file.txt
+
+                    shoes
+        desktop_entry_points:
+            bagpus:
+                Name: hello
+                Exec: ...
+                MimeType: |
+                    # X things
+                    x/a;x/b;x/c
+                    # Y related things
+                    y/a;y/b  # trailing comment
+                Categories: |
+                    Text editor; thing # not a thing
+    """)
+    self = Project.from_root(bare_minimum)
+    assert self.dependencies["pip"] == ["numpy", "pyperclip", "octopus", "foo", "bar", "shoes"]
+    assert "MimeType=x/a;x/b;x/c;y/a;y/b;\n" in self._desktop_file("bagpus", self.desktop_entry_points["bagpus"])
+    assert "Categories=Text editor;thing;\n" in self._desktop_file("bagpus", self.desktop_entry_points["bagpus"])
+
+
 def test_license_handling(polycotylus_yaml, pyproject_toml):
     options = toml.load(bare_minimum / "pyproject.toml")
 

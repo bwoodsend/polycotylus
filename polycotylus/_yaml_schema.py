@@ -17,7 +17,10 @@ class WhitespaceDelimited(ScalarValidator):
 
     def validate_scalar(self, chunk):
         out = []
-        for match in re.finditer(r"(?:-r *)?(?:\[[^]]*\]|\S)+", chunk.contents):
+        # Comments need to be removed but in a way that preserves character
+        # positions. Replace comments with an equivalent number of spaces.
+        without_comments = re.sub("#.*", lambda m: " " * len(m[0]), chunk.contents)
+        for match in re.finditer(r"(?:-r *)?(?:\[[^]]*\]|\S)+", without_comments):
             slice = chunk.textslice(match.start(), match.end())
             out.append(self._item_validator.validate_scalar(slice))
         return out

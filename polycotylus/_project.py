@@ -377,8 +377,11 @@ class Project:
                "StartupNotify": False}
         out["Comment"] = self.description
 
+        def _normalize_multistring(x):
+            # Strip comments, replace newlines with ';', .strip() each item, append trailing ';'
+            return ";".join([i.strip() for i in re.findall(r"[^\n;]+", re.sub("#.*", "", x))] + [""])
+
         for (key, value) in options.items():
-            _normalize_multistring = lambda x: ";".join(re.findall(r"[^\n;]+", x) + [""])
             if key in ("Actions", "Categories", "MimeType", "NotShowIn", "OnlyShowIn",
                        "X-XFCE-MimeType", "Implements"):
                 value = _normalize_multistring(value)
