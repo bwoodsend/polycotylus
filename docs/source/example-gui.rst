@@ -84,9 +84,9 @@ quicker and easier to diagnose than the other distributions.
     ============================== 1 error in 0.04s ===============================
     >>> ERROR: py3-dumb-text-viewer: check failed
 
-Uh oh, tkinter is missing! Despite being part of Python's standard library, most
-Linux distributions ship ``tkinter`` in a separate package to Python itself due
-to its size. Less commonly ``sqlite3``, the compression various libraries and
+Uh oh, `tkinter` is missing! Despite being part of Python's standard library,
+most Linux distributions ship `tkinter` in a separate package to Python itself
+due to its size. Less commonly `sqlite3`, the various compression libraries and
 anything linked against LGPL licensed system packages are also kept separate
 (see `dependencies.run.python` for the full list). Declare this dependency as
 follows:
@@ -108,3 +108,18 @@ to need to use a terminal in order to launch an application. For that, we need a
 ``.desktop`` file. At this point, you'll probably want to switch over to
 building for your native Linux distribution (assuming it's supported) so that
 you can see the results of your changes.
+
+.. code-block:: yaml
+
+    # polycotylus.yaml
+    dependencies:
+      run:
+        python: tkinter
+      test:
+        pip: -r test-requirements.txt
+
+    desktop_entry_points:
+      dumb_text_viewer:
+        Name: Dumb Text Viewer
+        Exec: dumb_text_viewer %u
+

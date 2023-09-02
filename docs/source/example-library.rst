@@ -2,10 +2,10 @@
 Packaging a library
 ===================
 
-This tutorial covers packaging an example Python library. This library is a bit
-special in that it is written in C and depends heavily on system packages. This
-makes it a very bad packge to distribute via PyPI but a very suitable one for
-Linux repositories.
+This tutorial covers packaging an example Python library. This library is
+designed to be a bit awkward in that it is written in C and depends heavily on
+system packages. This makes it a very bad package to distribute via PyPI but a
+very suitable one for Linux repositories.
 
 
 Setup
@@ -34,7 +34,7 @@ quickest and has the best diagnostics. ::
 
     polycotylus alpine
 
-Oh dear, false start!
+Uh oh, false start!
 
 .. code-block:: text
 
@@ -49,13 +49,13 @@ Oh dear, false start!
 
 `polycotylus` is complaining that the license identifier given in the
 ``pyproject.toml`` is too vague to map to an SPDX_ code. `polycotylus` has quite
-a few of these little startup checks. They are all designed to be extremely
-self explanatory so please raise an issue if you have any difficulty fixing
-them. In this case, we can manually check the contents of ``ubrotli``\ 's
-``LICENSE`` file and see that it's specifically an Apache version 2.0 license
-and since there is no *Apache version 2.0* trove classifier on
-`pypi.org/classifiers <https://pypi.org/classifiers/>`_, we'll have to set the
-`spdx` key in the `polycotylus.yaml` like the error suggests.
+a few of these little startup checks. They are designed to be extremely self
+explanatory so please raise an issue if you have any difficulty fixing them. In
+this case, we can manually check the contents of ``ubrotli``\ 's ``LICENSE``
+file and see that it's specifically an Apache version 2.0 license and since
+there is no *Apache version 2.0* trove classifier on `pypi.org/classifiers
+<https://pypi.org/classifiers/>`_, we'll have to set the `spdx` key in the
+`polycotylus.yaml` like the error suggests.
 
 .. code-block:: yaml
 
@@ -119,9 +119,9 @@ not have. Our next step is to figure out which Alpine system package provides
 those header files and declare them as build time dependencies. First, let's get
 inside an Alpine container by running in *post mortem* mode (``polycotylus
 alpine --post-mortem``). This will run the build again, but this time when it
-fails, it will drop you into the Alpine container where you can nosy around.
-This will allow us to interact with the ``apk`` package manager. The
-:ref:`package manager cheat sheet <Package manager cheat sheet>` tells that we
+fails, it will drop you into the Alpine container where you can nose around and,
+in our case, allow us to interact with Alpine's ``apk`` package manager. The
+:ref:`package manager cheat sheet <package_manager_cheat_sheet>` tells that we
 can use ``apk-file`` to locate a file provider. ::
 
     /io $ sudo apk add apk-file
@@ -138,12 +138,13 @@ The package we're looking for is called ``brotli-dev``. If you're familiar with
 Linux package managers, you probably already knew that conventionally headers
 for C libraries are stored in a package called either ``${library}-dev`` or
 ``${library}-devel`` in which case, you'd have found it just using ``apk search
-brotli-dev``. Now we know the package, we need to declare it as the correct kind
-of dependency. ``brotli-dev`` is only required at build time and it's an Alpine
-system package so the correct category is `dependencies.build.$distribution`.
-Add that to the `polycotylus.yaml`. I'm going to spoil the surprise and tell you
-that the next build error will be the same but for ``Python.h`` whose package is
-``python3-dev`` so that needs to go in too:
+brotli-dev``. Now that we know the package, we need to declare it as the correct
+kind of dependency. ``brotli-dev`` is only required at build time and it's an
+Alpine system package so the correct category is
+`dependencies.build.$distribution`. Add that to the `polycotylus.yaml` and
+rebuild. I'm going to spoil the surprise and tell you that the next build error
+will be the same but for ``Python.h`` whose package is ``python3-dev`` so that
+needs to go in too:
 
 .. code-block:: yaml
 
@@ -201,7 +202,7 @@ normally install via ``pip`` so the category is `dependencies.test.pip`.
 
 Running ``polycotylus alpine`` again brings us to our next error. This time
 ``abuild`` has finished compiling and verifying and is finally started archiving
-it all into an installer. This error is rather non-obvious::
+it all into an installer. This particular error is an unclear one::
 
     ...
     >>> py3-ubrotli: Entering fakeroot...
@@ -249,7 +250,8 @@ architectures::
     polycotylus alpine:3.17 --architecture=ppc64le
 
 fish_ users should find the shell completion very supportive when exploring what
-versions and architectures are available.
+versions and architectures are available. Non fish users can consult the top of
+:ref:`each distribution's "building for" page <building for>`.
 
 
 Building for the second distribution (Fedora)
@@ -314,7 +316,7 @@ got away with not adding ``gcc`` to Alpine's build dependencies.
 
 Some rather less clear ``yum`` queries tells us what packages we need to get
 ``gcc``, the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again
-see :ref:`the package manager cheat sheet <Package manager cheat sheet>`).
+see :ref:`the package manager cheat sheet <package_manager_cheat_sheet>`).
 
 .. code-block:: console
 
@@ -375,15 +377,15 @@ The next ``polycotylus fedora`` run takes us to the end. ::
     main: .polycotylus/fedora/x86_64/python3-ubrotli-0.1.0-1.fc38.x86_64.rpm
 
 You'll notice that this time, there are three packages produced. The one
-labelled ``main`` is the one you'd distribute. See :ref:`Building for Fedora`
-for information about the other two.
+labelled ``main`` is the one you'd distribute. See :ref:`building for Fedora
+<fedora_quirks>` for information about the other two.
 
 
 The next distribution and beyond
 ................................
 
-Building for the rest of the Linux distrubutions should follow more or less the
+Building for the rest of the Linux distributions should follow more or less the
 same steps before. We've been skipping it in this tutorial but each time you try
-an new distribution, it's a good idea to check each distribution's page under
-*Distribution specific quirks* in the left sidebar of this page. In particular,
-check for a *Caveats* section that may affect your project or setup.
+an new distribution, it's a good idea to check :ref:`each distribution's quirks
+page <building for>`. In particular, check for a *Caveats* section that may
+affect your project or setup.

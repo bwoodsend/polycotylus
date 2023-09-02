@@ -37,7 +37,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
     "sphinx.ext.napoleon",
-    "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx_rtd_theme_configuration",
     "sphinx_inline_tabs",

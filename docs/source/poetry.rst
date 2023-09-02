@@ -15,7 +15,7 @@ Dependency constraints
 Poetry very aggressively steers you down the path of locking dependencies in a
 lock file and putting both lower and upper version constraints in the
 ``pyproject.toml``. Unfortunately, :ref:`version constraints are not allowed
-<Dependency locking/Reproducible builds>`!
+<dependency_locking>`!
 
 `polycotylus` assumes (currently unconfigurably) that all your dependency
 constraints are arbitrarily set by poetry (rather than real requirements found

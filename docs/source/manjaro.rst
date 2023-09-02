@@ -9,4 +9,4 @@ Basic usage::
 Supported architectures: ``aarch64 x86_64``
 
 Apart from supporting ``aarch64``, building for Manaro is the same as
-:ref:`building for Arch <Building for Arch Linux>`.
+:ref:`building for Arch <arch_quirks>`.

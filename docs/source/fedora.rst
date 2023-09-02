@@ -1,3 +1,5 @@
+.. _fedora_quirks:
+
 ===================
 Building for Fedora
 ===================
@@ -43,10 +45,10 @@ impossible due to its not providing a recent enough version of setuptools.
 Caveats
 .......
 
-Fedora's repository indexes are huge and are somewhat inefficiently stored. To
+Fedora's repository indexes are huge and are inefficiently stored. To
 compensate, Fedora uses ``zchunk`` (a fancy delta/compression tool) when
-downloading its indexes so that, whilte the first update takes hundreds of
-megabytes, subsequent updates use only a few megabytes. The complexity of
+downloading its indexes so that, whilst the first update takes hundreds of
+megabytes, subsequent updates require only a few megabytes. The complexity of
 ``zchunk`` causes several issues:
 
 * `polycotylus`\ 's usual behaviour of intercepting package downloads and
@@ -57,7 +59,8 @@ megabytes, subsequent updates use only a few megabytes. The complexity of
   - Package managers run as root so the host cache directory's contents end up
     owned by root.
 
-  - Building on Windows doesn't work due to the NTFS file system.
+  - Building on Windows doesn't work due to the NTFS file system not supporting
+    UNIX permissions and user/groups that ``dnf`` relies on.
 
 * ``zchunk`` performs so badly under ``qemu`` architecture emulation that even a
   minimal package takes around 20 minutes to build. Building for non-native

@@ -1,3 +1,5 @@
+.. _podman_quirks:
+
 ====================
 Building with Podman
 ====================

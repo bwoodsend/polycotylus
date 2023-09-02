@@ -41,8 +41,8 @@ The work that `polycotylus` does can be summarised as three steps:
     * Sign the package (currently Alpine only)
 
     This step runs inside a *build* Docker container with all your dependencies
-    (:ref:`build <dependencies.build>`, :ref:`run <dependencies.run>` and
-    :ref:`test <dependencies.test>`) preinstalled.
+    (:mod:`~dependencies.build`, :mod:`~dependencies.run` and
+    :mod:`~dependencies.test`) preinstalled.
 
 3.  Test the package:
 
@@ -63,7 +63,7 @@ Key notes
 * The *source archive* contains uncommitted changes in your local repository. It
   is equivalent to the archive that you would get if you ran ``git add .; git
   commit; git archive HEAD | gzip``. This intentionally goes against how Linux
-  packagers normally work so that you can verify changes without pushing and
-  releasing commits.
+  packagers normally work so that you can verify changes without pushing commits
+  and creating releasess.
 
 * Your test suite runs twice.

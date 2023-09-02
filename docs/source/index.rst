@@ -13,6 +13,7 @@
     example-library
     example-gui
 
+.. _`building for`:
 
 .. toctree::
     :caption: Distribution specific quirks

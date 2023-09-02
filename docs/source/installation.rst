@@ -11,8 +11,8 @@ Installation
     In both commands, ``main`` can be replaced by a specific commit hash to get
     a fixed version of `polycotylus`.
 
-2.  `polycotylus` requires Docker_ (or Podman_ but read :ref:`Building with
-    Podman` before considering using Podman).
+2.  `polycotylus` requires Docker_ (or Podman_ but read :ref:`building with
+    Podman <podman_quirks>` before considering using Podman).
 
     * For Linux users, install Docker using your system package manager.  Docker
       must be `configured to run without sudo
@@ -20,8 +20,8 @@ Installation
       Docker's `rootless mode
       <https://docs.docker.com/engine/security/rootless/>`_ is currently
       unsupported.
-    * For Windows and macOS users, consult the :ref:`Windows <Building from
-      Windows>` and :ref:`macOS <Building from macOS>` guides respectively.
+    * For Windows and macOS users, consult the :ref:`Windows <windows_quirks>`
+      and :ref:`macOS <macos_quirks>` guides respectively.
 
     Check your installation by running::
 

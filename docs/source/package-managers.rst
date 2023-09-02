@@ -1,3 +1,5 @@
+.. _package_manager_cheat_sheet:
+
 ===========================
 Package manager cheat sheet
 ===========================

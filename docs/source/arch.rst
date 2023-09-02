@@ -1,3 +1,5 @@
+.. _arch_quirks:
+
 =======================
 Building for Arch Linux
 =======================

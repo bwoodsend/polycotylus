@@ -1,10 +1,13 @@
+.. _macos_quirks:
+
 ===================
 Building from macOS
 ===================
 
 `polycotylus` supports building from (but not for!) macOS on both Intel and M1
 based CPUs with Docker provided by either OrbStack_ or `Docker Desktop for
-macOS`_. See :ref:`OrbStack versus Docker Desktop` for a comparison.
+macOS`_. See :ref:`OrbStack versus Docker Desktop <orbstack_versus_docker>` for
+a comparison.
 
 If you're on macOS M1, be aware that `polycotylus` defaults to building for your
 current architecture where possible then falls back to emulating ``x86_64`` when
@@ -24,6 +27,7 @@ https://tart.run/integrations/vm-management/#creating-a-linux-vm-image-from-scra
 
 
 
+.. _orbstack_versus_docker:
 
 OrbStack versus Docker Desktop
 ..............................
