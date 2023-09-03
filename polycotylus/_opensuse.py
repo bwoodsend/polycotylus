@@ -37,8 +37,8 @@ class OpenSUSE(BaseDistribution):
 
     def __init__(self, project, architecture=None):
         if _docker.docker.variant == "podman":  # pragma: no cover
-            # The mounting of dnf's cache onto the host filesystem requires UNIX
-            # permissions that Windows filesystems lack support for.
+            # I think the incompatibility is in OpenSUSE's use of anonymous
+            # UIDs. Leads to permission errors writing to /dev/null.
             raise _exceptions.PolycotylusUsageError(
                 "Building for OpenSUSE is not supported with podman.")
         super().__init__(project, architecture)
