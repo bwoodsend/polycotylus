@@ -10,7 +10,7 @@ import shared
 class TestCommon(shared.Base):
     cls = Manjaro
     base_image = "manjarolinux/base"
-    package_install = "pacman -Sy --needed --noconfirm"
+    package_install = "pacman -Sy --needed --noconfirm glibc"
 
 
 def test_dumb_text_viewer():
