@@ -26,12 +26,6 @@ class Fedora(BaseDistribution):
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tkinter"],
-        "sqlite3": [],
-        "decimal": [],
-        "lzma": [],
-        "zlib": [],
-        "readline": [],
-        "bz2": [],
     }
     xvfb_run = "/usr/bin/xvfb-run"
     imagemagick = "ImageMagick"

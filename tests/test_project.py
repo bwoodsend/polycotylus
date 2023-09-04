@@ -2,6 +2,7 @@ import gzip
 from pathlib import Path
 import shutil
 import sys
+import re
 import subprocess
 
 import toml
@@ -367,3 +368,12 @@ def test_presubmit_lint(capsys, monkeypatch, polycotylus_yaml):
     polycotylus_yaml("maintainer: Real person <foo@mail.com>")
     self = Project.from_root(".")
     assert self.presubmit() == 2
+
+
+def test_python_extras_schema_definition():
+    import polycotylus
+    required = set()
+    for distribution in polycotylus.distributions.values():
+        required.update(distribution.python_extras)
+    required = sorted(required)
+    assert not [i for i in required if not re.fullmatch(polycotylus._yaml_schema.python_extra._regex, i)]

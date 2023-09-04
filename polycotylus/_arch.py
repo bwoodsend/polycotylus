@@ -19,9 +19,6 @@ class Arch(BaseDistribution):
         "sqlite3": ["sqlite"],
         "decimal": ["mpdecimal"],
         "lzma": ["xz"],
-        "zlib": [],
-        "readline": [],
-        "bz2": [],
     }
     xvfb_run = "xorg-server-xvfb"
     _formatter = _misc.Formatter()

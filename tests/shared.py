@@ -37,7 +37,8 @@ awkward_pypi_packages = [
 
 def _group_python_extras(dependencies):
     extras = ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline",
-              "bz2", "curses", "ctypes"]
+              "bz2", "curses", "ctypes", "ssl", "hashlib", "venv", "uuid",
+              "curses.panel", "dbm.gnu", "dbm.ndbm", "binascii"]
     grouped = collections.defaultdict(list)
     for extra in extras:
         # ~ yield dependencies.get(extra, ()), (extra,)

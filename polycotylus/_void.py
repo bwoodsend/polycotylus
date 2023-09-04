@@ -20,12 +20,6 @@ class Void(BaseDistribution):
     python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
-        "sqlite3": [],
-        "decimal": [],
-        "lzma": [],
-        "zlib": [],
-        "readline": [],
-        "bz2": [],
     }
     imagemagick = "ImageMagick"
     xvfb_run = "xvfb-run util-linux"

@@ -25,6 +25,7 @@ class Alpine(BaseDistribution):
     python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
+        "dbm.gnu": ["python3-gdbm"],
     }
     _formatter = _misc.Formatter("\t")
     supported_architectures = {

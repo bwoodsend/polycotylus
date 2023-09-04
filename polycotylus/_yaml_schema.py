@@ -69,7 +69,7 @@ class Locale(ScalarValidator):
 with resources.open_binary("polycotylus", "localizations.json") as f:
     localizations = json.load(f)
 
-python_extra = Regex("(tkinter|sqlite3|decimal|lzma|readline|ctypes|curses|bz2)")
+python_extra = Regex("(bz2|ctypes|curses|curses.panel|dbm|dbm.gnu|dbm.ndbm|decimal|lzma|readline|sqlite3|tkinter)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
 icon = OrValidator(Map({"id": desktop_file_id, "source": Str()}), Str())
 locale_string = OrValidator(Str(), MapPattern(Locale(), Str()))

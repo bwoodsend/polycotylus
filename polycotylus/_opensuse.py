@@ -26,6 +26,10 @@ class OpenSUSE(BaseDistribution):
     python_extras = {
         "tkinter": ["python3-tk"],
         "curses": ["python3-curses"],
+        "curses.panel": ["python3-curses"],
+        "dbm": ["python3-dbm"],
+        "dbm.gnu": ["python3-dbm"],
+        "dbm.ndbm": ["python3-dbm"],
     }
     supported_architectures = {
         "x86_64": "x86_64",

@@ -48,7 +48,7 @@ dependencies:
       # ``dependencies`` section in your ``pyproject.toml``. In practice, you
       # should never set this field.
 
-    python: tkinter sqlite3 decimal lzma readline ctypes curses bz2
+    python: bz2 ctypes curses curses.panel dbm dbm.gnu dbm.ndbm decimal lzma readline sqlite3 tkinter
       # If you use any of these libraries, list them here. `polycotylus` will
       # ensure that their Linux distributions' equivalents are installed.
 
