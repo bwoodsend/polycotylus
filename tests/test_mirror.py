@@ -7,10 +7,12 @@ import shutil
 import signal
 import os
 from pathlib import Path
+import sys
+import subprocess
 
 import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._mirror import mirrors, CachedMirror, _alpine_sync_time
 
 
@@ -293,3 +295,27 @@ def test_prune(distro, monkeypatch):
     mirror._prune()
     to_delete = [i.replace("\\", "/") for i in to_delete]
     assert sorted(to_delete) == sorted(obsolete_caches[distro])
+
+
+def test_concurrent_usage():
+    a, b, *_ = mirrors.values()
+    with a:
+        with b:
+            urlopen(f"http://localhost:{b.port}").close()
+            urlopen(f"http://localhost:{a.port}").close()
+        urlopen(f"http://localhost:{a.port}").close()
+    p = subprocess.Popen([sys.executable, "-m", "polycotylus._mirror", "alpine"])
+    try:
+        for i in range(50):
+            try:
+                urlopen("http://localhost:8901").close()
+                break
+            except OSError:
+                time.sleep(0.1)
+        else:
+            raise
+        with pytest.raises(_exceptions.PolycotylusUsageError, match="concurrent usage"):
+            with mirrors["alpine"]:
+                pass
+    finally:
+        p.kill()

@@ -99,7 +99,16 @@ class CachedMirror:
         self.base_url
         self.base_dir.mkdir(parents=True, exist_ok=True)
         handler = type("Handler", (RequestHandler,), {"parent": self})
-        self._httpd = ThreadingHTTPServer(("", self.port), handler)
+        try:
+            self._httpd = ThreadingHTTPServer(("", self.port), handler)
+        except OSError as ex:
+            if ex.errno != 98:  # pragma: no cover
+                raise
+            from polycotylus._exceptions import PolycotylusUsageError, _unravel
+            raise PolycotylusUsageError(_unravel("""
+                Polycotylus does not support concurrent usage for the same Linux
+                distribution.
+            """)) from None
         self._prune()
         thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
         thread.start()
