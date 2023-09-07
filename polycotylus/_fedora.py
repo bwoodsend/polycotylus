@@ -204,6 +204,7 @@ class Fedora(BaseDistribution):
         skip_if_unavailable=False
         tsflags=nodocs
         keepcache=1
+        install_weak_deps=False
     """)
     dnf_config_install = f"echo -e {repr(dnf_config)} > /etc/dnf/dnf.conf"
 
@@ -250,7 +251,7 @@ class Fedora(BaseDistribution):
 
     def build_builder_image(self):
         base = super().build_builder_image()
-        command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)"] + \
+        command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)", "python3dist(pip)"] + \
             self.build_dependencies + self.dependencies + self.test_dependencies
         return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)
