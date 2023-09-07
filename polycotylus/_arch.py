@@ -20,8 +20,14 @@ class Arch(BaseDistribution):
         "decimal": ["mpdecimal"],
         "lzma": ["xz"],
     }
-    xvfb_run = "xorg-server-xvfb"
     _formatter = _misc.Formatter()
+    _packages = {
+        "python": "python",
+        "imagemagick": "imagemagick",
+        "imagemagick_svg": "librsvg",
+        "xvfb-run": "xorg-server-xvfb",
+        "font": "ttf-dejavu",
+    }
     supported_architectures = {
         "x86_64": "x86_64",
     }
@@ -87,8 +93,8 @@ class Arch(BaseDistribution):
         for license in self.project.licenses:
             package += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
 
-        package += self.install_icons(1)
-        package += self.install_desktop_files(1)
+        package += self.install_icons(1, "$pkgdir")
+        package += self.install_desktop_files(1, "$pkgdir")
 
         package += "}\n"
         if self.project.architecture == "none":

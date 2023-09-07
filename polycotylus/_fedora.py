@@ -23,20 +23,21 @@ class Fedora(BaseDistribution):
     name = "fedora"
     version = "38"
     image = "fedora:38"
-    python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
-    xvfb_run = "/usr/bin/xvfb-run"
-    imagemagick = "ImageMagick"
-    imagemagick_svg = "librsvg2-tools"
     _formatter = _misc.Formatter("    ")
     mirror = contextlib.nullcontext()
-    font = "dejavu-fonts-all"
-    pkgdir = "%{buildroot}"
     supported_architectures = {
         "x86_64": "x86_64",
         "aarch64": "aarch64",
+    }
+    _packages = {
+        "python": "python3",
+        "xvfb-run": "/usr/bin/xvfb-run",
+        "imagemagick": "ImageMagick",
+        "imagemagick_svg": "librsvg2-tools",
+        "font": "dejavu-fonts-all",
     }
 
     def __init__(self, project, architecture=None):
@@ -76,7 +77,7 @@ class Fedora(BaseDistribution):
 
     @property
     def dependencies(self):
-        out = [(self.python + self.project.supported_python).replace(">=", " >= ")]
+        out = [(self._packages["python"] + self.project.supported_python).replace(">=", " >= ")]
         out += self._dependencies(self.project.dependencies)
         return _deduplicate(out)
 
@@ -103,11 +104,11 @@ class Fedora(BaseDistribution):
         for dependency in self.project.test_dependencies.get("pip", ()):
             build_requires.append(self.python_package(dependency))
         if self.project.gui:
-            build_requires.append(self.xvfb_run)
+            build_requires.append(self._packages["xvfb-run"])
         if self.icons:
-            build_requires.append(self.imagemagick)
+            build_requires.append(self._packages["imagemagick"])
             if any(source.endswith(".svg") for (source, _) in self.icons):
-                build_requires.append(self.imagemagick_svg)
+                build_requires.append(self._packages["imagemagick_svg"])
         for dependency in _deduplicate(build_requires):
             out += f"BuildRequires:  {dependency}\n"
         for extra in self.project.dependencies.get("python", ()):
@@ -149,7 +150,7 @@ class Fedora(BaseDistribution):
             %pyproject_install
             %pyproject_save_files "*"
         """)
-        out += self.install_icons(0).replace("/usr/share", "/%{_datadir}")
+        out += self.install_icons(0, "%{buildroot}").replace("/usr/share", "/%{_datadir}")
         if self.project.desktop_entry_points:
             out += self._formatter(r"""
                 desktop-file-install \

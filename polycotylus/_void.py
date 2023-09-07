@@ -15,15 +15,17 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 
 class Void(BaseDistribution):
-    python_prefix = "/usr"
     name = "void"
-    python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
-    imagemagick = "ImageMagick"
-    xvfb_run = "xvfb-run util-linux"
-    font = "dejavu-fonts-ttf"
+    _packages = {
+        "python": "python3",
+        "imagemagick": "ImageMagick",
+        "imagemagick_svg": "librsvg",
+        "xvfb-run": "xvfb-run util-linux",
+        "font": "dejavu-fonts-ttf",
+    }
     _formatter = _misc.Formatter()
     supported_architectures = {
         "x86_64": "x86_64",

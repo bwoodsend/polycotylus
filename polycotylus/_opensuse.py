@@ -20,9 +20,6 @@ from polycotylus._base import BaseDistribution
 
 class OpenSUSE(BaseDistribution):
     image = "docker.io/opensuse/tumbleweed"
-    python_prefix = "/usr"
-    xvfb_run = "xvfb-run"
-    python = "python3"
     python_extras = {
         "tkinter": ["python3-tk"],
         "curses": ["python3-curses"],
@@ -36,8 +33,13 @@ class OpenSUSE(BaseDistribution):
         "aarch64": "aarch64",
     }
     _formatter = _misc.Formatter("    ")
-    imagemagick = "ImageMagick"
-    font = "dejavu-fonts"
+    _packages = {
+        "python": "python3",
+        "xvfb-run": "xvfb-run",
+        "imagemagick": "ImageMagick",
+        "imagemagick_svg": "librsvg",
+        "font": "dejavu-fonts",
+    }
 
     def __init__(self, project, architecture=None):
         if _docker.docker.variant == "podman":  # pragma: no cover
@@ -227,7 +229,7 @@ class OpenSUSE(BaseDistribution):
                 cp %_builddir/dumb_text_viewer-%{{version}}/.polycotylus/underwhelming_software-dumb_text_viewer.desktop %{{buildroot}}%{{_datadir}}/applications/
                 %suse_update_desktop_file %{{buildroot}}%{{_datadir}}/applications/{id}.desktop
             """)
-        out += self.install_icons(0).replace("$pkgdir/usr/share", "%{buildroot}%{_datadir}")
+        out += self.install_icons(0, "%{buildroot}").replace("/usr/share", "%{_datadir}")
         out += "\n"
 
         out += self._formatter("%check")

@@ -12,17 +12,11 @@ from polycotylus._mirror import mirrors
 
 
 class BaseDistribution(abc.ABC):
-    python_prefix = abc.abstractproperty()
-    python = "python"
+    python_prefix = "/usr"
     python_extras: dict = abc.abstractproperty()
     _formatter = abc.abstractproperty()
-    pkgdir = "$pkgdir"
     supported_architectures = abc.abstractproperty()
-
-    imagemagick = "imagemagick"
-    imagemagick_svg = "librsvg"
-    xvfb_run = abc.abstractproperty()
-    font = "ttf-dejavu"
+    _packages = abc.abstractproperty()
 
     def __init__(self, project, architecture=None):
         self.project = project
@@ -156,7 +150,7 @@ class BaseDistribution(abc.ABC):
         with open(self.distro_root / name, "wb") as f:
             f.write(self.project.tar())
 
-    def pip_build_command(self, indentation, into="$pkgdir"):
+    def pip_build_command(self, indentation, into):
         if self.project.setuptools_scm:
             declare_version = 'export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"'
         out = self._formatter(f"""
@@ -191,7 +185,7 @@ class BaseDistribution(abc.ABC):
 
     @property
     def dependencies(self):
-        out = [self.python + self.project.supported_python]
+        out = [self._packages["python"] + self.project.supported_python]
         out += self._dependencies(self.project.dependencies)
         return _deduplicate(out)
 
@@ -204,9 +198,9 @@ class BaseDistribution(abc.ABC):
             # setuptools.
             out.append(self.python_package("setuptools>=61.0"))
         if self.icons:
-            out.append(self.imagemagick)
+            out.append(self._packages["imagemagick"])
             if any(source.endswith(".svg") for (source, _) in self.icons):
-                out.append(self.imagemagick_svg)
+                out.append(self._packages["imagemagick_svg"])
         disallowed = self.build_base_packages()
         out = [i for i in out if i not in disallowed]
         return _deduplicate(out)
@@ -215,15 +209,15 @@ class BaseDistribution(abc.ABC):
     def test_dependencies(self):
         out = self._dependencies(self.project.test_dependencies)
         if self.project.gui:
-            out += [*self.xvfb_run.split(), self.font]
+            out += [*self._packages["xvfb-run"].split(), self._packages["font"]]
         return _deduplicate(out)
 
-    def install_icons(self, indentation):
+    def install_icons(self, indentation, sysroot):
         if not self.icons:
             return ""
         out = self._formatter(f"""
             for _size in 16 22 24 32 48 128; do
-                _icon_dir="{self.pkgdir}/usr/share/icons/hicolor/${{_size}}x$_size/apps"
+                _icon_dir="{sysroot}/usr/share/icons/hicolor/${{_size}}x$_size/apps"
                 mkdir -p "$_icon_dir"
         """, indentation)
         for (source, dest) in self.icons:
@@ -234,12 +228,12 @@ class BaseDistribution(abc.ABC):
         out += self._formatter("done", indentation)
         if any(i.endswith(".svg") for (i, _) in self.icons):
             out += self._formatter(
-                f"mkdir -p {self.pkgdir}/usr/share/icons/hicolor/scalable/apps",
+                f"mkdir -p {sysroot}/usr/share/icons/hicolor/scalable/apps",
                 indentation)
         for (source, dest) in self.icons:
             if source.endswith(".svg"):
                 out += self._formatter(
-                    f'cp "{source}" {self.pkgdir}/usr/share/icons/hicolor/scalable/apps/{dest}.svg',
+                    f'cp "{source}" {sysroot}/usr/share/icons/hicolor/scalable/apps/{dest}.svg',
                     indentation)
         return out
 
@@ -250,7 +244,7 @@ class BaseDistribution(abc.ABC):
             }}
         """) + "\n"
 
-    def install_desktop_files(self, indentation, dest="$pkgdir"):
+    def install_desktop_files(self, indentation, dest):
         out = ""
         for id in self.project.desktop_entry_points:
             out += self._formatter(

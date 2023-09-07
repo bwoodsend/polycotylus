@@ -21,8 +21,6 @@ class Alpine(BaseDistribution):
     name = "alpine"
     version = "3.18"
     image = "alpine:3.18"
-    python_prefix = "/usr"
-    python = "python3"
     python_extras = {
         "tkinter": ["python3-tkinter"],
         "dbm.gnu": ["python3-gdbm"],
@@ -36,11 +34,13 @@ class Alpine(BaseDistribution):
         "x86": "i386",
         "x86_64": "x86_64",
     }
-    pkgdir = "$builddir"
-    imagemagick = "imagemagick"
-    imagemagick_svg = "librsvg"
-    xvfb_run = "xvfb-run"
-    font = "ttf-dejavu"
+    _packages = {
+        "python": "python3",
+        "imagemagick": "imagemagick",
+        "imagemagick_svg": "librsvg",
+        "xvfb-run": "xvfb-run",
+        "font": "ttf-dejavu",
+    }
 
     @classmethod
     @lru_cache()
@@ -142,7 +142,7 @@ class Alpine(BaseDistribution):
         for license in self.project.licenses:
             out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
         out += self.install_desktop_files(1, dest="$builddir")
-        out += self.install_icons(1)
+        out += self.install_icons(1, "$builddir")
         out += "}\n\n"
 
         out += self._formatter("""
