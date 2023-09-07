@@ -77,29 +77,29 @@ This reference should answer those questions.
     ::
 
         # Install packages:
-        yum install -y python3-numpy python3-pip
+        dnf install -y python3-numpy python3-pip
 
         # Uninstall packages:
-        yum remove -y python3-numpy python3-pip
+        dnf remove -y python3-numpy python3-pip
 
         # Search packages by name+description:
-        yum search substring
+        dnf search substring
 
         # Search by file:
-        yum whatprovides /usr/bin/python
-        yum whatprovides '*/libgmp.so'
+        dnf whatprovides /usr/bin/python
+        dnf whatprovides '*/libgmp.so'
 
         # List all available packages:
-        yum list
+        dnf list
 
         # List all installed packages:
-        yum list --installed
+        dnf list --installed
 
         # Show a package's metadata:
-        yum info python3
+        dnf info python3
 
         # List a package's files:
-        yum repoquery -l python3
+        dnf repoquery -l python3
 
 
 .. tab:: OpenSUSE

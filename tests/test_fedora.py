@@ -38,7 +38,7 @@ def test_python_extras():
     for (packages, imports) in shared._group_python_extras(Fedora.python_extras):
         _docker.run("fedora:37", f"""
             {Fedora.dnf_config_install}
-            yum install -y {shlex.join(packages)} python3
+            dnf install -y {shlex.join(packages)} python3
             python3 -c 'import {", ".join(imports)}'
         """, volumes=Fedora._mounted_caches.fget(None))
 
@@ -47,7 +47,7 @@ def test_python_package():
     packages = [
         Fedora.python_package(i) for i in shared.awkward_pypi_packages
         if i != "zope.deferredimport"]
-    script = Fedora.dnf_config_install + "\nyum install --assumeno " + shlex.join(packages)
+    script = Fedora.dnf_config_install + "\ndnf install --assumeno " + shlex.join(packages)
     container = _docker.run("fedora:37", script, check=False,
                             volumes=Fedora._mounted_caches.fget(None))
     assert "Operation aborted." in container.output

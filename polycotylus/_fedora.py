@@ -250,13 +250,13 @@ class Fedora(BaseDistribution):
 
     def build_builder_image(self):
         base = super().build_builder_image()
-        command = ["yum", "install", "-y", "fedpkg", "python3dist(wheel)"] + \
+        command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)"] + \
             self.build_dependencies + self.dependencies + self.test_dependencies
         return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)
 
     def build_test_image(self):
-        command = ["yum", "install", "-y"] + self.test_dependencies
+        command = ["dnf", "install", "-y"] + self.test_dependencies
         if self.project.gui:
             command.append("util-linux")
         elif not self.test_dependencies:
