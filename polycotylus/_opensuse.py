@@ -225,8 +225,9 @@ class OpenSUSE(BaseDistribution):
         if self.project.desktop_entry_points:
             out += self._formatter("mkdir -p %{buildroot}%{_datadir}/applications/")
         for id in self.project.desktop_entry_points:
+            top_level = self.project.source_top_level.format(version="%{version}")
             out += self._formatter(f"""
-                cp %_builddir/dumb_text_viewer-%{{version}}/.polycotylus/underwhelming_software-dumb_text_viewer.desktop %{{buildroot}}%{{_datadir}}/applications/
+                cp %_builddir/{top_level}/.polycotylus/{id}.desktop %{{buildroot}}%{{_datadir}}/applications/
                 %suse_update_desktop_file %{{buildroot}}%{{_datadir}}/applications/{id}.desktop
             """)
         out += self.install_icons(0, "%{buildroot}").replace("/usr/share", "%{_datadir}")
