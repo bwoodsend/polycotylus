@@ -150,13 +150,13 @@ class CachedMirror:
             if entry.is_dir():
                 self._prune(entry.path)
             elif match := file_re.fullmatch(entry.name):
-                caches[(match[1], match[3])].append(match[2])
-        for (key, versions) in caches.items():
-            if len(versions) > 1:
-                versions.sort(key=lambda x: tuple(j or int(i)
-                                                  for (i, j) in version_re.findall(x)))
-                for version in versions[:-1]:
-                    os.remove(root + "/" + key[0] + version + key[1])
+                caches[(match[1], match[3])].append((entry.name, match[2]))
+        for (key, file_versions) in caches.items():
+            if len(file_versions) > 1:
+                file_versions.sort(key=lambda x: tuple(j or int(i)
+                                                       for (i, j) in version_re.findall(x[1])))
+                for (name, version) in file_versions[:-1]:
+                    os.remove(os.path.join(root, name))
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -365,7 +365,7 @@ mirrors = {
             8900,
             "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
             (_use_last_modified_header,),
-            r"(.+-)([^-]+-\d+)(-[^-]+)",
+            r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
         ),
     "manjaro":
         CachedMirror(
@@ -376,7 +376,7 @@ mirrors = {
             8903,
             "if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
             (_use_last_modified_header,),
-            r"(.+-)([^-]+-\d+)(-[^-]+)",
+            r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
         ),
     "alpine":
         CachedMirror(

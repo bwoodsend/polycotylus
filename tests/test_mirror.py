@@ -234,6 +234,7 @@ obsolete_caches = {
         "./extra/os/x86_64/libtiff-4.4.0-4-x86_64.pkg.tar.zst.sig",
         "./extra/os/x86_64/libtiff-4.5.0-1-x86_64.pkg.tar.zst",
         "./extra/os/x86_64/libtiff-4.5.0-1-x86_64.pkg.tar.zst.sig",
+        "./extra/os/x86_64/mesa-23.1.3-2-x86_64.pkg.tar.zst",
     ],
     "manjaro": [
         "./arm-stable/core/aarch64/archlinux-keyring-20230130-1-any.pkg.tar.xz",
@@ -241,6 +242,7 @@ obsolete_caches = {
         "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst",
         "./stable/core/x86_64/archlinux-keyring-20221220-1-any.pkg.tar.zst.sig",
         "./stable/extra/x86_64/librsvg-2\uA7892.55.1-1-x86_64.pkg.tar.zst",
+        "./stable/extra/os/x86_64/mesa-23.1.3-2-x86_64.pkg.tar.zst",
     ],
     "void": [
         "./current/aarch64/musl-1.1.24_12.aarch64-musl.xbps",
