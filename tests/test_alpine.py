@@ -54,8 +54,11 @@ def test_abuild_lint():
 
 
 def test_dumb_text_viewer():
+    extrenuous_desktop_file = shared.dumb_text_viewer / ".polycotylus" / "delete-me.desktop"
+    extrenuous_desktop_file.write_bytes(b"")
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
+    assert not extrenuous_desktop_file.exists()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
     assert "arch=noarch" in self.apkbuild()
     assert "gcc" not in self.apkbuild()

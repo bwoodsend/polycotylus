@@ -336,6 +336,8 @@ class OpenSUSE(BaseDistribution):
     def generate(self):
         super().generate()
         (self.distro_root / "RPMS").mkdir(exist_ok=True)
+        for path in self.distro_root.glob("*.spec"):
+            path.unlink()
         _misc.unix_write(self.distro_root / (self.package_name + ".spec"), self.spec())
 
     def build(self):

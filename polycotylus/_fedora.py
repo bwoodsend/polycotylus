@@ -240,6 +240,8 @@ class Fedora(BaseDistribution):
 
     def generate(self):
         super().generate()
+        for path in self.distro_root.glob("*.spec"):
+            path.unlink()
         _misc.unix_write(self.distro_root / f"{self.package_name}.spec", self.spec())
 
     @property

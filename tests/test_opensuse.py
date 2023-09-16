@@ -64,6 +64,10 @@ def test_unittest():
 def test_ubrotli():
     self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.ubrotli))
     self.generate()
+    junk = self.distro_root / "spam.spec"
+    junk.write_bytes(b"")
+    self.generate()
+    assert not junk.exists()
     rpms = self.build()
     assert len(rpms) == 4
     self.test(rpms["main"])

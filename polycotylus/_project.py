@@ -422,6 +422,11 @@ class Project:
         for (id, options) in self.desktop_entry_points.items():
             path = (self.root / ".polycotylus" / f"{id}.desktop")
             _misc.unix_write(path, self._desktop_file(id, options))
+        # Delete any unused desktop files, most likely left by a desktop file ID
+        # being renamed.
+        for path in (self.root / ".polycotylus").glob("*.desktop"):
+            if path.stem not in self.desktop_entry_points:
+                path.unlink()
 
     def write_gitignore(self):
         path = self.root / ".polycotylus/.gitignore"
