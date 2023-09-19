@@ -14,7 +14,7 @@ def test_minimum_extension_module_build_dependencies():
     (which is otherwise untested) stays in sync with that of ubrotli's
     polycotylus.yaml (which is tested on all distributions) minus the brotli
     references."""
-    api_reference = strictyaml.load(schema.replace("$identifier", "identifier"),
+    api_reference = strictyaml.load(schema.replace("$", ""),
                                     polycotylus._yaml_schema.polycotylus_yaml)
     ubrotli = polycotylus._yaml_schema.read(shared.ubrotli / "polycotylus.yaml")
 

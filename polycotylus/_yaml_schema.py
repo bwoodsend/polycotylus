@@ -95,7 +95,7 @@ desktop_file = MapCombined({
     Optional("Keywords"): locale_string,
     Optional("icon"): icon,
     Optional("NoDisplay"): Bool(),
-    Optional("actions"): MapPattern(Str(), Map({
+    Optional("actions"): MapPattern(Regex("[A-Za-z0-9-]+"), Map({
         "Name": locale_string,
         "Exec": Str(),
         Optional("icon"): icon,

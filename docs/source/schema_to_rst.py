@@ -100,7 +100,7 @@ while i < len(lines):
             yaml = {key: yaml}
         serialized = strictyaml.as_document(yaml).as_yaml()
         try:
-            strictyaml.load(serialized.replace("$identifier", "identifier"),
+            strictyaml.load(serialized.replace("$", ""),
                             schema=polycotylus_yaml)
         except Exception as ex:
             if not re.search("required key.*not found", str(ex)):
