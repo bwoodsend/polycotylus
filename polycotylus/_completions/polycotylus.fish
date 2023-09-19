@@ -1,6 +1,6 @@
 set -l distributions alpine arch fedora manjaro opensuse void
-set -l alpine_variants alpine:3.17 alpine:3.18
-set -l fedora_variants fedora:37 fedora:38
+set -l alpine_variants alpine:3.17 alpine:3.18 alpine:edge
+set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40
 set -l void_variants void:musl void:glibc
 set -l all_variants $distributions $alpine_variants $fedora_variants $void_variants
 set -l atomic_flags --completion --list-localizations --configure --presubmit-check

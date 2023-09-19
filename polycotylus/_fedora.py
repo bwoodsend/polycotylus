@@ -308,3 +308,13 @@ class Fedora37(Fedora):
 
 
 Fedora38 = Fedora
+
+
+class Fedora39(Fedora):
+    version = "39"
+    image = "fedora:39"
+
+
+class Fedora40(Fedora):
+    version = "40"
+    image = "fedora:40"

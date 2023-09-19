@@ -114,8 +114,9 @@ class Alpine(BaseDistribution):
         )
         subpackages = []
         from packaging.version import Version
-        if self.project.contains_py_files and Version(self.version) >= Version("v3.18"):
-            subpackages.append("$pkgname-pyc")
+        if self.project.contains_py_files:
+            if self.version == "edge" or Version(self.version) >= Version("v3.18"):
+                subpackages.append("$pkgname-pyc")
         if "custom" in license_names:
             subpackages.append("$pkgname-doc")
         if subpackages:
@@ -286,3 +287,8 @@ class Alpine317(Alpine):
 
 
 Alpine318 = Alpine
+
+
+class AlpineEdge(Alpine):
+    version = "edge"
+    image = "alpine:edge"

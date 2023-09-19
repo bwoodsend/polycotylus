@@ -11,7 +11,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
-from polycotylus._fedora import Fedora, Fedora37
+from polycotylus._fedora import Fedora, Fedora37, Fedora40
 from polycotylus.__main__ import cli
 import shared
 
@@ -65,7 +65,8 @@ def test_ubrotli():
     self.test(packages["main"])
 
 
-def test_dumb_text_viewer():
+@pytest.mark.parametrize("Fedora", [Fedora37, Fedora40])
+def test_dumb_text_viewer(Fedora):
     self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     container = self.test(self.build()["main"])

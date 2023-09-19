@@ -11,7 +11,7 @@ import pytest
 from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
-from polycotylus._alpine import Alpine, Alpine317
+from polycotylus._alpine import Alpine, Alpine317, AlpineEdge
 import shared
 
 mirror = mirrors["alpine"]
@@ -235,7 +235,7 @@ def test_license_handling(tmp_path):
 def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     all_apks = []
-    for _Alpine in (Alpine, Alpine317):
+    for _Alpine in (Alpine, Alpine317, AlpineEdge):
         self = _Alpine(Project.from_root(shared.kitchen_sink))
         self.generate()
         assert "pywin32-ctypes" not in self.apkbuild()
@@ -246,7 +246,7 @@ def test_kitchen_sink(monkeypatch):
         container = _docker.run(installed, script)
         assert """🚀 🦄 "quoted" 'quoted again' $$$""" in container.output
         assert "license:\ncustom" in container.output
-        assert ("pyc" in apks) is (_Alpine is Alpine)
+        assert ("pyc" in apks) is (_Alpine is not Alpine317)
         all_apks.extend(apks.values())
 
         with tarfile.open(apks["doc"]) as tar:
@@ -257,7 +257,7 @@ def test_kitchen_sink(monkeypatch):
 
     for apk in all_apks:
         assert apk.exists()
-    assert len(set(all_apks)) == 5
+    assert len(set(all_apks)) == 8
 
 
 test_multiarch = shared.qemu(Alpine)
