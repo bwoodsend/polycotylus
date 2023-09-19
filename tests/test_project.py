@@ -271,6 +271,11 @@ def test_maintainer(pyproject_toml, polycotylus_yaml):
     self = Project.from_root(bare_minimum)
     assert self.maintainer_slug == "Mr Hippo <hippo@mail.com>"
 
+    polycotylus_yaml("maintainer: Mr Hippo")
+    with pytest.raises(PolycotylusYAMLParseError,
+                       match='Invalid maintainer "Mr Hippo".'):
+        Project.from_root(bare_minimum)
+
 
 def test_missing_setuptools_scm(monkeypatch):
     monkeypatch.setitem(sys.modules, "setuptools_scm", None)

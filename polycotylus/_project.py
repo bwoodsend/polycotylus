@@ -165,10 +165,7 @@ class Project:
                 disallowed characters "{invalid}". Linux distributions
                 ubiquitously only support versions made up of numbers and periods.
             """))
-        if maintainer_slug := polycotylus_options.get("maintainer"):
-            match = re.fullmatch(_yaml_schema.maintainer_slug_re, maintainer_slug)
-            maintainer = dict(zip(["name", "email"], match.groups()))
-        else:
+        if not (maintainer := polycotylus_options.get("maintainer")):
             maintainers = project.get("maintainers", project.get("authors", []))
             if not maintainers:
                 raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""

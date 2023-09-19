@@ -66,6 +66,19 @@ class Locale(ScalarValidator):
         return chunk.contents
 
 
+class Maintainer(ScalarValidator):
+    pattern = re.compile(r"\s*([^<>@]+)\b\s*<\s*([^<>@ ]+@[^<>@ ]+)\s*>\s*")
+
+    def validate_scalar(self, chunk):
+        if not (match := self.pattern.fullmatch(chunk.contents)):
+            raise YAMLValidationError(
+                'The format should be "Your Name <your@email.com>"',
+                f'Invalid maintainer "{chunk.contents}".',
+                chunk,
+            )
+        return dict(zip(["name", "email"], match.groups()))
+
+
 with resources.open_binary("polycotylus", "localizations.json") as f:
     localizations = json.load(f)
 
@@ -97,7 +110,6 @@ dependencies_group = MapCombined(
 architectures = ["aarch64", "armhf", "armv7", "ppc64le", "x86", "x86_64"]
 
 default_test_files = ["tests", "pytest.ini", "conftest.py", "test_*.py"]
-maintainer_slug_re = r"\s*([^<>@]+)\b\s*<\s*([^<>@ ]+@[^<>@ ]+)\s*>\s*"
 
 polycotylus_yaml = Map({
     Optional("source_url"): Str(),
@@ -106,7 +118,7 @@ polycotylus_yaml = Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
     Optional("dependency_map"): MapPattern(Str(), MapPattern(Str(), Str())),
-    Optional("maintainer"): Regex(maintainer_slug_re),
+    Optional("maintainer"): Maintainer(),
     Optional("gui"): Bool(),
     Optional("spdx"): MapPattern(Str(), EmptyDict()),
     Optional("contains_py_files", default=True): Bool(),
