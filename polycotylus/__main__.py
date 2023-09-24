@@ -3,6 +3,7 @@ import os
 from importlib import resources
 import re
 import contextlib
+import sys
 
 import polycotylus
 
@@ -13,6 +14,10 @@ class CompletionAction(argparse.Action):
     }
 
     def __call__(self, parser, namespace, shell, option_string=None):
+        with contextlib.suppress(Exception):
+            if sys.stdout.isatty():  # pragma: no cover
+                print("# Pipe the output of this command into source or ~/.config/fish/completions/polycotylus.fish\n",
+                      file=sys.stderr, flush=True)
         with resources.open_text("polycotylus._completions", self.files[shell]) as f:
             print(f.read(), end="")
         parser.exit()
