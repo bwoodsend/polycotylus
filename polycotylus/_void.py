@@ -38,7 +38,7 @@ class Void(BaseDistribution):
 
     @_misc.classproperty
     def image(self, cls):
-        architecture = "x86_64" if self is None else self.architecture
+        architecture = cls.preferred_architecture if self is None else self.architecture
         return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{cls.libc_tag}"
 
     def _build_image(self, target):

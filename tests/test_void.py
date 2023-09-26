@@ -12,7 +12,7 @@ import shared
 
 class TestCommon(shared.Base):
     cls = Void
-    base_image = "ghcr.io/void-linux/void-linux:latest-mini-x86_64-musl"
+    base_image = Void.image
     package_install = "xbps-install -ySu xbps"
 
 

@@ -74,7 +74,7 @@ parser.add_argument("--configure", nargs="*", action=ConfigureAction,
                     "  * Clear a setting:    polycotylus --configure docker=")
 parser.add_argument("--list-localizations", action=ListLocalizationAction,
                     choices=["language", "region", "modifier"])
-parser.add_argument("--architecture", default=polycotylus.machine())
+parser.add_argument("--architecture")
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")

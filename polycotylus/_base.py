@@ -20,7 +20,7 @@ class BaseDistribution(abc.ABC):
 
     def __init__(self, project, architecture=None):
         self.project = project
-        self.architecture = architecture or machine()
+        self.architecture = architecture or self.preferred_architecture
         if self.architecture not in self.supported_architectures:
             raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
                 Architecture "{self.architecture}" is not available on
@@ -41,6 +41,10 @@ class BaseDistribution(abc.ABC):
     @property
     def distro_root(self):
         return self.project.root / ".polycotylus" / self.name
+
+    @_misc.classproperty
+    def preferred_architecture(_, cls):
+        return machine() if machine() in cls.supported_architectures else "x86_64"
 
     @classmethod
     def available_packages(cls):

@@ -102,7 +102,7 @@ class CachedMirror:
         try:
             self._httpd = ThreadingHTTPServer(("", self.port), handler)
         except OSError as ex:
-            if ex.errno != 98:  # pragma: no cover
+            if ex.errno not in {98, 48}:  # pragma: no cover
                 raise
             from polycotylus._exceptions import PolycotylusUsageError, _unravel
             raise PolycotylusUsageError(_unravel("""

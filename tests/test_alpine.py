@@ -50,7 +50,7 @@ def test_abuild_lint():
             {mirror.install}
             apk add -q atools
             apkbuild-lint /io/APKBUILD
-        """, volumes=[(self.distro_root, "/io")])
+        """, volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
 
 
 def test_dumb_text_viewer():
@@ -64,7 +64,7 @@ def test_dumb_text_viewer():
     assert "gcc" not in self.apkbuild()
 
     _docker.run(Alpine.image, ["ash", "-c", "set -e; source /io/APKBUILD"],
-                volumes=[(self.distro_root, "/io")])
+                volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
     apks = self.build()
     assert len(apks) == 2
     assert "pyc" in apks
@@ -85,12 +85,13 @@ def test_dumb_text_viewer():
 
     with mirror:
         script = "sudo apk add py3-pip && pip show dumb_text_viewer"
-        assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
+        assert "Name: dumb-text-viewer" in _docker.run(
+            installed, script, architecture=self.docker_architecture).output
 
         assert _docker.run(installed, """
             sudo apk add -q xdg-utils shared-mime-info
             xdg-mime query default text/plain
-        """).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
+        """, architecture=self.docker_architecture).output.strip() == "underwhelming_software-dumb_text_viewer.desktop"
 
 
 def test_png_source_icon(polycotylus_yaml):
@@ -271,8 +272,8 @@ def test_architecture_errors(monkeypatch):
     monkeypatch.setattr(shutil, "which", lambda x: None)
     monkeypatch.setattr(platform, "system", lambda: "Linux")
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match='Emulating "aarch64" requires the "qemu-aarch64-static" command'):
-        Alpine(Project.from_root(shared.ubrotli), "aarch64")
+                       match='Emulating "ppc64le" requires the "qemu-ppc64le-static" command'):
+        Alpine(Project.from_root(shared.ubrotli), "ppc64le")
 
 
 def test_fussy_arch():
