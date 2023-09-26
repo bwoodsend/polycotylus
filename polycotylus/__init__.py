@@ -2,7 +2,7 @@ def machine():
     """The current architecture normalized to Linux's naming convention."""
     import platform
     native = platform.machine()
-    return {"AMD64": "x86_64"}.get(native, native)
+    return {"AMD64": "x86_64", "arm64": "aarch64"}.get(native, native)
 
 
 from ._exceptions import PolycotylusUsageError

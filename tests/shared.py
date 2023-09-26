@@ -7,7 +7,7 @@ import io
 from PIL import Image
 import pytest
 
-from polycotylus import _docker, _exceptions
+from polycotylus import _docker, _exceptions, machine
 from polycotylus._mirror import mirrors
 from polycotylus._project import Project
 
@@ -74,7 +74,8 @@ class Base:
                 python3 -c 'import {", ".join(imports)}'
             """)
             with mirror:
-                _docker.run(self.base_image, script)
+                _docker.run(self.base_image, script,
+                            architecture=self.cls.preferred_architecture)
 
 
 def qemu(cls):

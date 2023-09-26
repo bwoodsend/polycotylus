@@ -43,7 +43,7 @@ class Arch(BaseDistribution):
                 pacman -Qq > /base-packages
                 pacman -Sp --needed base-devel > /sdk-packages
                 pacman -Si python > /python-version
-            """, tty=True)
+            """, architecture=cls.supported_architectures[cls.preferred_architecture], tty=True)
         _read = lambda path: container.file(path).decode()
         cls._available_packages = set(re.findall("([^\n]+)", _read("/packages")))
         preinstalled = re.findall("([^\n]+)", _read("/base-packages"))
@@ -195,7 +195,8 @@ class Arch(BaseDistribution):
     @lru_cache()
     def available_licenses(cls):
         out = []
-        container = _docker.run(cls.image, verbosity=0)
+        container = _docker.run(cls.image, verbosity=0,
+                                architecture=cls.preferred_architecture)
         with container["/usr/share/licenses/common"] as tar:
             for member in tar.getmembers():
                 m = re.fullmatch("common/([^/]+)/license.txt", member.name)

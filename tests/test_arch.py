@@ -60,8 +60,10 @@ def test_dumb_text_viewer():
 
     with mirror:
         script = "sudo pacman -S --noconfirm --needed python-pip && pip show dumb_text_viewer"
-        assert "Name: dumb-text-viewer" in _docker.run(installed, script).output
-    info = _docker.run(installed, "pacman -Q --info dumb-text-viewer").output
+        assert "Name: dumb-text-viewer" in _docker.run(
+            installed, script, architecture=self.docker_architecture).output
+    info = _docker.run(installed, "pacman -Q --info dumb-text-viewer",
+                       architecture=self.docker_architecture).output
     assert "Brénainn" in re.search("Packager *: *(.*)", info)[1]
 
     with container[pycache.relative_to(sysroot)] as tar:
@@ -99,7 +101,7 @@ def test_kitchen_sink(monkeypatch):
     package = self.build()["main"]
     installed = self.test(package).commit()
     script = "pacman -Q --info python-99---s1lly---name---packag3--x--y--z"
-    container = _docker.run(installed, script)
+    container = _docker.run(installed, script, architecture=self.docker_architecture)
     assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
                      container.output)
 
