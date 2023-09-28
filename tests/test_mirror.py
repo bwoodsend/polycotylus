@@ -12,6 +12,8 @@ import subprocess
 import contextlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http import HTTPStatus
+import json
+import textwrap
 
 import pytest
 
@@ -256,6 +258,36 @@ def test_abort_cleanup(tmp_path, monkeypatch):
 
             with urlopen(url) as response:
                 assert response.read() == payload
+
+
+def test_control_c(tmp_path):
+    def upstream_get(self):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Length", 1_000_000)
+        self.end_headers()
+        with contextlib.suppress(ConnectionResetError):
+            for i in range(10_000):
+                self.wfile.write(os.urandom(100))
+                time.sleep(0.001)
+                if i == 1000:
+                    os.kill(p.pid, 2)
+
+    with fake_upstream(upstream_get):
+        with subprocess.Popen([sys.executable, "-c", textwrap.dedent(f"""
+            import sys
+            sys.path.insert(0, "{os.path.dirname(__file__)}")
+            from test_mirror import *
+            with CachedMirror("http://localhost:8899", Path("{tmp_path}"), [], [], 9989, "", ()):
+                with urlopen("http://localhost:9989/foo") as response:
+                    response.read()
+        """)], stderr=subprocess.PIPE) as p:
+            assert p.wait(3) == -2, p.stderr
+    foo_cache = tmp_path / "foo"
+    assert foo_cache.stat().st_size < 1_000_000
+    assert json.loads((tmp_path / "partial-downloads.json").read_bytes()) == ["/foo"]
+
+    with CachedMirror("http://localhost:8899", tmp_path, [], [], 9989, "", ()):
+        assert not foo_cache.exists()
 
 
 obsolete_caches = {

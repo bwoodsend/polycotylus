@@ -15,6 +15,7 @@ from urllib.error import HTTPError
 import email.utils
 import contextlib
 import collections
+import json
 
 from polycotylus import _docker
 from polycotylus._docker import cache_root
@@ -76,6 +77,13 @@ class CachedMirror:
             self._base_url = self._base_url()
         return self._base_url.strip("/")
 
+    def local_path(self, server_path):
+        # Some packages may contain colons (:) in their filenames. The colon is
+        # a prohibited character on Windows. Replace it with a nearly identical
+        # unicode equivalent.
+        server_path = server_path.lstrip("/").replace(":", "\uA789")
+        return self.base_dir / server_path
+
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
@@ -110,16 +118,35 @@ class CachedMirror:
                 distribution.
             """)) from None
         self._prune()
+        try:
+            partial_downloads = json.loads((self.base_dir / "partial-downloads.json").read_bytes())
+        except FileNotFoundError:
+            pass
+        else:
+            for file in partial_downloads:
+                with contextlib.suppress(FileNotFoundError):
+                    self.local_path(file).unlink()
+            (self.base_dir / "partial-downloads.json").unlink()
+
         thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
+        self._premature_abort = False
         thread.start()
         self._thread = thread
         self._listeners = 1
 
-    def __exit__(self, *_):
+    def __exit__(self, exc_type, exc_value, traceback):
         with self._lock:
             self._listeners -= 1
             if self._listeners:
                 return
+
+        if isinstance(exc_value, KeyboardInterrupt):
+            with self._lock:
+                self._premature_abort = True
+                for path in self._in_progress:
+                    if response := getattr(self._in_progress[path], "_upstream", None):  # pragma: no branch
+                        response.close()
+
         # Wait until all running downloads are complete to avoid competing over
         # ports if this mirror is re-enabled soon after.
         while self._in_progress:  # pragma: no cover
@@ -183,8 +210,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Some packages may contain colons (:) in their filenames. The colon is
         # a prohibited character on Windows. Replace it with a nearly identical
         # unicode equivalent.
-        path = self.path.lstrip("/").replace(":", "\uA789")
-        return self.parent.base_dir / path
+        return self.parent.local_path(self.path)
 
     def do_GET(self):
         if any(fnmatch(self.path, i) for i in self.parent.ignore_patterns):
@@ -243,9 +269,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         with self.parent._lock:
             if self.command != "HEAD":
                 if self.path not in self.parent._in_progress and not use_cache:
-                    t = threading.Thread(target=self._download)
-                    self.parent._in_progress[self.path] = t
-                    t.start()
+                    self._thread = threading.Thread(target=self._download)
+                    self.parent._in_progress[self.path] = self
+                    with open(self.parent.base_dir / "partial-downloads.json", "w") as f:
+                        json.dump(sorted(self.parent._in_progress), f)
+                    self._thread.start()
 
             if self.path in self.parent._in_progress \
                     or (self.command == "HEAD" and not use_cache):
@@ -299,6 +327,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         finally:
             with self.parent._lock:
                 del self.parent._in_progress[self.path]
+                if not self.parent._premature_abort:
+                    with open(self.parent.base_dir / "partial-downloads.json", "w") as f:
+                        json.dump(sorted(self.parent._in_progress), f)
 
     def _in_progress_send(self):
         """Send a file from the cache whilst the cache is being written."""
