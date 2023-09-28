@@ -9,6 +9,9 @@ import os
 from pathlib import Path
 import sys
 import subprocess
+import contextlib
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http import HTTPStatus
 
 import pytest
 
@@ -27,6 +30,35 @@ def _alpine_mirror(tmp_path):
         _alpine.install.replace("8901", "9989"),
         (_alpine_sync_time,),
     )
+
+
+@contextlib.contextmanager
+def fake_upstream(do_GET):
+
+    class RequestHandler(BaseHTTPRequestHandler):
+        pass
+
+    RequestHandler.do_GET = do_GET
+
+    with ThreadingHTTPServer(("", 8899), RequestHandler) as httpd:
+        try:
+            thread = threading.Thread(target=httpd.serve_forever)
+            thread.start()
+            yield
+        finally:
+            httpd.shutdown()
+
+def slow_connection(payload):
+    """Mimic a slow (100kB/s) download rate."""
+    def upstream_get(self):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Length", len(payload))
+        self.end_headers()
+        for i in range(0, len(payload), 100):
+            self.wfile.write(payload[i: i + 100])
+            time.sleep(0.001)
+
+    return fake_upstream(upstream_get)
 
 
 def test_basic(tmp_path):
@@ -160,17 +192,20 @@ def test_index_page_handling(tmp_path):
 
 
 def test_concurrent(tmp_path):
-    self = _alpine_mirror(tmp_path)
-    url = "http://localhost:9989/edge/main/x86_64/APKINDEX.tar.gz"
+    url = "http://localhost:9989/foo.bar"
+    self = CachedMirror(
+        "http://0.0.0.0:8899", tmp_path, ["*.bar"], [], 9989, "", (_alpine_sync_time,))
+    payload = os.urandom(300_000)
 
-    with self:
-        for i in range(3):
-            with urlopen(url) as a:
-                part = a.read(100)
-                with urlopen(url) as b:
-                    raw = b.read()
-                    gzip.decompress(raw)
-                gzip.decompress(part + a.read())
+    with slow_connection(payload):
+        with self:
+            for i in range(3):
+                with urlopen(url) as a:
+                    part = a.read(100)
+                    with urlopen(url) as b:
+                        raw = b.read()
+                        assert raw == payload
+                    assert part + a.read() == payload
 
 
 def test_kill_resume(tmp_path):
@@ -199,6 +234,7 @@ def test_tar_integrity(tmp_path):
 @pytest.mark.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 def test_abort_cleanup(tmp_path, monkeypatch):
     self = _alpine_mirror(tmp_path)
+    self._base_url = "http://localhost:8899"
 
     def _bogus_copy(source, dest, length=None):
         dest.write(source.read(100))
@@ -208,16 +244,18 @@ def test_abort_cleanup(tmp_path, monkeypatch):
 
     url = "http://localhost:9989/edge/main/x86_64/APKINDEX.tar.gz"
     cache = tmp_path / "edge/main/x86_64/APKINDEX.tar.gz"
-    with self:
-        urlopen(url).close()
-        assert any(not cache.exists() or time.sleep(0.1) for _ in range(10))
+    payload = os.urandom(300_000)
+    with slow_connection(payload):
+        with self:
+            urlopen(url).close()
+            assert any(not cache.exists() or time.sleep(0.1) for _ in range(10))
 
-        monkeypatch.undo()
-        urlopen(url).close()
-        assert any(cache.exists() or time.sleep(0.1) for _ in range(10))
+            monkeypatch.undo()
+            urlopen(url).close()
+            assert any(cache.exists() or time.sleep(0.1) for _ in range(10))
 
-        with urlopen(url) as response:
-            gzip.decompress(response.read())
+            with urlopen(url) as response:
+                assert response.read() == payload
 
 
 obsolete_caches = {
