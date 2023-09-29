@@ -245,7 +245,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     # Forward any header web browsers needs to interpret the
                     # potentially compressed HTML response.
                     for header in ["Content-Encoding", "Content-Type",
-                                   "Content-Length", "Transfer-Encoding"]:
+                                   "Content-Length"]:
                         if value := self.upstream.headers[header]:
                             self.send_header(header, value)
                     self.end_headers()

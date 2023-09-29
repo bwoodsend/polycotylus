@@ -155,8 +155,6 @@ def test_head(tmp_path):
             urlopen(Request(url + "cake", method="HEAD")).close()
 
         with urlopen(Request("http://localhost:9989", method="HEAD")) as response:
-            if not response.headers["Transfer-Encoding"] == "chunked":
-                assert int(response.headers["Content-Length"])
             assert not response.read()
 
 
@@ -187,10 +185,35 @@ def test_index_page_handling(tmp_path):
     with self:
         with urlopen(Request("http://localhost:9989",
                              headers={"Accept-Encoding": "gzip"})) as response:
-            if response.headers["Transfer-Encoding"] == "chunked":
-                return
-            content = gzip.decompress(response.read())
-            assert b"core" in content
+            if response.headers["Transfer-Encoding"] != "chunked":
+                content = gzip.decompress(response.read())
+                assert b"core" in content
+
+    self._base_url = "http://localhost:8899"
+
+    def respond_chunked(self):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Transfer-Encoding", "chunked")
+        self.send_header("Content-Type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"6\r\nhello \r\n5\r\nworld\r\n0\r\n\r\n")
+
+    def respond_compressed(self):
+        payload = gzip.compress(b"hello world")
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Transfer-Encoding", "gzip")
+        self.send_header("Content-Length", "text/html")
+        self.send_header("Content-Type", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    for upstream in (respond_chunked, respond_compressed):
+        with fake_upstream(respond_chunked):
+            with self:
+                with urlopen(Request("http://localhost:9989",
+                             headers={"Accept-Encoding": "gzip,deflate"})) as response:
+                    assert response.read() == b"hello world"
+
 
 
 def test_concurrent(tmp_path):
