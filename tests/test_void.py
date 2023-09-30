@@ -12,7 +12,6 @@ import shared
 
 class TestCommon(shared.Base):
     cls = Void
-    base_image = Void.image
     package_install = "xbps-install -ySu xbps"
 
 
