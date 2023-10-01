@@ -42,6 +42,10 @@ class Alpine(BaseDistribution):
         "font": "ttf-dejavu",
     }
 
+    @_misc.classproperty
+    def tag(_, cls):
+        return cls.version
+
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):

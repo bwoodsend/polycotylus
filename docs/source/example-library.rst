@@ -377,6 +377,14 @@ You'll notice that this time, there are three packages produced. The one
 labelled ``main`` is the one you'd distribute. See :ref:`building for Fedora
 <fedora_quirks>` for information about the other two.
 
+.. note::
+
+    If you want to locate the packages that `polycotylus` builds
+    programmatically, then please use the ``.polycotylus/artifacts.json`` file.
+    Neither parsing the last few lines of `polycotylus`\ 's console output nor
+    trying to guess the paths are likely to survive future changes to
+    `polycotylus`.
+
 
 The next distribution and beyond
 ................................
