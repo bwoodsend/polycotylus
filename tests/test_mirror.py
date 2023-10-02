@@ -50,8 +50,10 @@ def fake_upstream(do_GET):
         finally:
             httpd.shutdown()
 
+
 def slow_connection(payload):
     """Mimic a slow (100kB/s) download rate."""
+
     def upstream_get(self):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Length", len(payload))
@@ -213,7 +215,6 @@ def test_index_page_handling(tmp_path):
                 with urlopen(Request("http://localhost:9989",
                              headers={"Accept-Encoding": "gzip,deflate"})) as response:
                     assert response.read() == b"hello world"
-
 
 
 def test_concurrent(tmp_path):
