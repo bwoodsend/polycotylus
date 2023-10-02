@@ -10,17 +10,21 @@ import pytest
 
 from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
-from polycotylus._mirror import mirrors
 from polycotylus._alpine import Alpine, Alpine317, AlpineEdge
 import shared
-
-mirror = mirrors["alpine"]
 
 
 class TestCommon(shared.Base):
     cls = Alpine
-    base_image = Alpine.image
     package_install = "apk add"
+
+
+class TestCommon317(TestCommon):
+    cls = Alpine317
+
+
+class TestCommonEdge(TestCommon):
+    cls = AlpineEdge
 
 
 def test_key_generation(tmp_path, monkeypatch):
@@ -47,7 +51,7 @@ def test_abuild_lint():
     self.generate()
     with self.mirror:
         _docker.run(Alpine.image, f"""
-            {mirror.install}
+            {self.mirror.install}
             apk add -q atools
             apkbuild-lint /io/APKBUILD
         """, volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
@@ -83,7 +87,7 @@ def test_dumb_text_viewer():
     shared.check_dumb_text_viewer_installation(container)
     installed = container.commit()
 
-    with mirror:
+    with self.mirror:
         script = "sudo apk add py3-pip && pip show dumb_text_viewer"
         assert "Name: dumb-text-viewer" in _docker.run(
             installed, script, architecture=self.docker_architecture).output

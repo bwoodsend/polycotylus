@@ -10,7 +10,6 @@ pytestmark = pytest.mark.skipif(polycotylus._docker.docker.variant == "podman",
 
 class TestCommon(shared.Base):
     cls = polycotylus.OpenSUSE
-    base_image = cls.image
     package_install = "zypper install -y"
 
     def test_python_package(self):

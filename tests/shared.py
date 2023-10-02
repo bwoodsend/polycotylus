@@ -7,8 +7,8 @@ import io
 from PIL import Image
 import pytest
 
-from polycotylus import _docker, _exceptions, machine
-from polycotylus._mirror import mirrors
+from polycotylus import _docker, _exceptions
+from polycotylus._mirror import mirrors, RequestHandler
 from polycotylus._project import Project
 
 dumb_text_viewer = Path(__file__, "../../examples/dumb_text_viewer").resolve()
@@ -62,10 +62,13 @@ class Base:
         with pytest.raises(_exceptions.PackageUnavailableError):
             self.cls.python_package("i-am-a-unicorn")
 
-    base_image: str
     package_install: str
 
-    def test_python_extras(self):
+    def test_python_extras(self, monkeypatch):
+        requests = []
+        original_do_GET = RequestHandler.do_GET
+        monkeypatch.setattr(RequestHandler, "do_GET",
+                            lambda self: requests.append(self.path) or original_do_GET(self))
         for (packages, imports) in _group_python_extras(self.cls.python_extras):
             mirror = mirrors[self.cls.name]
             script = self.cls._formatter(f"""
@@ -74,8 +77,9 @@ class Base:
                 python3 -c 'import {", ".join(imports)}'
             """)
             with mirror:
-                _docker.run(self.base_image, script,
+                _docker.run(self.cls.image, script,
                             architecture=self.cls.preferred_architecture)
+            assert requests, "Mirror is being ignored"
 
 
 def qemu(cls):
