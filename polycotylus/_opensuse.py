@@ -20,6 +20,7 @@ from polycotylus._base import BaseDistribution
 
 class OpenSUSE(BaseDistribution):
     image = "docker.io/opensuse/tumbleweed"
+    tag = "tumbleweed"
     python_extras = {
         "tkinter": ["python3-tk"],
         "curses": ["python3-curses"],
@@ -48,6 +49,8 @@ class OpenSUSE(BaseDistribution):
             raise _exceptions.PolycotylusUsageError(
                 "Building for OpenSUSE is not supported with podman.")
         super().__init__(project, architecture)
+        if self.project.architecture == "none":
+            self.architecture = "noarch"
 
     @classmethod
     @lru_cache()
@@ -351,7 +354,7 @@ class OpenSUSE(BaseDistribution):
                         architecture=self.docker_architecture)
         rpms = {}
         for python in ["python3"] if self.project.frontend else self.active_python_abis():
-            arch = "noarch" if self.project.architecture == "none" else self.architecture
+            arch = self.architecture
             name = f"{python}-{self.fix_package_name(self.project.name)}-{self.project.version}-0.{arch}.rpm"
             rpm = self.distro_root / "RPMS" / arch / name
             rpms["main" if self.project.frontend else python] = rpm

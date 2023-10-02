@@ -5,6 +5,7 @@ import subprocess
 import platform
 import tarfile
 import io
+import contextlib
 
 import toml
 import pytest
@@ -93,21 +94,45 @@ def test_png_source_icon(tmp_path, polycotylus_yaml):
 
 
 def test_kitchen_sink(monkeypatch):
+    with contextlib.suppress(FileNotFoundError):
+        (shared.kitchen_sink / ".polycotylus/artifacts.json").unlink()
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     self = Fedora(Project.from_root(shared.kitchen_sink))
     self.generate()
     assert "certifi" not in self.spec()
     assert "setuptools" not in self.spec()
     assert "colorama" not in self.spec()
-    rpm = self.build()["main"]
+    rpms = self.build()
+    rpm = rpms["main"]
     self.test(rpm)
+    self.update_artifacts_json(rpms)
 
     self = Fedora37(Project.from_root(shared.kitchen_sink))
-    rpm37 = self.build()["main"]
+    rpms37 = self.build()
+    rpm37 = rpms37["main"]
     self.test(rpm37)
+    self.update_artifacts_json(rpms37)
 
     assert rpm.exists()
     assert rpm != rpm37
+
+    assert (shared.kitchen_sink / ".polycotylus/artifacts.json").read_bytes() == b"""\
+[
+  {
+    "distribution": "fedora",
+    "tag": "37",
+    "architecture": "noarch",
+    "variant": "main",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc37.noarch.rpm"
+  },
+  {
+    "distribution": "fedora",
+    "tag": "38",
+    "architecture": "noarch",
+    "variant": "main",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm"
+  }
+]"""
 
 
 def test_test_command(polycotylus_yaml):

@@ -15,7 +15,9 @@ class TestCommon(shared.Base):
 def test_dumb_text_viewer():
     self = Manjaro(Project.from_root(shared.dumb_text_viewer))
     self.generate()
-    self.test(self.build()["main"])
+    packages = self.build()
+    self.test(packages["main"])
+    self.update_artifacts_json(packages)
 
 
 def test_mirror_detection(monkeypatch):

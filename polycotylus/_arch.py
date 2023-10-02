@@ -31,6 +31,7 @@ class Arch(BaseDistribution):
     supported_architectures = {
         "x86_64": "x86_64",
     }
+    tag = ""
 
     @classmethod
     @lru_cache()

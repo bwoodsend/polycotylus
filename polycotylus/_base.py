@@ -3,6 +3,7 @@ import shutil
 import re
 import os
 import platform
+import json
 from functools import lru_cache
 
 from packaging.requirements import Requirement
@@ -17,6 +18,7 @@ class BaseDistribution(abc.ABC):
     _formatter = abc.abstractproperty()
     supported_architectures = abc.abstractproperty()
     _packages = abc.abstractproperty()
+    tag = abc.abstractproperty()
 
     def __init__(self, project, architecture=None):
         self.project = project
@@ -286,6 +288,31 @@ class BaseDistribution(abc.ABC):
     @abc.abstractmethod
     def test(self, package):
         pass
+
+    def update_artifacts_json(self, packages):
+        import portalocker
+        json_path = self.project.root / ".polycotylus/artifacts.json"
+        with portalocker.Lock(json_path.with_name(".artifacts.lock")):
+            try:
+                artifacts = json.loads(json_path.read_bytes())
+            except:
+                artifacts = []
+            grouped = {
+                (i["distribution"], i["tag"], i["architecture"], i["variant"]): i["path"]
+                for i in artifacts
+            }
+            for (variant, path) in packages.items():
+                grouped[(self.name, self.tag, self.architecture, variant)] = \
+                    str(path.relative_to(self.project.root))
+            artifacts = []
+            for ((name, tag, architecture, variant), path) in sorted(grouped.items()):
+                if (self.project.root / path).exists():
+                    artifacts.append({
+                        "distribution": name, "tag": tag,
+                        "architecture": architecture, "variant": variant,
+                        "path": path,
+                    })
+            _misc.unix_write(json_path, json.dumps(artifacts, indent="  "))
 
 
 def _deduplicate(array):

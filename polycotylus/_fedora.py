@@ -47,8 +47,14 @@ class Fedora(BaseDistribution):
             raise _exceptions.PolycotylusUsageError(
                 "Building for Fedora is not supported on Windows.")
         super().__init__(project, architecture)
+        if self.project.architecture == "none":
+            self.architecture = "noarch"
 
     available_packages = NotImplemented
+
+    @_misc.classproperty
+    def tag(_, cls):
+        return cls.version
 
     @staticmethod
     def fix_package_name(name):
@@ -277,7 +283,7 @@ class Fedora(BaseDistribution):
                         volumes=[(self.distro_root, "/io")] + self._mounted_caches,
                         architecture=self.docker_architecture, post_mortem=True)
         rpms = {}
-        machine = "noarch" if self.project.architecture == "none" else self.architecture
+        machine = self.architecture
         pattern = re.compile(
             fr"{re.escape(self.package_name)}(?:-([^-]+))?-{self.project.version}.*\.{machine}\.rpm")
         for path in (self.distro_root / machine).glob(f"*.fc{self.version}.*.rpm"):

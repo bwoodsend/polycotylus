@@ -63,7 +63,9 @@ def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     self = VoidMusl(Project.from_root(shared.kitchen_sink))
     self.generate()
-    self.test(self.build()["main"])
+    packages = self.build()
+    self.test(packages["main"])
+    self.update_artifacts_json(packages)
 
 
 def test_poetry():

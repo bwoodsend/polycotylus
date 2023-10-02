@@ -41,6 +41,10 @@ class Void(BaseDistribution):
         architecture = cls.preferred_architecture if self is None else self.architecture
         return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{cls.libc_tag}"
 
+    @_misc.classproperty
+    def tag(_, cls):
+        return cls.libc
+
     def _build_image(self, target):
         base_packages = [re.sub("^chroot-", "", i) for i in self.build_base_packages() if i != "base-files"]
         with self.mirror:

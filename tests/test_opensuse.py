@@ -70,6 +70,7 @@ def test_ubrotli():
     rpms = self.build()
     assert len(rpms) == 4
     self.test(rpms["main"])
+    self.update_artifacts_json(rpms)
 
 
 def test_kitchen_sink(monkeypatch):
