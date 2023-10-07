@@ -10,6 +10,8 @@ import textwrap
 from functools import lru_cache
 import tarfile
 import io
+import contextlib
+import shutil
 
 from polycotylus import _misc, _docker, machine
 from polycotylus._base import BaseDistribution
@@ -71,7 +73,7 @@ class Debian(BaseDistribution):
     pkgdir = "$builddir"
     imagemagick = "imagemagick"
     imagemagick_svg = "librsvg2-2"
-    xvfb_run = "xvfb"
+    xvfb_run = "xvfb xauth"
     font = "fonts-dejavu"
 
     def __init__(self, package, architecture=None):
@@ -79,6 +81,8 @@ class Debian(BaseDistribution):
             architecture = machine()
             architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(architecture, architecture)
         super().__init__(package, architecture)
+        if self.project.architecture == "none":
+            self.architecture = "all"
 
     @classmethod
     @lru_cache()
@@ -187,6 +191,8 @@ class Debian(BaseDistribution):
         return str(writer)
 
     def generate(self):
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(self.distro_root / "build")
         super().generate()
         debian_root = self.distro_root / "build" / "debian"
         debian_root.mkdir(exist_ok=True, parents=True)
@@ -200,19 +206,27 @@ class Debian(BaseDistribution):
 
  -- {self.project.maintainer_slug}  {english_date()}
 """)
-        test_files = shlex.join(f"{{dir}}/{i}" for i in self.project.test_files)
-        _misc.unix_write(debian_root / "rules", self._formatter(f"""
+        _misc.unix_write(debian_root / "rules", self._formatter("""
             #! /usr/bin/make -f
             include /usr/share/dpkg/pkg-info.mk
             export PYBUILD_NAME=ubrotli
             export PYBUILD_SYSTEM=pyproject
             export PYBUILD_TEST_PYTEST = 1
-            export PYBUILD_BEFORE_TEST=cp -r {test_files} {{build_dir}}
-            export PYBUILD_AFTER_TEST=rm -rf {test_files}
 
             %:
                 dh $@ --with python3 --buildsystem=pybuild
+
+            override_dh_auto_test:
+                debian/tests/test
         """))
+        test_script = debian_root / "tests/test"
+        test_script.parent.mkdir(parents=True, exist_ok=True)
+        _misc.unix_write(test_script, self._formatter("""
+            #!/usr/bin/env sh
+            set -e
+            export PYTHONPATH=".pybuild/cpython3_$(python3 -c 'import sys; print("{0}.{1}".format(*sys.version_info))')_ubrotli/build/"
+        """) + re.sub(r"\bpython\b", "python3", self.project.test_command))
+        test_script.chmod(0o700)
         _misc.unix_write(debian_root / "watch", self._formatter("""
             version=3
             opts=uversionmangle=s/(rc|a|b|c)/~$1/ \\
@@ -241,11 +255,12 @@ class Debian(BaseDistribution):
         return packages
 
     def test(self, package):
+        test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
         with self.mirror:
             _docker.run(self.build_builder_image(), f"""
                 sudo apt-get update
                 sudo apt-get install -y '/io/{package.name}'
-                {self.project.test_command}
+                {test_command}
             """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
             post_mortem=True, architecture=self.docker_architecture)
 
