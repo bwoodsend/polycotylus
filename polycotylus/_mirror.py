@@ -183,7 +183,7 @@ class CachedMirror:
                 file_versions.sort(key=lambda x: tuple(j or int(i)
                                                        for (i, j) in version_re.findall(x[1])))
                 for (name, version) in file_versions[:-1]:
-                    os.remove(os.path.join(root, name))
+                    print(os.path.join(root, name), file_versions, flush=True)
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -314,6 +314,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             shutil.copyfileobj(f, self.wfile, length)
 
     def _download(self):
+        print("Downloading", self.path)
         cache = self.cache
         cache.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -443,14 +444,14 @@ mirrors = {
             (opensuse_last_sync_time,),
             r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
         ),
-    "debian":
+    "debian13":
         CachedMirror(
             "http://deb.debian.org/",
-            cache_root / "debian",
+            cache_root / "debian13",
             ["InRelease"],
             [],
-            8904,
-            r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8904/|g' /etc/apt/sources.list.d/debian.sources",
+            8905,
+            r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8905/|g' /etc/apt/sources.list.d/debian.sources",
             (_use_last_modified_header,),
             r"(.+_)([^-]+-\d+)(.+)",
         ),

@@ -22,7 +22,6 @@ Package: python3-99...s1lly---name---packag3-.x--y-.z
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends},
-         ${python3:Depends},
          ${shlibs:Depends},
          python3:any,
          python3-tk,

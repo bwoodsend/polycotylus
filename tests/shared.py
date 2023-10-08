@@ -19,10 +19,10 @@ fussy_arch = kitchen_sink.with_name("fussy_arch")
 poetry_based = kitchen_sink.with_name("poetry-based")
 
 awkward_pypi_packages = [
-    "zope.deferredimport",  # Contains a '.'
+    "zope.event",  # Contains a '.'
     "ruamel.yaml",
     "jaraco.classes",
-    "flit_core",  # Contains a '_'
+    "pyproject_hooks",  # Contains a '_'
     "prompt_toolkit",
     "nest_asyncio",
     "setuptools_scm",
@@ -116,7 +116,7 @@ def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
                                         icon_sizes=(16, 24, 128)):
     for size in icon_sizes:
         raw = container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png")
-        png = Image.open(io.BytesIO(raw))
+        png = Image.open(io.BytesIO(raw)).convert("RGBA")
         assert png.size == (size, size)
         assert png.getpixel((0, 0))[3] == 0
         container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer-pink-mode.png")

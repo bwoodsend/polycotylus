@@ -13,7 +13,7 @@ import io
 import contextlib
 import shutil
 
-from polycotylus import _misc, _docker, machine
+from polycotylus import _misc, _docker, machine, _mirror
 from polycotylus._base import BaseDistribution
 
 
@@ -46,7 +46,6 @@ class ControlFile:
 
 
 class Debian(BaseDistribution):
-    python = "python3:any"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tk"],
@@ -57,7 +56,7 @@ class Debian(BaseDistribution):
         "readline": ["libreadline8"],
         "bz2": ["libbz2-1.0"],
     }
-    image = "debian:unstable-slim"
+    image = "debian:trixie-slim"
     supported_architectures = {
         "amd64": "x86_64",
         "arm64": "aarch64",
@@ -70,11 +69,15 @@ class Debian(BaseDistribution):
         "s390x": "s390x",
     }
     _formatter = _misc.Formatter("\t")
-    pkgdir = "$builddir"
-    imagemagick = "imagemagick"
-    imagemagick_svg = "librsvg2-2"
-    xvfb_run = "xvfb xauth"
-    font = "fonts-dejavu"
+    _packages = {
+        "python": "python3:any",
+        "imagemagick": "imagemagick",
+        "imagemagick_svg": "librsvg2-bin",
+        "xvfb-run": "xvfb xauth",
+        "font": "fonts-dejavu",
+    }
+    tag = "13"
+    mirror = _mirror.mirrors["debian13"]
 
     def __init__(self, package, architecture=None):
         if architecture is None:
@@ -160,7 +163,7 @@ class Debian(BaseDistribution):
             Package=self.package_name,
             Architecture={"any": "any", "none": "all"}.get(self.project.architecture) or " ".join(self.project.architecture),
             **(dict(Multi_Arch="foreign") if self.project.architecture != "noarch" else {}),
-            Depends=",\n".join(["${misc:Depends}", "${python3:Depends}", "${shlibs:Depends}"] + [re.split("[<>=@]", i)[0] for i in self.dependencies]),
+            Depends=",\n".join(["${misc:Depends}", "${shlibs:Depends}"] + [re.split("[<>=@]", i)[0] for i in self.dependencies]),
             Description=self.project.description,
         )
         return str(writer)
@@ -202,11 +205,11 @@ class Debian(BaseDistribution):
         _misc.unix_write(debian_root / "changelog", f"""\
 {re.sub("[._-]+", "-", self.project.name.lower())} ({self.project.version}-1) unstable; urgency=low
 
-  * Initial release (Closes: #123)
+  * Initial release (Closes: #0)
 
  -- {self.project.maintainer_slug}  {english_date()}
 """)
-        _misc.unix_write(debian_root / "rules", self._formatter("""
+        rules = self._formatter("""
             #! /usr/bin/make -f
             include /usr/share/dpkg/pkg-info.mk
             export PYBUILD_NAME=ubrotli
@@ -218,7 +221,26 @@ class Debian(BaseDistribution):
 
             override_dh_auto_test:
                 debian/tests/test
-        """))
+        """)
+        if self.project.desktop_entry_points or self.icons:
+            rules += self._formatter("""
+                override_dh_auto_install:
+                    dh_auto_install
+            """)
+            sysroot = f"debian/{self.package_name}"
+            for line in self.install_icons(1, sysroot).splitlines():
+                line = line.replace("$", "$$")
+                line = line.replace("-size $$_size", "-resize $$_size")
+                if line[1] == "\t":
+                    rules += line + "; \\\n"
+                elif line.startswith("\tfor"):
+                    rules += line + " \\\n"
+                else:
+                    rules += line + "\n"
+            rules += self.install_desktop_files(1, sysroot)
+        _misc.unix_write(debian_root / "rules", rules)
+        (debian_root / "rules").chmod(0o700)
+
         test_script = debian_root / "tests/test"
         test_script.parent.mkdir(parents=True, exist_ok=True)
         _misc.unix_write(test_script, self._formatter("""
@@ -257,7 +279,7 @@ class Debian(BaseDistribution):
     def test(self, package):
         test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
         with self.mirror:
-            _docker.run(self.build_builder_image(), f"""
+            return _docker.run(self.build_builder_image(), f"""
                 sudo apt-get update
                 sudo apt-get install -y '/io/{package.name}'
                 {test_command}
