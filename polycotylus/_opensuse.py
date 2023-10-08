@@ -98,7 +98,7 @@ class OpenSUSE(BaseDistribution):
         return re.sub(r"[^a-z0-9]+", "-", name.lower())
 
     @classmethod
-    def python_package(cls, requirement):
+    def python_package(cls, requirement, _=None):
         requirement = Requirement(requirement)
         name = re.sub("[._-]+", "-", requirement.name.lower())
         available = cls.available_packages_normalized()

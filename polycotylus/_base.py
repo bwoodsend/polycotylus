@@ -98,7 +98,7 @@ class BaseDistribution(abc.ABC):
         })
 
     @classmethod
-    def python_package(cls, requirement):
+    def python_package(cls, requirement, dependency_name_map=None):
         requirement = Requirement(requirement)
         name = re.sub("[._-]+", "-", requirement.name.lower())
         available = cls.available_packages_normalized()
@@ -107,13 +107,15 @@ class BaseDistribution(abc.ABC):
             return
         else:
             requirement.marker = None
-        if cls.python_package_convention(name) in available:
+        if dependency_name_map and name in dependency_name_map:
+            name = dependency_name_map[name]
+        elif cls.python_package_convention(name) in available:
             name = available[cls.python_package_convention(name)]
         elif name in available:
             name = available[name]
         elif m := re.match("(python|py)3?-?(.*)", name.lower()):
             try:
-                name = cls.python_package(m[2])
+                name = cls.python_package(m[2], dependency_name_map)
             except _exceptions.PackageUnavailableError:
                 raise _exceptions.PackageUnavailableError(requirement.name, cls.name) from None
         else:
@@ -122,6 +124,16 @@ class BaseDistribution(abc.ABC):
         requirement.name = name
         requirement.extras = set()
         return str(requirement)
+
+    @property
+    def dependency_name_map(self):
+        out = {}
+        for (package, map) in self.project.dependency_name_map.items():
+            for key in map:
+                if self.name in key.split():
+                    out[re.sub("[._-]+", "-", package.lower())] = map[key]
+                    break
+        return out
 
     @abc.abstractmethod
     def fix_package_name(name):
@@ -191,7 +203,7 @@ class BaseDistribution(abc.ABC):
         for extra in dependencies.get("python", []):
             out += self.python_extras.get(extra, [])
         for package in dependencies.get("pip", []):
-            out.append(self.python_package(package))
+            out.append(self.python_package(package, self.dependency_name_map))
         out += dependencies.get(self.name, [])
         return list(filter(None, out))
 

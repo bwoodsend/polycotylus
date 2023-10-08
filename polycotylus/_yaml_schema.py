@@ -117,7 +117,6 @@ polycotylus_yaml = Map({
     Optional("dependencies"): Map({
         Optional(type): dependencies_group for type in ["run", "build", "test"]
     }),
-    Optional("dependency_map"): MapPattern(Str(), MapPattern(Str(), Str())),
     Optional("maintainer"): Maintainer(),
     Optional("gui"): Bool(),
     Optional("spdx"): MapPattern(Str(), EmptyDict()),
@@ -130,6 +129,7 @@ polycotylus_yaml = Map({
         Regex("(any|none)"),
         WhitespaceDelimited(Regex("!?(" + "|".join(architectures) + ")")),
     ),
+    Optional("dependency_name_map"): MapPattern(Str(), MapPattern(Str(), Str())),
 })
 
 

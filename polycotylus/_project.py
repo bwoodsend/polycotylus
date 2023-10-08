@@ -39,6 +39,7 @@ class Project:
     dependencies: dict
     build_dependencies: dict
     test_dependencies: dict
+    dependency_name_map: dict
     test_command: str
     test_files: list
     license_names: list
@@ -313,6 +314,7 @@ class Project:
             build_dependencies=dependencies["build"],
             test_dependencies=dependencies["test"],
             test_command=test_command,
+            dependency_name_map=polycotylus_options.get("dependency_name_map", {}),
             test_files=test_files,
             url=project["urls"]["homepage"],
             license_names=license_names,

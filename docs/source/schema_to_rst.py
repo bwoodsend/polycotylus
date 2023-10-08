@@ -66,7 +66,7 @@ while i < len(lines):
             yaml[key].append(m[2])
             i += 1
         value = yaml
-    if key == "actions":
+    if key in {"actions", "dependency_name_map"}:
         chunk = []
         while not comment_re.match(lines[i]):
             chunk.append(lines[i])

@@ -162,7 +162,7 @@ def test_unknown_package(polycotylus_yaml):
     """)
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match="Dependency \"Hippos_can_fly\" is not .* on Alpine Linux. "
+                       match="Dependency \"Hippos_can_fly\" appears .* on Alpine Linux. "
                        ".* submit Hippos_can_fly to Alpine Linux\'s package"):
         self.apkbuild()
     polycotylus_yaml("""

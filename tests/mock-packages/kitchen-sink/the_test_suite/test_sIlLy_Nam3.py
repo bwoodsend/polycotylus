@@ -30,3 +30,12 @@ def test_unrunable():
 
 def test_environment_variable():
     assert os.environ["TEST_VARIABLE"] == "hello"
+
+
+def test_dependency_name_map():
+    if shutil.which("pacman"):
+        assert shutil.which("netcat")
+        with pytest.raises(ImportError):
+            import tzlocal
+    else:
+        import tzlocal

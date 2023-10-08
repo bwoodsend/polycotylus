@@ -20,6 +20,10 @@ dependencies:
     python: sqlite3 tkinter
     pip: pytest[feet]
 
+dependency_name_map:
+  tzlocal:
+    arch manjaro: gnu-netcat
+
 test_command: TEST_VARIABLE=hello pytest -k 'not unrunable' && python -c 'print("hello")'
 
 test_files:

@@ -72,7 +72,7 @@ class Fedora(BaseDistribution):
         return _docker.run(cls.base_image, command, tty=True).output.strip()
 
     @classmethod
-    def python_package(cls, requirement):
+    def python_package(cls, requirement, _=None):
         requirement = Requirement(requirement)
         requirement.name = f"python3dist({cls.fix_package_name(requirement.name)})"
         if not cls.evaluate_requirements_marker(requirement):

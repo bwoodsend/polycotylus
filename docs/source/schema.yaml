@@ -193,6 +193,17 @@ test_files:
   # you need. Globs are expanded using `pathlib.Path.glob`. All paths are
   # relative to the directory containing the ``polycotylus.yaml``.
 
+dependency_name_map:
+  GitPython:
+    debian: python3-git
+  # An override for `polycotylus`\ 's mapping of pip/PyPI package to Linux
+  # package equivalents. To be used if one of your dependencies is available in
+  # the Linux package repositories but `polycotylus` can't find it because it's
+  # been named something that breaks the distribution's naming convention. Note
+  # that this option does not exist for ``fedora`` or ``opensuse`` due to their
+  # handling the mapping using package *capabilities* rather than a naming
+  # pattern.
+
 
 # --------------------
 # CLI/GUI only options
