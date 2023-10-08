@@ -234,7 +234,7 @@ def lazy_run(base, command, **kwargs):
 
 
 def _verbosity():
-    return int(os.environ.get("POLYCOTYLUS_VERBOSITY", 0))
+    return int(os.environ.get("POLYCOTYLUS_VERBOSITY", 2))
 
 
 class Error(Exception):

@@ -166,7 +166,8 @@ def test_verbosity(monkeypatch, capsys, tmp_path):
 
     monkeypatch.delenv("POLYCOTYLUS_VERBOSITY")
     run()
-    assert capsys.readouterr().out == ""
+    out = capsys.readouterr().out
+    assert output_re.findall(out)
 
     _docker.build("Dockerfile", tmp_path, verbosity=1)
     out = capsys.readouterr().out
