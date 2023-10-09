@@ -183,7 +183,7 @@ class CachedMirror:
                 file_versions.sort(key=lambda x: tuple(j or int(i)
                                                        for (i, j) in version_re.findall(x[1])))
                 for (name, version) in file_versions[:-1]:
-                    print(os.path.join(root, name), file_versions, flush=True)
+                    os.remove(os.path.join(root, name))
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -314,7 +314,6 @@ class RequestHandler(BaseHTTPRequestHandler):
             shutil.copyfileobj(f, self.wfile, length)
 
     def _download(self):
-        print("Downloading", self.path)
         cache = self.cache
         cache.parent.mkdir(parents=True, exist_ok=True)
         try:

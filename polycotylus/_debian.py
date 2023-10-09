@@ -214,7 +214,6 @@ class Debian(BaseDistribution):
             include /usr/share/dpkg/pkg-info.mk
             export PYBUILD_NAME=ubrotli
             export PYBUILD_SYSTEM=pyproject
-            export PYBUILD_TEST_PYTEST = 1
 
             %:
                 dh $@ --with python3 --buildsystem=pybuild
@@ -285,6 +284,9 @@ class Debian(BaseDistribution):
                 {test_command}
             """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
             post_mortem=True, architecture=self.docker_architecture)
+
+
+Debian13 = Debian
 
 
 def english_date():

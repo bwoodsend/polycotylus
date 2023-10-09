@@ -20,6 +20,7 @@ jobs:
           - tests/test_fedora.py
           - tests/test_void.py
           - tests/test_opensuse.py
+          - tests/test_debian.py
       fail-fast: false
 
     runs-on: ubuntu-latest

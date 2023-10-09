@@ -21,6 +21,7 @@
 
     Alpine <alpine>
     Arch <arch>
+    Debian <debian>
     Fedora <fedora>
     Manjaro <manjaro>
     OpenSUSE <opensuse>

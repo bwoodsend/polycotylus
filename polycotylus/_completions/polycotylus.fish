@@ -1,8 +1,9 @@
 set -l distributions alpine arch debian fedora manjaro opensuse void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:edge
+set -l debian_variants debian:13
 set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40
 set -l void_variants void:musl void:glibc
-set -l all_variants $distributions $alpine_variants $fedora_variants $void_variants
+set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $void_variants
 set -l atomic_flags --completion --list-localizations --configure --presubmit-check
 
 complete -c polycotylus -f
@@ -20,6 +21,7 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void 
 
 # Suggest variants of distributions only if the user has already started typing the distribution's name.
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- a (commandline -t)' -a "$alpine_variants"
+complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- d (commandline -t)' -a "$debian_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- f (commandline -t)' -a "$fedora_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
