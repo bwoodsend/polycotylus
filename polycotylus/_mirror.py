@@ -71,6 +71,17 @@ class CachedMirror:
         self._in_progress = {}
         self.verbose = False
 
+    def with_(self, **kwargs):
+        parameters = dict(
+            base_url=self.base_url, base_dir=self.base_dir,
+            index_patterns=self.index_patterns,
+            ignore_patterns=self.ignore_patterns, port=self.port,
+            install=self.install, last_sync_time=self.last_sync_time,
+            package_version_pattern=self.package_version_pattern,
+        )
+        parameters.update(kwargs)
+        return type(self)(**parameters)
+
     @property
     def base_url(self):
         if callable(self._base_url):
@@ -386,75 +397,64 @@ def opensuse_last_sync_time(self: RequestHandler):
     return float("inf")
 
 
-mirrors = {
-    "arch":
-        CachedMirror(
-            "https://geo.mirror.pkgbuild.com/",
-            cache_root / "arch",
-            ["*.db", "*.files"],
-            ["*.db.sig", "*.files.sig"],
-            8900,
-            "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
-            (_use_last_modified_header,),
-            r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
-        ),
-    "manjaro":
-        CachedMirror(
-            _manjaro_preferred_mirror,
-            cache_root / "manjaro",
-            ["*.db", "*.files"],
-            ["*.db.sig", "*.files.sig"],
-            8903,
-            "if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
-            (_use_last_modified_header,),
-            r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
-        ),
-    "alpine":
-        CachedMirror(
-            "https://dl-cdn.alpinelinux.org/alpine/",
-            cache_root / "alpine",
-            ["APKINDEX.tar.gz"],
-            [],
-            8901,
-            r"sed -r -i 's ^.*/(v\d+\.\d+|edge)/ http://0.0.0.0:8901/\1/ g' /etc/apk/repositories",
-            (_alpine_sync_time, _use_last_modified_header),
-            r"(.+-)([^-]+-r\d+)(\.apk)",
-        ),
-    "void":
-        CachedMirror(
-            "https://repo-default.voidlinux.org/",
-            cache_root / "void",
-            ["*-repodata"],
-            [],
-            8902,
-            r"sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
-            r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
-            (_use_last_modified_header,),
-            r"(.+-)([^_-]+_\d+)(\..+)",
-        ),
-    "opensuse":
-        CachedMirror(
-            "http://download.opensuse.org",
-            cache_root / "opensuse",
-            ["repomd.xml", "repomd.xml.key", "repomd.xml.asc"],
-            [],
-            8904,
-            "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
-            (opensuse_last_sync_time,),
-            r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
-        ),
-    "debian13":
-        CachedMirror(
-            "http://deb.debian.org/",
-            cache_root / "debian13",
-            ["InRelease"],
-            [],
-            8905,
-            r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8905/|g' /etc/apt/sources.list.d/debian.sources",
-            (_use_last_modified_header,),
-            r"(.+_)([^-]+-\d+)(.+)",
-        ),
-}
+mirrors = {}
+mirrors["arch"] = CachedMirror(
+    "https://geo.mirror.pkgbuild.com/",
+    cache_root / "arch",
+    ["*.db", "*.files"],
+    ["*.db.sig", "*.files.sig"],
+    8900,
+    "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
+    (_use_last_modified_header,),
+    r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
+)
+mirrors["alpine"] = CachedMirror(
+    "https://dl-cdn.alpinelinux.org/alpine/",
+    cache_root / "alpine",
+    ["APKINDEX.tar.gz"],
+    [],
+    8901,
+    r"sed -r -i 's ^.*/(v\d+\.\d+|edge)/ http://0.0.0.0:8901/\1/ g' /etc/apk/repositories",
+    (_alpine_sync_time, _use_last_modified_header),
+    r"(.+-)([^-]+-r\d+)(\.apk)",
+)
+mirrors["void"] = CachedMirror(
+    "https://repo-default.voidlinux.org/",
+    cache_root / "void",
+    ["*-repodata"],
+    [],
+    8902,
+    r"sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
+    r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
+    (_use_last_modified_header,),
+    r"(.+-)([^_-]+_\d+)(\..+)",
+)
+mirrors["manjaro"] = mirrors["arch"].with_(
+    base_url=_manjaro_preferred_mirror,
+    base_dir=cache_root / "manjaro",
+    port=8903,
+    install="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
+)
+mirrors["opensuse"] = CachedMirror(
+    "http://download.opensuse.org",
+    cache_root / "opensuse",
+    ["repomd.xml", "repomd.xml.key", "repomd.xml.asc"],
+    [],
+    8904,
+    "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
+    (opensuse_last_sync_time,),
+    r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
+)
+mirrors["debian13"] = CachedMirror(
+    "http://deb.debian.org/",
+    cache_root / "debian13",
+    ["InRelease"],
+    [],
+    8905,
+    r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8905/|g' /etc/apt/sources.list.d/debian.sources",
+    (_use_last_modified_header,),
+    r"(.+_)([^-]+-\d+)(.+)",
+)
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
