@@ -50,11 +50,11 @@ class Debian(BaseDistribution):
     python_extras = {
         "tkinter": ["python3-tk"],
         "sqlite3": ["libsqlite3-0"],
-        "decimal": ["libmpdec3"],
         "lzma": ["liblzma5"],
         "zlib": ["zlib1g"],
         "readline": ["libreadline8"],
         "bz2": ["libbz2-1.0"],
+        "dbm.gnu": ["python3-gdbm"],
     }
     image = "debian:trixie-slim"
     supported_architectures = {
@@ -87,6 +87,10 @@ class Debian(BaseDistribution):
         if self.project.architecture == "none":
             self.architecture = "all"
 
+    @property
+    def distro_root(self):
+        return super().distro_root / self.tag
+
     @classmethod
     @lru_cache()
     def _package_manager_queries(cls):
@@ -104,6 +108,17 @@ class Debian(BaseDistribution):
         build_essential = {j for i in re.findall(r"  .*", _read("/build-essential")) for j in i.split()}
         cls._build_base_packages = preinstalled.union(build_essential)
         cls._python_version = re.search("\npython3/.* (\d+\.\d+\.\d+)-", _read("/available"))[1]
+
+    @classmethod
+    @lru_cache()
+    def available_packages_normalized(cls):
+        # For reasons that I will forever scorn, Debian likes to randomly slap a
+        # Python major version number on the end of some package names.
+        out = BaseDistribution.available_packages_normalized.__wrapped__(cls)
+        for (sluggified, name) in list(out.items()):
+            if sluggified.endswith("3"):
+                out.setdefault(sluggified[:-1], name)
+        return out
 
     @classmethod
     def build_base_packages(self):
@@ -134,14 +149,14 @@ class Debian(BaseDistribution):
         return self._formatter(f"""
             FROM {self.image} AS build
             RUN {self.mirror.install}
-            ENV LANG=C.UTF-8 LC_ALL=C LANGUAGE=C
+            ENV LANG=C.UTF-8 LC_ALL=C LANGUAGE=C DEBIAN_FRONTEND=noninteractive
 
             RUN apt-get update && apt-get install -y --no-install-recommends sudo
             RUN groupadd wheel
             {self._install_user()}
 
             ENV DEBEMAIL="{self.project.email}" DEBFULLNAME="{self.project.maintainer}"
-            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts fish python3-all-dev:any pybuild-plugin-pyproject {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)}
+            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts python3-all-dev:any pybuild-plugin-pyproject {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)}
 
             RUN mkdir -p /io/build && chown -R user /io
             WORKDIR /io/build
@@ -165,16 +180,6 @@ class Debian(BaseDistribution):
             **(dict(Multi_Arch="foreign") if self.project.architecture != "noarch" else {}),
             Depends=",\n".join(["${misc:Depends}", "${shlibs:Depends}"] + [re.split("[<>=@]", i)[0] for i in self.dependencies]),
             Description=self.project.description,
-        )
-        return str(writer)
-
-    def copywrite(self):
-        writer = ControlFile()
-        writer.add_paragraph(
-            Format="https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/",
-            Upstream_Name=self.package_name,
-            Upstream_Contact=self.project.maintainer_slug,
-            Source=self.project.url,
         )
         return str(writer)
 
@@ -209,10 +214,10 @@ class Debian(BaseDistribution):
 
  -- {self.project.maintainer_slug}  {english_date()}
 """)
-        rules = self._formatter("""
+        rules = self._formatter(f"""
             #! /usr/bin/make -f
             include /usr/share/dpkg/pkg-info.mk
-            export PYBUILD_NAME=ubrotli
+            export PYBUILD_NAME={self.project.name}
             export PYBUILD_SYSTEM=pyproject
 
             %:
@@ -242,24 +247,12 @@ class Debian(BaseDistribution):
 
         test_script = debian_root / "tests/test"
         test_script.parent.mkdir(parents=True, exist_ok=True)
-        _misc.unix_write(test_script, self._formatter("""
+        _misc.unix_write(test_script, self._formatter(f"""
             #!/usr/bin/env sh
             set -e
-            export PYTHONPATH=".pybuild/cpython3_$(python3 -c 'import sys; print("{0}.{1}".format(*sys.version_info))')_ubrotli/build/"
+            export PYTHONPATH=".pybuild/cpython3_$(python3 -c 'import sys; print("{{0}}.{{1}}".format(*sys.version_info))')_{self.project.name}/build/"
         """) + re.sub(r"\bpython\b", "python3", self.project.test_command))
         test_script.chmod(0o700)
-        _misc.unix_write(debian_root / "watch", self._formatter("""
-            version=3
-            opts=uversionmangle=s/(rc|a|b|c)/~$1/ \\
-            https://pypi.debian.net/ubrotli/ubrotli-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))
-        """))
-        (debian_root / "upstream").mkdir(exist_ok=True)
-        _misc.unix_write(debian_root / "upstream" / "metadata", self._formatter("""
-            Bug-Database: https://github.com/ultrajson/ultrajson/issues
-            Bug-Submit: https://github.com/ultrajson/ultrajson/issues/new
-            Repository: https://github.com/ultrajson/ultrajson.git
-            Repository-Browse: https://github.com/ultrajson/ultrajson
-        """))
         (debian_root / "source").mkdir(exist_ok=True)
         _misc.unix_write(debian_root / "source" / "format", "3.0 (quilt)\n")
 
@@ -283,7 +276,7 @@ class Debian(BaseDistribution):
                 sudo apt-get install -y '/io/{package.name}'
                 {test_command}
             """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
-            post_mortem=True, architecture=self.docker_architecture)
+                post_mortem=True, architecture=self.docker_architecture)
 
 
 Debian13 = Debian

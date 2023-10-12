@@ -238,6 +238,8 @@ Working with local packages
         tar xOf package-1.2.3-1-any.pkg.tar.zst .PKGINFO
 
 
+.. tab:: Debian
+
 .. tab:: Fedora
 
     Fedora RPMs are a custom file format consisting of an embedded cpio archive

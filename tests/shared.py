@@ -8,7 +8,7 @@ from PIL import Image
 import pytest
 
 from polycotylus import _docker, _exceptions
-from polycotylus._mirror import mirrors, RequestHandler
+from polycotylus._mirror import RequestHandler
 from polycotylus._project import Project
 
 dumb_text_viewer = Path(__file__, "../../examples/dumb_text_viewer").resolve()
@@ -26,7 +26,7 @@ awkward_pypi_packages = [
     "prompt_toolkit",
     "nest_asyncio",
     "setuptools_scm",
-    "GitPython",  # Contains uppercase letters
+    "Pygments",  # Contains uppercase letters
     "cython",  # Ignores the standard Python package prefix on all distributions
     "urllib3",  # Contains a number
     "python-dateutil",  # Already has py/python prefix.
@@ -70,7 +70,7 @@ class Base:
         monkeypatch.setattr(RequestHandler, "do_GET",
                             lambda self: requests.append(self.path) or original_do_GET(self))
         for (packages, imports) in _group_python_extras(self.cls.python_extras):
-            mirror = mirrors[self.cls.name]
+            mirror = self.cls.mirror
             script = self.cls._formatter(f"""
                 {mirror.install}
                 {self.package_install} python3 {shlex.join(packages)}
