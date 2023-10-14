@@ -7,15 +7,16 @@ dependencies:
   build:
     arch manjaro: p7zip
     void alpine opensuse debian: 7zip
+    ubuntu: p7zip-full
     fedora: p7zip-plugins
     python: sqlite3
     pip: pyperclip -r build-requirements.txt
   run:
-    arch manjaro debian fedora void alpine opensuse debian: jq
+    arch manjaro debian fedora void alpine opensuse debian ubuntu: jq
     python: tkinter
     pip: TABULATE -r requirements.txt
   test:
-    arch manjaro fedora void alpine opensuse debian: nano
+    arch manjaro fedora void alpine opensuse debian ubuntu: nano
     python: sqlite3 tkinter
     pip: pytest[feet]
 
