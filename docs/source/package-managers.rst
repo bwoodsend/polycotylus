@@ -74,7 +74,7 @@ This reference should answer those questions.
         pacman -Qlq python
 
 
-.. tab:: Debian
+.. tab:: Debian/Ubuntu
 
     ::
 
@@ -238,7 +238,27 @@ Working with local packages
         tar xOf package-1.2.3-1-any.pkg.tar.zst .PKGINFO
 
 
-.. tab:: Debian
+.. tab:: Debian/Ubuntu
+
+    ``deb`` packages are a nested archive – the top level is an `Ar archive
+    <https://en.wikipedia.org/wiki/Ar_(Unix)>`_\ , inside is a
+    ``control.tar.xz`` and a ``data.tar.xz`` containing the package metadata and
+    payload respectively.
+
+    ::
+
+        # Install local package
+        apt-get install -y package_1.2.3-1_all.deb
+
+        # List package's contents
+        ar pf package_1.2.3-1_all.deb data.tar.xz | tar tJ
+
+        # Extract package's contents
+        ar pf package_1.2.3-1_all.deb data.tar.xz | tar xJ
+
+        # Read package's metadata
+        ar pf package_1.2.3-1_all.deb control.tar.xz | tar xJO ./control
+
 
 .. tab:: Fedora
 

@@ -9,7 +9,7 @@ import threading
 import time
 from functools import wraps
 from fnmatch import fnmatch
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 import email.utils
@@ -27,7 +27,8 @@ class CachedMirror:
     """
 
     def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
-                 port, install, last_sync_time, package_version_pattern="(.+)()()"):
+                 port, install, last_sync_time, package_version_pattern="(.+)()()",
+                 handler=None):
         """
         Args:
             base_url:
@@ -51,6 +52,8 @@ class CachedMirror:
                 corresponding to the time the requested file was last updated.
             package_version_pattern:
                 A regex to detect the version component of a package's filename.
+            handler:
+                A subclass of RequestHandler() which handles a single request.
 
         """
         self._base_url = base_url
@@ -58,6 +61,7 @@ class CachedMirror:
         self.index_patterns = index_patterns
         self.ignore_patterns = ignore_patterns
         self.port = port
+        self.handler = handler or RequestHandler
         if platform.system() in ("Darwin", "Windows"):  # pragma: no cover
             # Docker's --network=host option doesn't work on macOS. See
             # https://github.com/docker/for-mac/issues/1031
@@ -78,6 +82,7 @@ class CachedMirror:
             ignore_patterns=self.ignore_patterns, port=self.port,
             install=self.install, last_sync_time=self.last_sync_time,
             package_version_pattern=self.package_version_pattern,
+            handler=self.handler,
         )
         parameters.update(kwargs)
         return type(self)(**parameters)
@@ -117,7 +122,7 @@ class CachedMirror:
                 return
         self.base_url
         self.base_dir.mkdir(parents=True, exist_ok=True)
-        handler = type("Handler", (RequestHandler,), {"parent": self})
+        handler = type("Handler", (self.handler,), {"parent": self})
         try:
             self._httpd = ThreadingHTTPServer(("", self.port), handler)
         except OSError as ex:
@@ -203,6 +208,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     _upstream = None
 
     @property
+    def upstream_url(self):
+        return self.parent.base_url + self.path
+
+    @property
     def upstream(self):
         """An open response from the original repository archive."""
         if self._upstream:
@@ -211,8 +220,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         for header in ("Accept-Encoding",):
             if header in self.headers:
                 headers[header] = self.headers[header]
-        self._upstream = urlopen(Request(self.parent.base_url + self.path,
-                                         headers=headers))
+        self._upstream = urlopen(Request(self.upstream_url, headers=headers))
         return self._upstream
 
     @property
@@ -397,6 +405,19 @@ def opensuse_last_sync_time(self: RequestHandler):
     return float("inf")
 
 
+class UbuntuRequestHandler(RequestHandler):
+    # Ubuntu's package repositories are split across multiple subnets. e.g.
+    # http://archive.ubuntu.com/ubuntu/ vs http://ports.ubuntu.com/ubuntu-ports/
+    # To avoid needing a separate mirror for each subdomain, redirect the Docker
+    # containers to look at http://0.0.0.0:port/subnet/path then the mirror
+    # reverses the change when fetching an upstream file.
+    @property
+    def upstream_url(self):
+        root, subnet, *path = PurePosixPath(self.path).parts
+        assert root == "/"
+        return f"http://{subnet}.ubuntu.com/{PurePosixPath(*path)}"
+
+
 mirrors = {}
 mirrors["arch"] = CachedMirror(
     "https://geo.mirror.pkgbuild.com/",
@@ -455,6 +476,17 @@ mirrors["debian13"] = CachedMirror(
     (_use_last_modified_header,),
     r"(.+_)([^-]+-\d+)(.+)",
 )
+mirrors["ubuntu2304"] = mirrors["debian13"].with_(
+    base_url="http://archive.ubuntu.com/ubuntu/",
+    base_dir=cache_root / "ubuntu2304",
+    port=8906,
+    install=r"sed -i -E 's|http://(.*).ubuntu.com/|http://0.0.0.0:8906/\1/|g' /etc/apt/sources.list",
+    handler=UbuntuRequestHandler,
+)
+mirrors["ubuntu2310"] = mirrors["ubuntu2304"].with_(
+    base_dir=cache_root / "ubuntu2310",
+)
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:

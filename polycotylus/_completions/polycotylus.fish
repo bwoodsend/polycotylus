@@ -1,9 +1,10 @@
-set -l distributions alpine arch debian fedora manjaro opensuse void
+set -l distributions alpine arch debian fedora manjaro opensuse ubuntu void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:edge
 set -l debian_variants debian:13
 set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40
+set -l ubuntu_variants ubuntu:23.04 ubuntu:23.10
 set -l void_variants void:musl void:glibc
-set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $void_variants
+set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $ubuntu_variants $void_variants
 set -l atomic_flags --completion --list-localizations --configure --presubmit-check
 
 complete -c polycotylus -f
@@ -17,12 +18,14 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debia
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manjaro" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from opensuse" -a 'x86_64 aarch64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from ubuntu" -a 'amd64 arm64 armhf ppc64el s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void $void_variants" -a 'aarch64 armv6l armv7l x86_64'
 
 # Suggest variants of distributions only if the user has already started typing the distribution's name.
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- a (commandline -t)' -a "$alpine_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- d (commandline -t)' -a "$debian_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- f (commandline -t)' -a "$fedora_variants"
+complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- u (commandline -t)' -a "$ubuntu_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'

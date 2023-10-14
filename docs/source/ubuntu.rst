@@ -1,0 +1,54 @@
+===================
+Building for Ubuntu
+===================
+
+Basic usage::
+
+    polycotylus ubuntu
+
+Supported architectures: ``amd64 arm64 armhf ppc64el s390x``
+
+Specific versions of Ubuntu can be targeted using:
+
+* ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
+* ``polycotylus ubuntu:23.10`` for Mantic Minotaur (Beta)
+
+No earlier versions of Ubuntu are supported.
+
+
+Caveats
+.......
+
+* An extra top level ``debian`` directory is added to a temporary copy of your
+  project before building it. If you are using `setuptools` without a ``src``
+  layout and have not already set setuptools`s ``packages.find`` option then
+  setuptools will refuse to build with an error like the following. ::
+
+    I: pybuild base:240: python3.11 -m build --skip-dependency-check --no-isolation --wheel --outdir /io/build/.pybuild/cpython3_3.11_your_project
+    * Building wheel...
+    error: Multiple top-level packages discovered in a flat-layout: ['debian', 'your_top_level_package'].
+
+    To avoid accidental inclusion of unwanted files or directories,
+    setuptools will not proceed with this build.
+
+    If you are trying to create a single distribution with multiple packages
+    on purpose, you should not rely on automatic discovery.
+    Instead, consider the following options:
+
+    1. set up custom discovery (`find` directive with `include` or `exclude`)
+    2. use a `src-layout`
+    3. explicitly set `py_modules` or `packages` with a list of names
+
+    To find more information, look for "package discovery" on setuptools docs.
+
+  Debian's ``python3-setuptools`` package contains a special hack to prevent
+  this but Ubuntu's does not. To make your project compatible with Ubuntu's
+  packaging system, add the following to your ``pyproject.toml``:
+
+  .. code-block:: toml
+
+    [tool.setuptools.packages.find]
+    include = ["your_top_level_package"]
+
+* No existing long term support Ubuntu version is up to date enough to be
+  supportable by `polycotylus`.

@@ -9,7 +9,7 @@ import shared
 
 class TestCommon(shared.Base):
     cls = polycotylus.Debian
-    package_install = "apt-get update && apt-get install -y --no-install-recommends"
+    package_install = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends"
 
 
 def test_dumb_text_viewer():
