@@ -8,7 +8,15 @@ Basic usage::
 
     polycotylus fedora
 
-Supported architectures: ``aarch64 x86_64`` (but see final caveat below!)
+* Supported architectures: ``aarch64 x86_64`` (but see final caveat below!)
+
+* Fedora packages are compatible with: `Nobara Linux
+  <https://nobaraproject.org/>`_
+
+* Fedora packages are similar to but incompatible with: `CentOS
+  <https://www.centos.org/>`_, `RHEL
+  <https://developers.redhat.com/products/rhel/overview>`_, `Rocky Linux
+  <https://rockylinux.org/>`_
 
 Fedora will build up to three packages for one build:
 

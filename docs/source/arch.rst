@@ -8,7 +8,15 @@ Basic (and only) usage::
 
     polycotylus arch
 
-Supported architectures: ``x86_64``
+* Supported architectures: ``x86_64``
+
+* Arch packages are compatible with: `EndeavourOS <https://endeavouros.com/>`_,
+  `Garuda Linux <https://garudalinux.org/>`_, `ArcoLinux
+  <https://arcolinux.com/>`_, `BlackArch Linux <https://www.blackarch.org/>`_,
+  `Archcraft <https://archcraft.io/>`_, `Athena OS <https://athenaos.org/>`_
+
+* Arch packages are similar to but incompatible with: `Manjaro Linux
+  <https://manjaro.org/>`_, `Artix Linux <https://artixlinux.org/>`_
 
 
 Lifetime of a build

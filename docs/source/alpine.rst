@@ -6,7 +6,13 @@ Basic usage::
 
     polycotylus alpine
 
-Supported architectures: ``aarch64 armv7 ppc64le x86 x86_64``
+* Supported architectures: ``aarch64 armv7 ppc64le x86 x86_64``
+
+* Alpine packages are compatible with: `postmarketOS
+  <https://postmarketos.org/>`_
+
+* Alpine packages are similar to but incompatible with: `Wolfi
+  <https://github.com/wolfi-dev>`_
 
 Resist the urge to build for all architectures just because you can – you're
 unlikely to find a ``ppc64le`` device with a desktop on it or an ``armv7l``
