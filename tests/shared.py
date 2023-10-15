@@ -22,8 +22,7 @@ awkward_pypi_packages = [
     "zope.event",  # Contains a '.'
     "ruamel.yaml",
     "jaraco.classes",
-    "multi_key_dict",  # Contains a '_'
-    "prompt_toolkit",
+    "prompt_toolkit",  # Contains a '_'
     "nest_asyncio",
     "setuptools_scm",
     "Pygments",  # Contains uppercase letters
