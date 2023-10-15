@@ -49,6 +49,8 @@ def test_ubrotli():
     with contextlib.suppress(FileNotFoundError):
         (shared.ubrotli / ".polycotylus/artifacts.json").unlink()
 
+    # Ubuntu's repository layout is different for non amd64 architectures which
+    # unfortunately makes it necessary to do an extremely slow qemu platform test.
     for self in [
         polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="amd64"),
         polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="arm64"),

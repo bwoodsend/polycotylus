@@ -406,13 +406,16 @@ def opensuse_last_sync_time(self: RequestHandler):
 
 
 class UbuntuRequestHandler(RequestHandler):
+    # Ubuntu's package repositories are split across multiple subnets. e.g.
+    # http://archive.ubuntu.com/ubuntu/ vs http://ports.ubuntu.com/ubuntu-ports/
+    # To avoid needing a separate mirror for each subdomain, redirect the Docker
+    # containers to look at http://0.0.0.0:port/subnet/path then the mirror
+    # reverses the change when fetching an upstream file.
     @property
     def upstream_url(self):
         root, subnet, *path = PurePosixPath(self.path).parts
         assert root == "/"
-        a = f"http://{subnet}.ubuntu.com/{PurePosixPath(*path)}"
-        print(self.path, "->", a)
-        return a
+        return f"http://{subnet}.ubuntu.com/{PurePosixPath(*path)}"
 
 
 mirrors = {}
