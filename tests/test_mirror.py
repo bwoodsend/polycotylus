@@ -220,7 +220,7 @@ def test_index_page_handling(tmp_path):
 def test_concurrent(tmp_path):
     url = "http://localhost:9989/foo.bar"
     self = CachedMirror(
-        "http://0.0.0.0:8899", tmp_path, ["*.bar"], [], 9989, "", (_alpine_sync_time,))
+        "http://localhost:8899", tmp_path, ["*.bar"], [], 9989, "", (_alpine_sync_time,))
     payload = os.urandom(300_000)
 
     with slow_connection(payload):

@@ -63,10 +63,9 @@ class CachedMirror:
         self.port = port
         self.handler = handler or RequestHandler
         if platform.system() in ("Darwin", "Windows"):  # pragma: no cover
-            # Docker's --network=host option doesn't work on macOS. See
+            # Docker's --network=host option doesn't work on macOS or Windows.
             # https://github.com/docker/for-mac/issues/1031
-            # And http://0.0.0.0 doesn't work on Windows even without Docker.
-            install = install.replace("0.0.0.0", "host.docker.internal")
+            install = install.replace("localhost", "host.docker.internal")
         self.install = install
         self._lock = threading.Lock()
         self._listeners = 0
@@ -103,8 +102,7 @@ class CachedMirror:
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
-            host = "localhost" if os.name == "nt" else "0.0.0.0"
-            print("http://{}:{}".format(host, self.port), "=>", self.base_url)
+            print(f"http://localhost:{self.port}", "=>", self.base_url)
             print(f"Install via:\n{self.install}")
             self.verbose = True
             with contextlib.suppress(KeyboardInterrupt):
@@ -409,7 +407,7 @@ class UbuntuRequestHandler(RequestHandler):
     # Ubuntu's package repositories are split across multiple subnets. e.g.
     # http://archive.ubuntu.com/ubuntu/ vs http://ports.ubuntu.com/ubuntu-ports/
     # To avoid needing a separate mirror for each subdomain, redirect the Docker
-    # containers to look at http://0.0.0.0:port/subnet/path then the mirror
+    # containers to look at http://localhost:port/subnet/path then the mirror
     # reverses the change when fetching an upstream file.
     @property
     def upstream_url(self):
@@ -425,7 +423,7 @@ mirrors["arch"] = CachedMirror(
     ["*.db", "*.files"],
     ["*.db.sig", "*.files.sig"],
     8900,
-    "echo 'Server = http://0.0.0.0:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
+    "echo 'Server = http://localhost:8900/$repo/os/$arch' > /etc/pacman.d/mirrorlist && sed -i s/NoProgressBar/Color/ /etc/pacman.conf",
     (_use_last_modified_header,),
     r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
 )
@@ -435,7 +433,7 @@ mirrors["alpine"] = CachedMirror(
     ["APKINDEX.tar.gz"],
     [],
     8901,
-    r"sed -r -i 's ^.*/(v\d+\.\d+|edge)/ http://0.0.0.0:8901/\1/ g' /etc/apk/repositories",
+    r"sed -r -i 's ^.*/(v\d+\.\d+|edge)/ http://localhost:8901/\1/ g' /etc/apk/repositories",
     (_alpine_sync_time, _use_last_modified_header),
     r"(.+-)([^-]+-r\d+)(\.apk)",
 )
@@ -445,8 +443,8 @@ mirrors["void"] = CachedMirror(
     ["*-repodata"],
     [],
     8902,
-    r"sed 's|https://repo-default.voidlinux.org|http://0.0.0.0:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
-    r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://0.0.0.0:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
+    r"sed 's|https://repo-default.voidlinux.org|http://localhost:8902|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/00-repository-main.conf "
+    r"&& sed -E 's|https://repo-default.voidlinux.org/(.*)|http://localhost:8902/\1/bootstrap|g' /usr/share/xbps.d/00-repository-main.conf > /etc/xbps.d/10-repository-bootstrap.conf",
     (_use_last_modified_header,),
     r"(.+-)([^_-]+_\d+)(\..+)",
 )
@@ -454,7 +452,7 @@ mirrors["manjaro"] = mirrors["arch"].with_(
     base_url=_manjaro_preferred_mirror,
     base_dir=cache_root / "manjaro",
     port=8903,
-    install="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://0.0.0.0:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://0.0.0.0:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
+    install="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
 )
 mirrors["opensuse"] = CachedMirror(
     "http://download.opensuse.org",
@@ -462,7 +460,7 @@ mirrors["opensuse"] = CachedMirror(
     ["repomd.xml", "repomd.xml.key", "repomd.xml.asc"],
     [],
     8904,
-    "sed -r -i 's|http://download.opensuse.org/|http://0.0.0.0:8904/|g' /etc/zypp/repos.d/*",
+    "sed -r -i 's|http://download.opensuse.org/|http://localhost:8904/|g' /etc/zypp/repos.d/*",
     (opensuse_last_sync_time,),
     r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
 )
@@ -472,7 +470,7 @@ mirrors["debian13"] = CachedMirror(
     ["InRelease"],
     [],
     8905,
-    r"sed -i 's|http://deb.debian.org/|http://0.0.0.0:8905/|g' /etc/apt/sources.list.d/debian.sources",
+    r"sed -i 's|http://deb.debian.org/|http://localhost:8905/|g' /etc/apt/sources.list.d/debian.sources",
     (_use_last_modified_header,),
     r"(.+_)([^-]+-\d+)(.+)",
 )
@@ -480,7 +478,7 @@ mirrors["ubuntu2304"] = mirrors["debian13"].with_(
     base_url="http://archive.ubuntu.com/ubuntu/",
     base_dir=cache_root / "ubuntu2304",
     port=8906,
-    install=r"sed -i -E 's|http://(.*).ubuntu.com/|http://0.0.0.0:8906/\1/|g' /etc/apt/sources.list",
+    install=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list",
     handler=UbuntuRequestHandler,
 )
 mirrors["ubuntu2310"] = mirrors["ubuntu2304"].with_(
