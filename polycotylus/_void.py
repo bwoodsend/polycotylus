@@ -37,7 +37,7 @@ class Void(BaseDistribution):
     libc_tag = ""
 
     @_misc.classproperty
-    def image(self, cls):
+    def base_image(self, cls):
         architecture = cls.preferred_architecture if self is None else self.architecture
         return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{cls.libc_tag}"
 
@@ -64,7 +64,7 @@ class Void(BaseDistribution):
     @lru_cache()
     def _package_manager_queries(cls):
         with cls.mirror:
-            container = _docker.run(cls.image, f"""
+            container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install}
                 xbps-install -ySu xbps
                 xbps-query -Rs '' > /all

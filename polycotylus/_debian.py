@@ -56,7 +56,7 @@ class Debian(BaseDistribution):
         "bz2": ["libbz2-1.0"],
         "dbm.gnu": ["python3-gdbm"],
     }
-    image = "debian:trixie-slim"
+    base_image = "debian:trixie-slim"
     supported_architectures = {
         "amd64": "x86_64",
         "arm64": "aarch64",
@@ -95,7 +95,7 @@ class Debian(BaseDistribution):
     @lru_cache()
     def _package_manager_queries(cls):
         with cls.mirror:
-            container = _docker.run(cls.image, f"""
+            container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install}
                 apt-get update
                 apt list -qq > /available
@@ -147,7 +147,7 @@ class Debian(BaseDistribution):
 
     def dockerfile(self):
         return self._formatter(f"""
-            FROM {self.image} AS build
+            FROM {self.base_image} AS build
             RUN {self.mirror.install}
             ENV LANG=C.UTF-8 LC_ALL=C LANGUAGE=C DEBIAN_FRONTEND=noninteractive
 

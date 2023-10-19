@@ -35,8 +35,8 @@ class BaseDistribution(abc.ABC):
         if platform.system() == "Linux" and {"amd64": "x86_64", "arm64": "aarch64"}.get(self.architecture, self.architecture) != machine():
             qemu_architecture = {"amd64": "x86_64", "arm64": "aarch64", "mips64le": "mips64el"}.get(self.docker_architecture, self.docker_architecture)
             # Qemu is not required for running 32-bit variants of x86_64 or aarch64.
-            if not ((machine() == "x86_64" and re.fullmatch("i[3-6]86", qemu_architecture)) \
-                or (machine() == "aarch64" and qemu_architecture.startswith("arm"))):
+            if not ((machine() == "x86_64" and re.fullmatch("i[3-6]86", qemu_architecture))
+                    or (machine() == "aarch64" and qemu_architecture.startswith("arm"))):
                 qemu = f"qemu-{qemu_architecture.split('/')[0]}-static"
                 if not shutil.which(qemu):
                     raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""

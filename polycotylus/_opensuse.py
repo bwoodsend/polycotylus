@@ -19,7 +19,7 @@ from polycotylus._base import BaseDistribution
 
 
 class OpenSUSE(BaseDistribution):
-    image = "docker.io/opensuse/tumbleweed"
+    base_image = "docker.io/opensuse/tumbleweed"
     tag = "tumbleweed"
     python_extras = {
         "tkinter": ["python3-tk"],
@@ -56,7 +56,7 @@ class OpenSUSE(BaseDistribution):
     @lru_cache()
     def _package_manager_queries(cls):
         with cls.mirror:
-            container = _docker.run(cls.image, f"""
+            container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install}
                 zypper refresh
                 zypper search > /packages
@@ -286,7 +286,7 @@ class OpenSUSE(BaseDistribution):
                 test_dependencies.append(dependency)
 
         out = self._formatter(f"""
-            FROM {self.image} as base
+            FROM {self.base_image} as base
             RUN {self.mirror.install}
 
             RUN mkdir /io

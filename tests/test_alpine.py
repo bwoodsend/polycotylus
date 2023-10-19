@@ -51,7 +51,7 @@ def test_abuild_lint():
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     with self.mirror:
-        _docker.run(Alpine.image, f"""
+        _docker.run(Alpine.base_image, f"""
             {self.mirror.install}
             apk add -q atools
             apkbuild-lint /io/APKBUILD
@@ -68,7 +68,7 @@ def test_dumb_text_viewer():
     assert "arch=noarch" in self.apkbuild()
     assert "gcc" not in self.apkbuild()
 
-    _docker.run(Alpine.image, ["ash", "-c", "set -e; source /io/APKBUILD"],
+    _docker.run(Alpine.base_image, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
     apks = self.build()
     assert len(apks) == 2

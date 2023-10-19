@@ -12,7 +12,7 @@ from polycotylus._base import BaseDistribution
 
 
 class Arch(BaseDistribution):
-    image = "archlinux:base"
+    base_image = "archlinux:base"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["tk"],
@@ -37,7 +37,7 @@ class Arch(BaseDistribution):
     @lru_cache()
     def _package_manager_queries(cls):
         with cls.mirror:
-            container = _docker.run(cls.image, f"""
+            container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install}
                 pacman -Sy
                 pacman -Ssq > /packages
@@ -142,7 +142,7 @@ class Arch(BaseDistribution):
     def dockerfile(self):
         dependencies = self.dependencies + self.build_dependencies + self.test_dependencies
         return self._formatter(f"""
-            FROM {self.image} AS base
+            FROM {self.base_image} AS base
 
             RUN {self.mirror.install}
             RUN pacman -Syu --noconfirm --needed sudo
@@ -196,7 +196,7 @@ class Arch(BaseDistribution):
     @lru_cache()
     def available_licenses(cls):
         out = []
-        container = _docker.run(cls.image, verbosity=0,
+        container = _docker.run(cls.base_image, verbosity=0,
                                 architecture=cls.preferred_architecture)
         with container["/usr/share/licenses/common"] as tar:
             for member in tar.getmembers():
