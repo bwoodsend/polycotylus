@@ -205,7 +205,7 @@ class Void(BaseDistribution):
             (self.distro_root / "srcpkgs" / self.package_name, f"/io/srcpkgs/{self.package_name}"),
             (self.distro_root / "hostdir/sources", "/io/hostdir/sources"),
         ]
-        mirror_url = "http://0.0.0.0:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
+        mirror_url = "http://localhost:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
         with self.mirror:
             container = _docker.run(self.build_builder_image(), f"""
                 git config --global --add safe.directory /io
