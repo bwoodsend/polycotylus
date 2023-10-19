@@ -27,7 +27,7 @@ class CachedMirror:
     """
 
     def __init__(self, base_url, base_dir, index_patterns, ignore_patterns,
-                 port, install, last_sync_time, package_version_pattern="(.+)()()",
+                 port, install_command, last_sync_time, package_version_pattern="(.+)()()",
                  handler=None):
         """
         Args:
@@ -43,7 +43,7 @@ class CachedMirror:
                 404 errors. This can usually be left empty.
             port:
                 An integer port number. Any number not already used will do.
-            install:
+            install_command:
                 A shell command which replaces the distribution's list of
                 mirrors with this mirror.
             last_sync_time:
@@ -65,8 +65,8 @@ class CachedMirror:
         if platform.system() in ("Darwin", "Windows"):  # pragma: no cover
             # Docker's --network=host option doesn't work on macOS or Windows.
             # https://github.com/docker/for-mac/issues/1031
-            install = install.replace("localhost", "host.docker.internal")
-        self.install = install
+            install_command = install_command.replace("localhost", "host.docker.internal")
+        self.install_command = install_command
         self._lock = threading.Lock()
         self._listeners = 0
         self.last_sync_time = last_sync_time
@@ -79,7 +79,7 @@ class CachedMirror:
             base_url=self.base_url, base_dir=self.base_dir,
             index_patterns=self.index_patterns,
             ignore_patterns=self.ignore_patterns, port=self.port,
-            install=self.install, last_sync_time=self.last_sync_time,
+            install_command=self.install_command, last_sync_time=self.last_sync_time,
             package_version_pattern=self.package_version_pattern,
             handler=self.handler,
         )
@@ -103,7 +103,7 @@ class CachedMirror:
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
             print(f"http://localhost:{self.port}", "=>", self.base_url)
-            print(f"Install via:\n{self.install}")
+            print(f"Install via:\n{self.install_command}")
             self.verbose = True
             with contextlib.suppress(KeyboardInterrupt):
                 while True:
@@ -452,7 +452,7 @@ mirrors["manjaro"] = mirrors["arch"].with_(
     base_url=_manjaro_preferred_mirror,
     base_dir=cache_root / "manjaro",
     port=8903,
-    install="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
+    install_command="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
 )
 mirrors["opensuse"] = CachedMirror(
     "http://download.opensuse.org",
@@ -478,7 +478,7 @@ mirrors["ubuntu2304"] = mirrors["debian13"].with_(
     base_url="http://archive.ubuntu.com/ubuntu/",
     base_dir=cache_root / "ubuntu2304",
     port=8906,
-    install=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list",
+    install_command=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list",
     handler=UbuntuRequestHandler,
 )
 mirrors["ubuntu2310"] = mirrors["ubuntu2304"].with_(

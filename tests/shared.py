@@ -71,7 +71,7 @@ class Base:
         for (packages, imports) in _group_python_extras(self.cls.python_extras):
             mirror = self.cls.mirror
             script = self.cls._formatter(f"""
-                {mirror.install}
+                {mirror.install_command}
                 {self.package_install} python3 {shlex.join(packages)}
                 python3 -c 'import {", ".join(imports)}'
             """)

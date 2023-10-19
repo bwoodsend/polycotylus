@@ -57,7 +57,7 @@ class OpenSUSE(BaseDistribution):
     def _package_manager_queries(cls):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
-                {cls.mirror.install}
+                {cls.mirror.install_command}
                 zypper refresh
                 zypper search > /packages
                 zypper info --requires osc > /osc-info
@@ -287,7 +287,7 @@ class OpenSUSE(BaseDistribution):
 
         out = self._formatter(f"""
             FROM {self.base_image} as base
-            RUN {self.mirror.install}
+            RUN {self.mirror.install_command}
 
             RUN mkdir /io
             WORKDIR /io

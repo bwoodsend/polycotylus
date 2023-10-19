@@ -38,7 +38,7 @@ class Arch(BaseDistribution):
     def _package_manager_queries(cls):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
-                {cls.mirror.install}
+                {cls.mirror.install_command}
                 pacman -Sy
                 pacman -Ssq > /packages
                 pacman -Qq > /base-packages
@@ -144,7 +144,7 @@ class Arch(BaseDistribution):
         return self._formatter(f"""
             FROM {self.base_image} AS base
 
-            RUN {self.mirror.install}
+            RUN {self.mirror.install_command}
             RUN pacman -Syu --noconfirm --needed sudo
             {self._install_user()}
             RUN mkdir /io && chown user /io

@@ -30,7 +30,7 @@ def test_mirror_detection(monkeypatch):
     with Manjaro.mirror:
         for architecture in ["x86_64", "aarch64"]:
             _docker.run("manjarolinux/base", f"""
-                {Manjaro.mirror.install}
+                {Manjaro.mirror.install_command}
                 pacman -Sy
             """, architecture=architecture, tty=True)
     assert requests, "Mirror is being ignored"
