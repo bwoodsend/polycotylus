@@ -52,7 +52,7 @@ def test_abuild_lint():
     self.generate()
     with self.mirror:
         _docker.run(Alpine.base_image, f"""
-            {self.mirror.install}
+            {self.mirror.install_command}
             apk add -q atools
             apkbuild-lint /io/APKBUILD
         """, volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)

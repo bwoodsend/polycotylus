@@ -96,7 +96,7 @@ class Debian(BaseDistribution):
     def _package_manager_queries(cls):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
-                {cls.mirror.install}
+                {cls.mirror.install_command}
                 apt-get update
                 apt list -qq > /available
                 apt list --installed -qq > /installed
@@ -148,7 +148,7 @@ class Debian(BaseDistribution):
     def dockerfile(self):
         return self._formatter(f"""
             FROM {self.base_image} AS build
-            RUN {self.mirror.install}
+            RUN {self.mirror.install_command}
             ENV LANG=C.UTF-8 LC_ALL=C LANGUAGE=C DEBIAN_FRONTEND=noninteractive
 
             RUN apt-get update && apt-get install -y --no-install-recommends sudo

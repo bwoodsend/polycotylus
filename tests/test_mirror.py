@@ -29,7 +29,7 @@ def _alpine_mirror(tmp_path):
         _alpine.index_patterns,
         ["*.penguin"],
         9989,
-        _alpine.install.replace("8901", "9989"),
+        _alpine.install_command.replace("8901", "9989"),
         (_alpine_sync_time,),
     )
 
@@ -254,7 +254,7 @@ def test_tar_integrity(tmp_path):
 
     for i in range(3):
         with self:
-            _docker.run("alpine", f"{self.install} && apk add libbz2")
+            _docker.run("alpine", f"{self.install_command} && apk add libbz2")
 
 
 @pytest.mark.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)

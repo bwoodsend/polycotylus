@@ -51,7 +51,7 @@ class Alpine(BaseDistribution):
     def _package_manager_queries(cls):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
-                {cls.mirror.install}
+                {cls.mirror.install_command}
                 apk update
                 apk search -q > /packages
                 apk info -q > /base-packages
@@ -175,7 +175,7 @@ class Alpine(BaseDistribution):
         return self._formatter(f"""
             FROM {self.base_image} AS base
 
-            RUN {self.mirror.install}
+            RUN {self.mirror.install_command}
             RUN echo -e {repr(public.read_text("utf8"))} > "/etc/apk/keys/{public.name}"
 
             RUN apk add shadow sudo
@@ -226,7 +226,7 @@ class Alpine(BaseDistribution):
 
         with self.mirror:
             container = _docker.run(self.base_image, f"""
-                {self.mirror.install}
+                {self.mirror.install_command}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
                 echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf

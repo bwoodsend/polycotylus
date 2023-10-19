@@ -65,7 +65,7 @@ class Void(BaseDistribution):
     def _package_manager_queries(cls):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
-                {cls.mirror.install}
+                {cls.mirror.install_command}
                 xbps-install -ySu xbps
                 xbps-query -Rs '' > /all
                 xbps-query -Rx base-chroot > /base
@@ -100,7 +100,7 @@ class Void(BaseDistribution):
         return self._formatter(f"""
             ARG tag
             FROM ghcr.io/void-linux/void-linux:${{tag}} AS base
-            RUN {self.mirror.install}
+            RUN {self.mirror.install_command}
             RUN rm -f /etc/xbps.d/noextract.conf
             RUN xbps-install -ySu xbps bash shadow sudo
             CMD ["/bin/bash"]
