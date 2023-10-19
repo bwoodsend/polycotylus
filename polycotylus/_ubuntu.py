@@ -4,7 +4,7 @@ from polycotylus._debian import Debian
 
 class Ubuntu(Debian):
     name = "ubuntu"
-    image = "ubuntu:23.10"
+    base_image = "ubuntu:23.10"
     tag = "23.10"
     supported_architectures = {
         "amd64": "x86_64",
@@ -26,6 +26,6 @@ Ubuntu2310 = Ubuntu
 
 
 class Ubuntu2304(Ubuntu):
-    image = "ubuntu:23.04"
+    base_image = "ubuntu:23.04"
     tag = "23.04"
     mirror = _mirror.mirrors["ubuntu2304"]

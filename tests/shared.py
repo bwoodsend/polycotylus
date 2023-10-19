@@ -76,7 +76,7 @@ class Base:
                 python3 -c 'import {", ".join(imports)}'
             """)
             with mirror:
-                _docker.run(self.cls.image, script,
+                _docker.run(self.cls.base_image, script,
                             architecture=self.cls.preferred_architecture)
             assert requests, "Mirror is being ignored"
 

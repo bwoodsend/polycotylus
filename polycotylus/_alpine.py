@@ -20,7 +20,7 @@ from polycotylus._base import BaseDistribution
 class Alpine(BaseDistribution):
     name = "alpine"
     version = "3.18"
-    image = "alpine:3.18"
+    base_image = "alpine:3.18"
     python_extras = {
         "tkinter": ["python3-tkinter"],
         "dbm.gnu": ["python3-gdbm"],
@@ -50,7 +50,7 @@ class Alpine(BaseDistribution):
     @lru_cache()
     def _package_manager_queries(cls):
         with cls.mirror:
-            container = _docker.run(cls.image, f"""
+            container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install}
                 apk update
                 apk search -q > /packages
@@ -173,7 +173,7 @@ class Alpine(BaseDistribution):
     def dockerfile(self):
         public, private = self.abuild_keys()
         return self._formatter(f"""
-            FROM {self.image} AS base
+            FROM {self.base_image} AS base
 
             RUN {self.mirror.install}
             RUN echo -e {repr(public.read_text("utf8"))} > "/etc/apk/keys/{public.name}"
@@ -225,7 +225,7 @@ class Alpine(BaseDistribution):
                 return public_key, private_key
 
         with self.mirror:
-            container = _docker.run(self.image, f"""
+            container = _docker.run(self.base_image, f"""
                 {self.mirror.install}
                 apk add -q abuild
                 echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
@@ -287,7 +287,7 @@ class Alpine(BaseDistribution):
 
 class Alpine317(Alpine):
     version = "3.17"
-    image = "alpine:3.17"
+    base_image = "alpine:3.17"
 
 
 Alpine318 = Alpine
@@ -295,4 +295,4 @@ Alpine318 = Alpine
 
 class AlpineEdge(Alpine):
     version = "edge"
-    image = "alpine:edge"
+    base_image = "alpine:edge"

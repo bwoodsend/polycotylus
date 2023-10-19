@@ -22,7 +22,7 @@ from polycotylus._base import BaseDistribution, _deduplicate
 class Fedora(BaseDistribution):
     name = "fedora"
     version = "38"
-    image = "fedora:38"
+    base_image = "fedora:38"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
@@ -69,7 +69,7 @@ class Fedora(BaseDistribution):
     @lru_cache()
     def python_version(cls):
         command = ["python3", "-c", "import sys; print('{}.{}.{}'.format(*sys.version_info))"]
-        return _docker.run(cls.image, command, tty=True).output.strip()
+        return _docker.run(cls.base_image, command, tty=True).output.strip()
 
     @classmethod
     def python_package(cls, requirement):
@@ -217,7 +217,7 @@ class Fedora(BaseDistribution):
 
     def dockerfile(self):
         return self._formatter(f"""
-            FROM {self.image} AS base
+            FROM {self.base_image} AS base
 
             {self._install_user()}
             RUN groupadd --users user mock
@@ -310,7 +310,7 @@ class Fedora(BaseDistribution):
 
 class Fedora37(Fedora):
     version = "37"
-    image = "fedora:37"
+    base_image = "fedora:37"
 
 
 Fedora38 = Fedora
@@ -318,9 +318,9 @@ Fedora38 = Fedora
 
 class Fedora39(Fedora):
     version = "39"
-    image = "fedora:39"
+    base_image = "fedora:39"
 
 
 class Fedora40(Fedora):
     version = "40"
-    image = "fedora:40"
+    base_image = "fedora:40"
