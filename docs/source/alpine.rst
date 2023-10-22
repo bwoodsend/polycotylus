@@ -45,6 +45,7 @@ implies the latest released version. ::
 
     polycotylus alpine:3.17
     polycotylus alpine:3.18
+    polycotylus alpine:3.19
     polycotylus alpine:edge  # Unstable branch
 
 

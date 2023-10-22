@@ -69,7 +69,7 @@ when pip is trying to compile C extension whilst building the package.
 .. code-block:: bash
 
     polycotylus._docker.Error: Docker command:
-        $ docker run --rm --network=host --platform=linux/x86_64 -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine:/io:z -v/home/brenainn/.abuild/bwoodsend@gmail.com-63b087db.rsa:/home/user/.abuild/bwoodsend@gmail.com-63b087db.rsa:z -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine/3.18:/home/user/packages:z -t --user=1000 --ulimit nofile=1024:1048576 sha256:d9d05c5db0f32b251e94fa4996f2ab1a8526b6504b04010de9084a3e9118633f sh -ec 'abuild -f'
+        $ docker run --rm --network=host --platform=linux/x86_64 -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine:/io:z -v/home/brenainn/.abuild/bwoodsend@gmail.com-63b087db.rsa:/home/user/.abuild/bwoodsend@gmail.com-63b087db.rsa:z -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine/3.19:/home/user/packages:z -t --user=1000 --ulimit nofile=1024:1048576 sha256:d9d05c5db0f32b251e94fa4996f2ab1a8526b6504b04010de9084a3e9118633f sh -ec 'abuild -f'
     returned an error:
     >>> py3-ubrotli: Building /py3-ubrotli 0.1.0-r1 (using abuild 3.11.1-r0) started Sat, 19 Aug 2023 20:32:51 +0000
     >>> py3-ubrotli: Checking sanity of /io/APKBUILD...
@@ -235,16 +235,16 @@ tell ``abuild`` to skip the bytecode collection stage. This is done via the
 The next rebuild should carry you all the way to the end where you should get a message which looks like::
 
     Built 1 artifact:
-    main: .polycotylus/alpine/3.18/x86_64/py3-ubrotli-0.1.0-r1.apk
+    main: .polycotylus/alpine/3.19/x86_64/py3-ubrotli-0.1.0-r1.apk
 
-That's the location of your package! Notice that it's got that ``3.18`` version
+That's the location of your package! Notice that it's got that ``3.19`` version
 number and the architecture ``x86_64`` in its path. That's because the package
-we built is only compatible with Alpine v3.18.x and is compiled for ``x86_64``.
+we built is only compatible with Alpine v3.19.x and is compiled for ``x86_64``.
 Use the following syntaxes to target other versions and architectures::
 
     polycotylus alpine --architecture=aarch64
     polycotylus alpine:3.17
-    polycotylus alpine:3.17 --architecture=ppc64le
+    polycotylus alpine:3.18 --architecture=ppc64le
 
 fish_ users should find the shell completion very supportive when exploring what
 versions and architectures are available. Non fish users can consult the top of
