@@ -71,7 +71,7 @@ cycles and up to date package repositories.
 =============  ============================================
 Distributions  Supported versions
 =============  ============================================
-Alpine_        3.17-3.18, edge
+Alpine_        3.17-3.19, edge
 Arch_          rolling
 Debian_        13 (pre-release)
 Fedora_        37-39, 40 (pre-release)

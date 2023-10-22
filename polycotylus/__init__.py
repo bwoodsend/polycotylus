@@ -7,7 +7,7 @@ def machine():
 
 from ._exceptions import PolycotylusUsageError
 from ._project import Project
-from ._alpine import Alpine, Alpine317, Alpine318, AlpineEdge
+from ._alpine import Alpine, Alpine317, Alpine318, Alpine319, AlpineEdge
 from ._arch import Arch
 from ._manjaro import Manjaro
 from ._fedora import Fedora, Fedora37, Fedora38, Fedora39, Fedora40
@@ -19,6 +19,7 @@ from ._ubuntu import Ubuntu, Ubuntu2304, Ubuntu2310
 distributions = {i.name: i for i in (Alpine, Arch, Debian, Fedora, Manjaro, OpenSUSE, Ubuntu, Void)}
 distributions["alpine:3.17"] = Alpine317
 distributions["alpine:3.18"] = Alpine318
+distributions["alpine:3.19"] = Alpine319
 distributions["alpine:edge"] = AlpineEdge
 distributions["debian:13"] = Debian13
 distributions["fedora:37"] = Fedora37

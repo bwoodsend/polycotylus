@@ -12,7 +12,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
-from polycotylus._alpine import Alpine, Alpine317, AlpineEdge
+from polycotylus._alpine import Alpine, Alpine317, Alpine318, AlpineEdge
 import shared
 
 
@@ -268,7 +268,7 @@ def test_kitchen_sink(monkeypatch):
 
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     all_apks = []
-    for _Alpine in (Alpine, Alpine317, AlpineEdge):
+    for _Alpine in (Alpine, Alpine317, Alpine318, AlpineEdge):
         self = _Alpine(Project.from_root(shared.kitchen_sink))
         self.generate()
         assert "pywin32-ctypes" not in self.apkbuild()
@@ -291,7 +291,7 @@ def test_kitchen_sink(monkeypatch):
 
     for apk in all_apks:
         assert apk.exists()
-    assert len(set(all_apks)) == 8
+    assert len(set(all_apks)) == 11
 
     assert json.loads((shared.kitchen_sink / ".polycotylus/artifacts.json").read_bytes()) == [
         {
@@ -324,6 +324,24 @@ def test_kitchen_sink(monkeypatch):
             "architecture": "x86_64",
             "variant": "pyc",
             "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk"
+        }, {
+            "distribution": "alpine",
+            "tag": "3.19",
+            "architecture": "x86_64",
+            "variant": "doc",
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk"
+        }, {
+            "distribution": "alpine",
+            "tag": "3.19",
+            "architecture": "x86_64",
+            "variant": "main",
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
+        }, {
+            "distribution": "alpine",
+            "tag": "3.19",
+            "architecture": "x86_64",
+            "variant": "pyc",
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk"
         }, {
             "distribution": "alpine",
             "tag": "edge",
