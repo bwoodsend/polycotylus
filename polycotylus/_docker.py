@@ -161,8 +161,10 @@ class run:
         return _audit_image(_run(command, stdout=PIPE, text=True).stdout.strip())
 
 
-def _tee_run(command, verbosity, **kwargs):
-    with Popen(command, stderr=STDOUT, stdout=PIPE, **kwargs) as p:
+def _tee_run(command, verbosity, input=None, **kwargs):
+    with Popen(command, stderr=STDOUT, stdout=PIPE, stdin=PIPE, **kwargs) as p:
+        p.stdin.write((input or "").encode())
+        p.stdin.close()
         chunks = []
         while (chunk := p.stdout.readline()) or p.poll() is None:
             chunks.append(chunk)
@@ -189,15 +191,21 @@ def _audit_image(hash):
 
 
 def build(dockerfile, root, *flags, target=None, architecture=machine(), verbosity=None):
-    command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
+    if isinstance(dockerfile, io.TextIOBase):
+        dockerfile_path = "-"
+        stdin = dockerfile.read()
+    else:
+        dockerfile_path = str(dockerfile)
+        stdin = None
+    command = [docker, "build", "-f", dockerfile_path, "--network=host", "."]
     if verbosity is None:
         verbosity = _verbosity()
     if target:
         command += ["--target", target]
-    command += ["--pull", "--platform=linux/" + architecture, *flags]
+    command += ["--platform=linux/" + architecture, *flags]
     if verbosity >= 1:
         print("$", shlex.join(command))
-    returncode, output = _tee_run(command, verbosity, cwd=root,
+    returncode, output = _tee_run(command, verbosity, cwd=root, input=stdin,
                                   env={"DOCKER_SCAN_SUGGEST": "false", **os.environ})
     if returncode:
         raise Error("$ " + shlex.join(command), output)
@@ -212,7 +220,8 @@ def _parse_build_output(output):
 
 
 def lazy_run(base, command, **kwargs):
-    assert isinstance(command, list)
+    if not isinstance(command, list):
+        command = ["sh", "-ec", command]
     base_info = json.loads(_run([docker, "image", "inspect", base], stdout=PIPE).stdout)
     base = base_info[0]["Id"]
     _images = _run([docker, "images", "-q"], stdout=PIPE).stdout.decode().split()

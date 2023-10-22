@@ -12,6 +12,7 @@ import tarfile
 import io
 import contextlib
 import shutil
+from pathlib import Path
 
 from polycotylus import _misc, _docker, machine, _mirror
 from polycotylus._base import BaseDistribution
@@ -78,6 +79,7 @@ class Debian(BaseDistribution):
     }
     tag = "13"
     mirror = _mirror.mirrors["debian13"]
+    codename = "trixie"
 
     def __init__(self, project, architecture=None, signing_id=None):
         if architecture is None:
@@ -277,6 +279,45 @@ class Debian(BaseDistribution):
                 {test_command}
             """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
                 post_mortem=True, architecture=self.docker_architecture)
+
+    @classmethod
+    def copy_to_repository(cls, root, artifact):
+        pass
+
+    def index_repository(self, root, artifacts):
+        name = Path(root).parent.name
+        with self.mirror:
+            image = _docker.build(io.StringIO(f"""
+                FROM {self.base_image}
+                RUN {self.mirror.install_command}
+                RUN apt-get update && apt-get install -y reprepro
+            """), self.project.root)
+        configuration = ControlFile()
+        for codename in ["trixie"]:
+            configuration.add_paragraph(
+                Origin=name,
+                Label=name,
+                Suite="stable",
+                Codename=codename,
+                Version="3.0",
+                Architectures=" ".join(sorted(self.supported_architectures)),
+                Components="main",
+                UDebComponents="main",
+            )
+        (root / "conf").mkdir(exist_ok=True, parents=True)
+        _misc.unix_write(root / "conf/distributions", str(configuration))
+        commands = []
+        for artifact in artifacts:
+            if self.architecture == "all":
+                commands.append(["reprepro", "-Vb", "/repo",
+                                 "remove", self.codename, self.package_name])
+            else:
+                commands.append(["reprepro", "-Vb", "/repo", "-A", self.architecture,
+                                 "remove", self.codename, self.package_name])
+            commands.append(["reprepro", "-Vb", "/repo", "includedeb",
+                             self.codename, "/io/" + artifact["path"]])
+        _docker.run(image, "\n".join(shlex.join(i) for i in commands), root=False,
+                    volumes=[(self.project.root, "/io"), (root, "/repo")])
 
 
 Debian13 = Debian

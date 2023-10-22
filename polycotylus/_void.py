@@ -15,6 +15,11 @@ from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
 
+def _void_base_image(libc, architecture):
+    tag = "" if libc == "glibc" else "-musl"
+    return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{tag}"
+
+
 class Void(BaseDistribution):
     name = "void"
     python_extras = {
@@ -41,7 +46,7 @@ class Void(BaseDistribution):
     @_misc.classproperty
     def base_image(self, cls):
         architecture = cls.preferred_architecture if self is None else self.architecture
-        return f"ghcr.io/void-linux/void-linux:latest-mini-{architecture}{cls.libc_tag}"
+        return _void_base_image(architecture, cls.libc)
 
     @_misc.classproperty
     def tag(_, cls):
@@ -326,6 +331,16 @@ class Void(BaseDistribution):
             raise _exceptions.PolycotylusUsageError(
                 f'Getting an {type(ex).__name__}() whilst accessing private key file "{private_key}"')
         self._private_key = private_key
+
+    @staticmethod
+    def repository_layout(tag, architecture):
+        return tag
+
+    def index_repository(self, root, artifacts):
+        for (tag, architecture) in {(i["tag"], i["architecture"]) for i in artifacts}:
+            _docker.run(_void_base_image(tag, architecture),
+                        f"cd /io/{tag} && xbps-rindex --add *.{architecture}*.xbps",
+                        volumes=[(root, "/io")], architecture=architecture)
 
 
 class VoidMusl(Void):

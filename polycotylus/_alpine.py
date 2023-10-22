@@ -11,6 +11,8 @@ import hashlib
 from pathlib import Path
 import contextlib
 import platform
+import io
+import shutil
 
 from polycotylus import _misc, _docker
 from polycotylus._project import spdx_osi_approval
@@ -184,8 +186,10 @@ class Alpine(BaseDistribution):
             RUN mkdir /io && chown user /io
             WORKDIR /io
 
-            FROM base AS build
+            FROM base AS index
             RUN apk add alpine-sdk
+
+            FROM index as build
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
 
@@ -283,6 +287,28 @@ class Alpine(BaseDistribution):
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
+
+    @staticmethod
+    def repository_layout(tag, architecture):
+        return f"{tag}/{architecture}" if tag == "edge" else f"v{tag}/{architecture}"
+
+    def index_repository(self, root, artifacts):
+        public_key, private_key = self.abuild_keys()
+        with self.mirror:
+            image = _docker.build(io.StringIO(f"""
+                FROM {self.base_image}
+                RUN {self.mirror.install_command}
+                RUN apk add abuild
+            """), ".")
+        types = {(i["tag"], i["architecture"]) for i in artifacts}
+        command = ""
+        for (tag, architecture) in types:
+            repo_path = self.repository_layout(tag, architecture)
+            command += f"apk index -o /io/{repo_path}/APKINDEX.tar.gz --no-warnings /io/{repo_path}/*.apk\n"
+            command += f"abuild-sign -k /.abuild/{private_key.name} /io/{repo_path}/APKINDEX.tar.gz\n"
+        volumes = [(str(root), "/io"), (private_key, f"/.abuild/{private_key.name}")]
+        _docker.run(image, command, volumes=volumes, root=False, tty=True)
+        shutil.copy(public_key, root)
 
 
 class Alpine317(Alpine):

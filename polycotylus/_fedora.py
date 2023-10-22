@@ -321,6 +321,21 @@ class Fedora(GPGBased, BaseDistribution):
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
 
+    @staticmethod
+    def repository_layout(tag, architecture):
+        return f"repo/fedora/releases/{tag}/{architecture}"
+
+    def index_repository(self, root, artifacts):
+        image = _docker.lazy_run(self.base_image, f"""
+            {self.dnf_config_install}
+            mkdir -p /var/cache/mock /var/cache/dnf
+            dnf install -y dnf-utils createrepo_c
+        """, volumes=self._mounted_caches)
+        paths = {"/io/" + self.repository_layout(i["tag"], i["architecture"]) for i in artifacts}
+        command = ["createrepo", *paths]
+        _docker.run(image, command, interactive=True, tty=True,
+                    volumes=[(root, "/io")] + self._mounted_caches, root=False)
+
 
 class Fedora37(Fedora):
     version = "37"

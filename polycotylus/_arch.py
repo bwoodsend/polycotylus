@@ -226,3 +226,12 @@ class Arch(GPGBased, BaseDistribution):
                 if m:
                     out.append(m[1])
         return out
+
+    @staticmethod
+    def repository_layout(tag, architecture):
+        return architecture
+
+    def index_repository(self, root, artifacts):
+        _docker.run(self.base_image,
+                    f"repo-add /io/{Path(root).parent.name}.db.tar.gz /io/*.pkg.tar.zst",
+                    volumes=[(root / self.architecture, "/io")], root=False)

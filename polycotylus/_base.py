@@ -6,6 +6,7 @@ import platform
 from functools import lru_cache
 import subprocess
 import base64
+from pathlib import Path, PurePosixPath
 
 from packaging.requirements import Requirement
 
@@ -81,7 +82,8 @@ class BaseDistribution(abc.ABC):
     def available_packages_normalized(cls):
         return {re.sub("[._-]+", "-", i.lower()): i for i in cls.available_packages()}
 
-    def _install_user(self, *groups):
+    @staticmethod
+    def _install_user(*groups):
         groups = ",".join(("wheel", *groups))
         uid = 1000 if platform.system() == "Windows" else os.getuid()
         return f"""\
@@ -318,6 +320,17 @@ class BaseDistribution(abc.ABC):
     def update_artifacts_json(self, packages):
         with self.project.artifacts_database() as database:
             database.extend(packages.values())
+
+    @classmethod
+    def copy_to_repository(cls, root, artifact):
+        dest = Path(root, artifact["distribution"],
+                    cls.repository_layout(artifact["tag"], artifact["architecture"]))
+        dest.mkdir(exist_ok=True, parents=True)
+        shutil.copyfile(artifact["path"], dest / PurePosixPath(artifact["path"]).name)
+
+    @abc.abstractmethod
+    def index_repository(self, root, files):
+        pass
 
 
 class GPGBased(abc.ABC):

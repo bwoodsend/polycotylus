@@ -4,6 +4,8 @@ from importlib import resources
 import re
 import contextlib
 import sys
+import json
+from pathlib import Path
 
 import polycotylus
 
@@ -58,6 +60,21 @@ class PresubmitCheckAction(argparse.Action):
         parser.exit(self.presubmit())
 
 
+class AddToRepositoryAction(argparse.Action):
+    def __call__(self, parser, namespace, path, option_string=None):
+        by_distribution = {}
+        for artifact in json.loads(Path(".polycotylus/artifacts.json").read_bytes()):
+            cls = polycotylus.distributions[artifact["distribution"]]
+            cls.copy_to_repository(path, artifact)
+            by_distribution.setdefault(artifact["distribution"], []).append(artifact)
+
+        for (distribution, artifacts) in by_distribution.items():
+            cls = polycotylus.distributions[distribution]
+            self = cls(polycotylus.Project.from_root("."))
+            self.index_repository(Path(path, artifacts[0]["distribution"]), artifacts)
+        parser.exit()
+
+
 parser = argparse.ArgumentParser(
     "polycotylus",
     description="Convert Python packages to Linux ones.",
@@ -82,6 +99,7 @@ parser.add_argument("--post-mortem", action="store_true",
                     "error occurs in a docker container")
 parser.add_argument("--presubmit-check", action=PresubmitCheckAction, nargs=0,
                     help="Run checks specific to submitting a package to official repositories")
+parser.add_argument("--add-to-repository", action=AddToRepositoryAction)
 
 
 def cli(argv=None):
