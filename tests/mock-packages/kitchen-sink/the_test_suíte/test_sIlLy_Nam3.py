@@ -4,12 +4,12 @@ import importlib.metadata
 
 import pytest
 
-import sIlLy_Nam3
+import sIlLy_Nám3
 
 
 def test_main():
     assert importlib.metadata.version("99...S1Lly---namE___PACKAG3-.x-_y_.z") == "1.2.3"
-    assert sIlLy_Nam3.a == "\U0001d738"
+    assert sIlLy_Nám3.a == "\U0001d738"
 
 
 def test_dependencies():
@@ -21,7 +21,7 @@ def test_dependencies():
 
 
 def test_import_other_test_files():
-    from the_test_suite.constants import POINTLESS_CONSTANT
+    from the_test_suíte.constants import POINTLESS_CONSTANT
 
 
 def test_unrunable():
@@ -29,7 +29,7 @@ def test_unrunable():
 
 
 def test_environment_variable():
-    assert os.environ["TEST_VARIABLE"] == "hello"
+    assert os.environ["TEST_VARIABLE"] == "helló"
 
 
 def test_dependency_name_map():

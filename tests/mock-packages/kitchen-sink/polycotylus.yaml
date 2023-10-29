@@ -24,8 +24,8 @@ dependency_name_map:
   tzlocal:
     arch manjaro: gnu-netcat
 
-test_command: TEST_VARIABLE=hello pytest -k 'not unrunable' && python -c 'print("hello")'
+test_command: TEST_VARIABLE=helló pytest -k 'not unrunable' && python -c 'print("hello 🦄")'
 
 test_files:
-  - the_test_suite
+  - the_test_suíte
   - pytest.ini

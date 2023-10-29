@@ -151,7 +151,6 @@ class Arch(BaseDistribution):
             WORKDIR /io
 
             FROM base as build
-            ENV LANG C
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
             RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
 

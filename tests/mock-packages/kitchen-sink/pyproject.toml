@@ -15,6 +15,6 @@ requires = ["colorama; platform_system == 'Linux' and python_version >= '3.8' an
 "Homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [tool.setuptools]
-py-modules = ["sIlLy_Nam3"]
+py-modules = ["sIlLy_Nám3"]
 
 [tool.setuptools_scm]
