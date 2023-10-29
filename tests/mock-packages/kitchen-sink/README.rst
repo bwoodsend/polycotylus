@@ -1,8 +1,7 @@
 A nightmare package designed to test all the unusual, non default behaviours.
 
 * Contains special characters wherever possible to test name normalisation and
-  special character/unicode handling. Note that non-ASCII characters are not
-  allowed in filenames by Arch so this is deliberately left out.
+  special character/unicode handling.
 
 * Utilizes all possible sources of dependencies to test that they all get
   combined together correctly.

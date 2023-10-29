@@ -96,6 +96,8 @@ def test_ubrotli():
 def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     self = Arch(Project.from_root(shared.kitchen_sink))
+    # Test for encoding surprises such as https://bugs.archlinux.org/task/40805#comment124197
+    monkeypatch.setattr(self.dockerfile, lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
     self.generate()
     package = self.build()["main"]
     installed = self.test(package).commit()
