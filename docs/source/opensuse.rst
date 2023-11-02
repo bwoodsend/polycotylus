@@ -23,11 +23,11 @@ OpenSUSE Tumbleweed supports many minor versions of Python:
 
 * One version of Python, roughly in the middle of the available non-EOL versions
   range, has all Python packages built for it.
-* The version above and the version below have libraries but not frontend tools
-  built for them (although don't ask me what the purpose of a library is if it
-  won't be serving a front end tool 🤔).
-* The versions above and below those two (possibly including a beta release or
-  end of life Python) are available but have no packages built for them – not even
+* Two neighbouring versions (usually the one above and the one below) have
+  libraries but not frontend tools built for them (although don't ask me what
+  the purpose of a library is if it won't be serving a front end tool 🤔).
+* Another two versions above or below (possibly including a beta release or end
+  of life Python) are available but have no packages built for them – not even
   ``pip``!
 
 If you have `frontend` mode on, `polycotylus` will build one package. Otherwise,
