@@ -97,7 +97,7 @@ def cli(argv=None):
         self.update_artifacts_json(artifacts)
     except polycotylus.PolycotylusUsageError as ex:
         raise SystemExit("Error: " + str(ex))
-    print(f"Built {len(artifacts)} artifact{'s' if len(artifacts) != 1 else ''}:")
+    print(f"Built {len(set(artifacts.values()))} artifact{'s' if len(artifacts) != 1 else ''}:")
     for (variant, path) in artifacts.items():
         print(f"{variant}: {path}")
 
