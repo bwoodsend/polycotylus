@@ -234,6 +234,9 @@ class Void(BaseDistribution):
         (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
         repodata = f"{self.architecture}{self.libc_tag}-repodata"
         (self.distro_root / self.libc / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
+        if self.private_key:
+            signature = name + ".sig2"
+            (self.distro_root / self.libc / signature).write_bytes(container.file(f"/io/hostdir/binpkgs/{signature}"))
         return {"main": self.distro_root / self.libc / name}
 
     def test(self, package):
