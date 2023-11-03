@@ -51,15 +51,6 @@ def test_test_command():
         "xvfb-run $python -m unittest foo\n$python -c ''\n}"
 
 
-def test_unittest():
-    self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.bare_minimum))
-    self.generate()
-    rpms = self.build()
-    assert len(rpms) == 4
-    container = self.test(rpms["main"])
-    assert "Ran 1 test" in container.output
-
-
 def test_ubrotli():
     self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.ubrotli))
     self.generate()
@@ -105,3 +96,20 @@ def test_poetry():
     python_version = polycotylus.OpenSUSE.python_version().rsplit(".", maxsplit=1)[0]
     script = container.file("/usr/bin/print_hello-" + python_version).decode()
     assert "python" + python_version in script.splitlines()[0]
+
+
+def test_unittest(monkeypatch):
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.bare_minimum),
+                                None, "ED7C694736BC74B3")
+    self.generate()
+    rpms = self.build()
+    assert len(rpms) == 4
+    container = self.test(rpms["main"])
+    assert "Ran 1 test" in container.output
+
+    rpm_info = polycotylus._docker.run(
+        polycotylus.OpenSUSE.base_image,
+        ["rpm", "-qpi"] + ["/io/" + i.name for i in set(rpms.values())],
+        volumes=[(rpms["main"].parent, "/io")]).output
+    assert rpm_info.count("ED7C694736BC74B3".lower()) == 3

@@ -122,3 +122,5 @@ ENV/
 # Generated
 docs/source/history.rst
 docs/source/schema.rst
+
+tests/gpg-home/.#*

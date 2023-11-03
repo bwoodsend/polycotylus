@@ -11,15 +11,17 @@ import contextlib
 import shlex
 from functools import lru_cache
 import platform
+import os
+from pathlib import Path
 
 from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker, _exceptions
 from polycotylus._mirror import cache_root
-from polycotylus._base import BaseDistribution, _deduplicate
+from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 
 
-class Fedora(BaseDistribution):
+class Fedora(GPGBased, BaseDistribution):
     name = "fedora"
     version = "39"
     base_image = "fedora:39"
@@ -40,13 +42,13 @@ class Fedora(BaseDistribution):
         "font": "dejavu-fonts-all",
     }
 
-    def __init__(self, project, architecture=None):
+    def __init__(self, project, architecture=None, signing_id=None):
         if platform.system() == "Windows":  # pragma: no cover
             # The mounting of dnf's cache onto the host filesystem requires UNIX
             # permissions that Windows filesystems lack support for.
             raise _exceptions.PolycotylusUsageError(
                 "Building for Fedora is not supported on Windows.")
-        super().__init__(project, architecture)
+        super().__init__(project, architecture, signing_id)
         if self.project.architecture == "none":
             self.architecture = "noarch"
 
@@ -260,7 +262,7 @@ class Fedora(BaseDistribution):
 
     def build_builder_image(self):
         base = super().build_builder_image()
-        command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)", "python3dist(pip)"] + \
+        command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)", "python3dist(pip)", "rpm-sign", "pinentry-tty"] + \
             self.build_dependencies + self.dependencies + self.test_dependencies
         return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)
@@ -276,14 +278,26 @@ class Fedora(BaseDistribution):
                                 architecture=self.docker_architecture)
 
     def build(self):
+        machine = self.architecture
+        command = ["fedpkg", "--release", "f" + self.version, "compile", "--", "-bb"]
+        if self.signing_id:
+            gpg_home = os.environ.get("GNUPGHOME", Path.home() / ".gnupg")
+            gpg_volume = [(str(gpg_home), "/home/user/.gnupg")]
+            command = self._formatter(f"""
+                {shlex.join(command)}
+                gpg --export -a '{self.signing_id}' > /tmp/key
+                sudo rpmkeys --import /tmp/key
+                echo '%_gpg_name {self.signing_id}' > ~/.rpmmacros
+                rpm --addsign {self.architecture}/{self.package_name}-*{self.project.version}-*.{machine}.rpm
+            """)
+        else:
+            gpg_volume = []
         with self.mirror:
-            _docker.run(self.build_builder_image(),
-                        ["fedpkg", "--release", "f" + self.version, "compile", "--", "-bb"],
-                        tty=True, root=False,
-                        volumes=[(self.distro_root, "/io")] + self._mounted_caches,
+            _docker.run(self.build_builder_image(), command,
+                        tty=True, root=False, interactive=bool(self.signing_id),
+                        volumes=[(self.distro_root, "/io")] + gpg_volume + self._mounted_caches,
                         architecture=self.docker_architecture, post_mortem=True)
         rpms = {}
-        machine = self.architecture
         pattern = re.compile(
             fr"{re.escape(self.package_name)}(?:-([^-]+))?-{self.project.version}.*\.{machine}\.rpm")
         for path in (self.distro_root / machine).glob(f"*.fc{self.version}.*.rpm"):

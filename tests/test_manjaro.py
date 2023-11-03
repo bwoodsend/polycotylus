@@ -12,14 +12,6 @@ class TestCommon(shared.Base):
     package_install = "pacman -Sy --needed --noconfirm glibc"
 
 
-def test_dumb_text_viewer():
-    self = Manjaro(Project.from_root(shared.dumb_text_viewer))
-    self.generate()
-    packages = self.build()
-    self.test(packages["main"])
-    self.update_artifacts_json(packages)
-
-
 def test_mirror_detection(monkeypatch):
     with contextlib.suppress(FileNotFoundError):
         (cache_root / "manjaro-mirror").unlink()
@@ -38,6 +30,20 @@ def test_mirror_detection(monkeypatch):
 
 
 test_multiarch = shared.qemu(Manjaro)
+
+
+def test_dumb_text_viewer_signing(monkeypatch):
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    self = Manjaro(Project.from_root(shared.dumb_text_viewer), None, "ED7C694736BC74B3")
+    self.generate()
+    packages = self.build()
+    self.test(packages["main"])
+    self.update_artifacts_json(packages)
+
+    # Test that GnuPG is running under C.UTF8 locale instead of C
+    container = _docker.run(self.build_builder_image(), ["gpg", "--list-secret-keys"],
+                            volumes=[(shared.gpg_home, "/root/.gnupg")])
+    assert "🎩" in container.output
 
 
 def test_fussy_arch():

@@ -76,3 +76,34 @@ megabytes, subsequent updates require only a few megabytes. The complexity of
 * ``zchunk`` performs so badly under ``qemu`` architecture emulation that even a
   minimal package takes around 20 minutes to build. Building for non-native
   architectures is not recommended nor tested.
+
+
+.. _fedora_signing:
+
+Package Signing
+...............
+
+Fedora packages are optionally signed using an embedded GnuPG_ signature. See
+:ref:`gpg_signing` for the signing itself.
+
+**To consume** your signed package, downstream users should (although ``rpm``
+strangely does nothing to prevent you from installing packages with untrusted
+signatures) install your public key into their ``rpm`` key stores.
+
+Export your public key::
+
+    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9 > 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+
+Then put the ``.asc`` file somewhere downloadable on your website. Users can
+then import the key using::
+
+    curl -O https://your.website/downloads/3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+    sudo rpm --import 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+
+The should now be able to verify your package using::
+
+    rpm -K your-package-0.1.0-1.fc39.noarch.rpm
+
+Note that DNF will not block installation if the key is not imported. The only
+indicator that something is wrong would be the message ``digests SIGNATURES NOT
+OK`` from ``rpm -K``.

@@ -8,8 +8,9 @@ import platform
 import shlex
 from urllib.request import urlopen
 import json
+from pathlib import Path, PurePosixPath
 
-from polycotylus import _misc, _docker
+from polycotylus import _misc, _docker, _exceptions
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate
 
@@ -35,6 +36,7 @@ class Void(BaseDistribution):
     }
     libc = "glibc"
     libc_tag = ""
+    signature_property = "private_key"
 
     @_misc.classproperty
     def base_image(self, cls):
@@ -205,22 +207,36 @@ class Void(BaseDistribution):
             (self.distro_root / "srcpkgs" / self.package_name, f"/io/srcpkgs/{self.package_name}"),
             (self.distro_root / "hostdir/sources", "/io/hostdir/sources"),
         ]
+        if self.private_key:
+            volumes.append((str(self.private_key), f"/key/{self.private_key.name}"))
+
         mirror_url = "http://localhost:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
+        script = self._formatter(f"""
+            git config --global --add safe.directory /io
+            git config core.symlinks true
+            git checkout {self._void_packages_head()} -- .
+            sed -r -i 's|https://repo-default.voidlinux.org|{mirror_url}|g' etc/xbps.d/repos-*
+            echo 'XBPS_CHROOT_CMD=ethereal\\nXBPS_ALLOW_CHROOT_BREAKOUT=yes' > etc/conf
+            ln -s / masterdir
+            ./xbps-src -1 pkg {self.package_name}
+        """)
+        if self.private_key:
+            script += self._formatter(f"""
+                xbps-rindex --sign --signedby "{self.project.maintainer}" --privkey /key/{self.private_key.name} $PWD/hostdir/binpkgs
+                xbps-rindex --sign-pkg --privkey /key/{self.private_key.name} $PWD/hostdir/binpkgs/*.xbps
+            """)
         with self.mirror:
-            container = _docker.run(self.build_builder_image(), f"""
-                git config --global --add safe.directory /io
-                git config core.symlinks true
-                git checkout {self._void_packages_head()} -- .
-                sed -r -i 's|https://repo-default.voidlinux.org|{mirror_url}|g' etc/xbps.d/repos-*
-                echo 'XBPS_CHROOT_CMD=ethereal\\nXBPS_ALLOW_CHROOT_BREAKOUT=yes' > etc/conf
-                ln -s / masterdir
-                ./xbps-src -1 pkg {self.package_name}
-            """, "--privileged", tty=True, post_mortem=True, volumes=volumes,
-                architecture=self.docker_architecture)
+            container = _docker.run(self.build_builder_image(), script, "--privileged",
+                                    tty=True, post_mortem=True, volumes=volumes,
+                                    architecture=self.docker_architecture,
+                                    interactive=bool(self.private_key))
         name = f"{self.package_name}-{self.project.version}_1.{self.architecture}{self.libc_tag}.xbps"
         (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
         repodata = f"{self.architecture}{self.libc_tag}-repodata"
         (self.distro_root / self.libc / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
+        if self.private_key:
+            signature = name + ".sig2"
+            (self.distro_root / self.libc / signature).write_bytes(container.file(f"/io/hostdir/binpkgs/{signature}"))
         return {"main": self.distro_root / self.libc / name}
 
     def test(self, package):
@@ -229,11 +245,21 @@ class Void(BaseDistribution):
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:
-            return _docker.run(base, f"""
-                sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
+            container = _docker.run(base, f"""
+                {"yes | " if self.private_key else ""} sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
+        if self.private_key:
+            with container["/var/db/xbps/keys/"] as tar:
+                files = [i for i in tar.getmembers() if i.name.endswith(".plist")]
+                assert len(files) == 3, repr(files)
+                path = max(files, key=lambda x: x.mtime)
+                name = PurePosixPath(path.name).name
+                with tar.extractfile(path) as f:
+                    contents = f.read()
+            (self.distro_root / name).write_bytes(contents)
+        return container
 
     @lru_cache()
     def _void_packages_head(self):
@@ -272,6 +298,32 @@ class Void(BaseDistribution):
             run(command, stdout=None if _docker._verbosity() >= 2 else PIPE, check=True)
 
         return cache
+
+    @property
+    def private_key(self):
+        return self._private_key
+
+    @private_key.setter
+    def private_key(self, path):
+        if path is None:
+            self._private_key = None
+            return
+        private_key = Path(path)
+        try:
+            with open(private_key, "rb") as f:
+                header = f.readline()
+                if not re.match(b"-----BEGIN( RSA)?( ENCRYPTED)? PRIVATE KEY-----", header):
+                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+                        Invalid Void signing private key file "{private_key}".
+                        Create a signing certificate using one of:
+
+                            openssl genrsa -out privkey.pem 4096        # passwordless
+                            openssl genrsa -des3 -out privkey.pem 4096  # password required
+                    """))
+        except OSError as ex:
+            raise _exceptions.PolycotylusUsageError(
+                f'Getting an {type(ex).__name__}() whilst accessing private key file "{private_key}"')
+        self._private_key = private_key
 
 
 class VoidMusl(Void):

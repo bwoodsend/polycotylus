@@ -5,6 +5,8 @@ import os
 import platform
 import json
 from functools import lru_cache
+import subprocess
+import base64
 
 from packaging.requirements import Requirement
 
@@ -19,8 +21,9 @@ class BaseDistribution(abc.ABC):
     supported_architectures = abc.abstractproperty()
     _packages = abc.abstractproperty()
     tag = abc.abstractproperty()
+    signature_property = None
 
-    def __init__(self, project, architecture=None):
+    def __init__(self, project, architecture=None, signature=None):
         self.project = project
         self.architecture = architecture or self.preferred_architecture
         if self.architecture not in self.supported_architectures:
@@ -45,6 +48,8 @@ class BaseDistribution(abc.ABC):
                         native package manager.
                     """))
                 _docker.setup_binfmt()
+        if self.signature_property:
+            setattr(self, self.signature_property, signature)
 
     @property
     def distro_root(self):
@@ -331,6 +336,44 @@ class BaseDistribution(abc.ABC):
                         "path": path,
                     })
             _misc.unix_write(json_path, json.dumps(artifacts, indent="  "))
+
+
+class GPGBased(abc.ABC):
+    signature_property = "signing_id"
+
+    @property
+    def signing_id(self):
+        return self._signing_id
+
+    @signing_id.setter
+    def signing_id(self, id):
+        if id is None:
+            self._signing_id = None
+            return
+        # Normalise key identifier (name/email/abbreviated fingerprint) to full
+        # length fingerprint (which doubles as a check that the key exists).
+        p = subprocess.run(["gpg", "--with-colons", "--status-fd=2", "--list-secret-keys", id],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if p.returncode:
+            assert "[GNUPG:] ERROR keylist.getkey 17" in p.stderr, p.stderr + "\nI am a bug in polycotylus, please report me!"
+            raise _exceptions.PolycotylusUsageError(
+                f'No private GPG key found with user ID or fingerprint "{id}"')
+        # For GPG's machine readable (--with-colons) mode, see:
+        # https://github.com/gpg/gnupg/blob/gnupg-2.5-base/doc/DETAILS#format-of-the-colon-listings
+        lines = p.stdout.splitlines()
+        keys = sorted(i.split(":")[4] for i in lines if i.startswith("sec:"))
+        if len(keys) > 1:
+            raise _exceptions.PolycotylusUsageError(
+                f'The GPG signing key identifier "{id}" is ambiguous. It could refer to either of {keys}')
+        fingerprints = [i.split(":")[9] for i in lines if i.startswith("fpr:")]
+        self._signing_id, = [i for i in fingerprints if i.endswith(keys[0])]
+
+    @property
+    def public_key(self):
+        p = subprocess.run(["gpg", "--armor", "--export", self.signing_id],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert p.returncode == 0, p.stderr.decode()
+        return base64.b64encode(p.stdout).decode("ascii")
 
 
 def _deduplicate(array):

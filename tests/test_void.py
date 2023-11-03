@@ -2,9 +2,13 @@ import tarfile
 import io
 import os
 import re
+from pathlib import Path
+import contextlib
 
+import pytest
 import pyzstd
 
+from polycotylus._exceptions import PolycotylusUsageError
 from polycotylus._project import Project
 from polycotylus._void import Void, VoidMusl
 import shared
@@ -68,7 +72,34 @@ def test_kitchen_sink(monkeypatch):
     self.update_artifacts_json(packages)
 
 
-def test_poetry():
+def test_signing_poetry(monkeypatch, tmp_path):
+    with contextlib.suppress(FileNotFoundError):
+        (shared.poetry_based / ".polycotylus/void/musl/python3-poetry-based-0.1.0_1.x86_64-musl.xbps.sig2").unlink()
+    import polycotylus.__main__
+    keys = Path(__file__).with_name("void-keys").resolve()
+    monkeypatch.chdir(shared.poetry_based)
+    polycotylus.__main__.cli(["void:musl", "--void-signing-certificate", str(keys / "unencrypted-ssl.pem")])
+    repodata = shared.poetry_based / f".polycotylus/void/musl/{Void.preferred_architecture}-musl-repodata"
+    with tarfile.open("", "r", io.BytesIO(pyzstd.decompress(repodata.read_bytes()))) as tar:
+        with tar.extractfile("index-meta.plist") as f:
+            signing_info = f.read()
+    assert b"rsa" in signing_info
+    assert (shared.poetry_based / ".polycotylus/void/musl/python3-poetry-based-0.1.0_1.x86_64-musl.xbps.sig2").exists()
+
     self = VoidMusl(Project.from_root(shared.poetry_based))
-    self.generate()
-    self.test(self.build()["main"])
+    for key in keys.glob("*.pem"):
+        self.private_key = key
+
+    with pytest.raises(PolycotylusUsageError,
+                       match=r'.*an IsADirectoryError\(\) whilst .* file ".*void-keys"'):
+        self.private_key = keys
+
+    broken_permissions = tmp_path / "foo"
+    broken_permissions.touch()
+    broken_permissions.chmod(0)
+    with pytest.raises(PolycotylusUsageError, match="PermissionError"):
+        self.private_key = broken_permissions
+
+    for name in ("pgp", "pgp-armor", "unencrypted-ssh.pem.pub"):
+        with pytest.raises(PolycotylusUsageError, match="Invalid"):
+            self.private_key = keys / name

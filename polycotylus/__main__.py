@@ -75,6 +75,8 @@ parser.add_argument("--configure", nargs="*", action=ConfigureAction,
 parser.add_argument("--list-localizations", action=ListLocalizationAction,
                     choices=["language", "region", "modifier"])
 parser.add_argument("--architecture")
+parser.add_argument("--gpg-signing-id")
+parser.add_argument("--void-signing-certificate")
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
@@ -90,7 +92,13 @@ def cli(argv=None):
         polycotylus._docker.post_mortem = options.post_mortem
 
         cls = polycotylus.distributions[options.distribution]
-        self = cls(polycotylus.Project.from_root("."), options.architecture)
+        signing_id = None
+        if issubclass(cls, polycotylus._base.GPGBased):
+            signing_id = options.gpg_signing_id
+        elif issubclass(cls, polycotylus.Void):  # pragma: no branch
+            signing_id = options.void_signing_certificate
+        self = cls(polycotylus.Project.from_root("."), options.architecture,
+                   signing_id)
         self.generate()
         artifacts = self.build()
         self.test(artifacts["main"])
@@ -100,6 +108,11 @@ def cli(argv=None):
     print(f"Built {len(set(artifacts.values()))} artifact{'s' if len(artifacts) != 1 else ''}:")
     for (variant, path) in artifacts.items():
         print(f"{variant}: {path}")
+    return artifacts
+
+
+def _console_script():  # pragma: no cover
+    cli()
 
 
 if __name__ == "__main__":

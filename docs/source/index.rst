@@ -12,6 +12,7 @@
     requirements
     example-library
     example-gui/index
+    gpg
 
 .. _`building for`:
 

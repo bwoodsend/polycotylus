@@ -11,14 +11,15 @@ from datetime import datetime
 import platform
 import shlex
 import itertools
+from pathlib import Path
 
 from packaging.requirements import Requirement
 
 from polycotylus import _docker, _misc, _exceptions
-from polycotylus._base import BaseDistribution
+from polycotylus._base import BaseDistribution, GPGBased
 
 
-class OpenSUSE(BaseDistribution):
+class OpenSUSE(GPGBased, BaseDistribution):
     base_image = "docker.io/opensuse/tumbleweed"
     tag = "tumbleweed"
     python_extras = {
@@ -36,19 +37,19 @@ class OpenSUSE(BaseDistribution):
     _formatter = _misc.Formatter("    ")
     _packages = {
         "python": "python3",
-        "xvfb-run": "xvfb-run",
+        "xvfb-run": "xvfb-run awk",
         "imagemagick": "ImageMagick",
         "imagemagick_svg": "librsvg",
         "font": "dejavu-fonts",
     }
 
-    def __init__(self, project, architecture=None):
+    def __init__(self, project, architecture=None, signing_id=None):
         if _docker.docker.variant == "podman":  # pragma: no cover
             # I think the incompatibility is in OpenSUSE's use of anonymous
             # UIDs. Leads to permission errors writing to /dev/null.
             raise _exceptions.PolycotylusUsageError(
                 "Building for OpenSUSE is not supported with podman.")
-        super().__init__(project, architecture)
+        super().__init__(project, architecture, signing_id)
         if self.project.architecture == "none":
             self.architecture = "noarch"
 
@@ -315,6 +316,8 @@ class OpenSUSE(BaseDistribution):
         """)
         if test_dependencies:
             out += f"RUN zypper install -y {shlex.join(test_dependencies)}\n"
+        if self.signing_id:
+            out += f"RUN echo '{self.public_key}' | base64 -d > /tmp/key.pub && rpm --import /tmp/key.pub\n"
         return out
 
     @property
@@ -348,10 +351,20 @@ class OpenSUSE(BaseDistribution):
         command = ["build", f"--uid={uid}", "--dist=tumbleweed", "--vm-network"]
         volumes = [(self.distro_root, "/io"),
                    (self.distro_root / "RPMS", "/var/tmp/build-root/home/abuild/rpmbuild/RPMS")]
+        if self.signing_id:
+            gpg_home = os.environ.get("GNUPGHOME", Path.home() / ".gnupg")
+            volumes.append((str(gpg_home), "/root/.gnupg"))
+            command = self._formatter(f"""
+                {shlex.join(command)}
+                gpg --export -a '{self.signing_id}' > /tmp/key
+                rpmkeys --import /tmp/key
+                echo '%_gpg_name {self.signing_id}' > ~/.rpmmacros
+                LANG=C.UTF8 rpm --addsign RPMS/{self.architecture}/*.rpm
+            """)
         with self.mirror:
             _docker.run(self.build_builder_image(), command, "--privileged",
                         volumes=volumes, post_mortem=True, tty=True,
-                        architecture=self.docker_architecture)
+                        interactive=True, architecture=self.docker_architecture)
         rpms = {}
         for python in ["python3"] if self.project.frontend else self.active_python_abis():
             arch = self.architecture

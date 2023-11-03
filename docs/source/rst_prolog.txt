@@ -21,5 +21,6 @@
 .. _Poetry: https://python-poetry.org/
 .. _SPDX: https://spdx.org/licenses/
 .. _qemu: https://www.qemu.org/
+.. _GnuPG: https://gnupg.org/
 
 .. highlight:: bash

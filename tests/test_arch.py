@@ -7,8 +7,9 @@ import textwrap
 import shutil
 
 import pyzstd
+import pytest
 
-from polycotylus import _docker
+from polycotylus import _docker, _exceptions
 from polycotylus._project import Project
 from polycotylus._mirror import mirrors
 from polycotylus._arch import Arch
@@ -93,18 +94,41 @@ def test_ubrotli():
     self.test(package)
 
 
-def test_kitchen_sink(monkeypatch):
+def test_kitchen_sink_signing(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Arch(Project.from_root(shared.kitchen_sink))
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    self = Arch(Project.from_root(shared.kitchen_sink), signature="póĺýĉöţỹùṣ 🎩")
     # Test for encoding surprises such as https://bugs.archlinux.org/task/40805#comment124197
-    monkeypatch.setattr(self.dockerfile, lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
+    monkeypatch.setattr(self, "dockerfile", lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
     self.generate()
     package = self.build()["main"]
+    assert package.with_name(package.name + ".sig").exists()
     installed = self.test(package).commit()
     script = "pacman -Q --info python-99---s1lly---name---packag3--x--y--z"
     container = _docker.run(installed, script, architecture=self.docker_architecture)
     assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
                      container.output)
+
+
+def test_signing_id_normalisation(monkeypatch):
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    self = Arch(Project.from_root(shared.bare_minimum))
+
+    self.signing_id = "ED7C694736BC74B3"
+    assert self.signing_id == "582A6792B83A333D3B316677ED7C694736BC74B3"
+    self.signing_id = "2DD6A735C5B889E7"
+    assert self.signing_id == "AD4A871B79599B9DD0F62EBE2DD6A735C5B889E7"
+    self.signing_id = "🎩"
+    assert self.signing_id == "582A6792B83A333D3B316677ED7C694736BC74B3"
+    self.signing_id = "encrypted@example.com"
+    assert self.signing_id == "AD4A871B79599B9DD0F62EBE2DD6A735C5B889E7"
+
+    with pytest.raises(_exceptions.PolycotylusUsageError,
+                       match="identifier \"example.com\" is ambiguous.* either of \\['2DD6A735C5B889E7', 'ED7C694736BC74B3'\\]"):
+        self.signing_id = "example.com"
+    with pytest.raises(_exceptions.PolycotylusUsageError,
+                       match='No private GPG key .* fingerprint "KoЯn"'):
+        self.signing_id = "KoЯn"
 
 
 def test_post_mortem(polycotylus_yaml):

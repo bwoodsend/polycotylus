@@ -79,11 +79,11 @@ class Debian(BaseDistribution):
     tag = "13"
     mirror = _mirror.mirrors["debian13"]
 
-    def __init__(self, package, architecture=None):
+    def __init__(self, project, architecture=None, signing_id=None):
         if architecture is None:
             architecture = machine()
             architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(architecture, architecture)
-        super().__init__(package, architecture)
+        super().__init__(project, architecture, signing_id)
         if self.project.architecture == "none":
             self.architecture = "all"
 
