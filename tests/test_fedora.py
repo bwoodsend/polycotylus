@@ -161,16 +161,22 @@ def test_test_command(polycotylus_yaml):
     assert "%global __pytest /usr/bin/xvfb-run %{python3} -c 'print(10)'" in spec
 
 
-def test_cli(monkeypatch, capsys):
+def test_cli_signing(monkeypatch, capsys):
     monkeypatch.chdir(shared.dumb_text_viewer)
     cli(["fedora"])
     capture = capsys.readouterr()
     assert "Built 1 artifact:\n" in capture.out
 
     monkeypatch.chdir(shared.ubrotli)
-    cli(["fedora"])
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    artifacts = cli(["fedora", "--gpg-signing-id=ED7C694736BC74B3"])
     capture = capsys.readouterr()
     assert "Built 3 artifacts:\n" in capture.out
+
+    rpm_info = _docker.run(Fedora.base_image,
+                           ["rpm", "-qpi"] + ["/io/" + i.name for i in artifacts.values()],
+                           volumes=[(artifacts["main"].parent, "/io")]).output
+    assert rpm_info.count("ED7C694736BC74B3".lower()) == 3
 
     with pytest.raises(SystemExit, match='^Error: Architecture "ppc64le" '):
         cli(["fedora", "--architecture=ppc64le"])

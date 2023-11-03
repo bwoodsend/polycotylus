@@ -45,7 +45,7 @@ test = [
 "homepage" = "https://github.com/bwoodsend/polycotylus"
 
 [project.scripts]
-polycotylus = "polycotylus.__main__:cli"
+polycotylus = "polycotylus.__main__:_console_script"
 
 [tool.setuptools]
 zip-safe = false

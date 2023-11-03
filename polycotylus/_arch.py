@@ -6,12 +6,14 @@ import shlex
 from functools import lru_cache
 import contextlib
 import shutil
+import os
+from pathlib import Path
 
 from polycotylus import _misc, _docker
-from polycotylus._base import BaseDistribution
+from polycotylus._base import BaseDistribution, GPGBased
 
 
-class Arch(BaseDistribution):
+class Arch(GPGBased, BaseDistribution):
     base_image = "archlinux:base"
     python_prefix = "/usr"
     python_extras = {
@@ -139,9 +141,11 @@ class Arch(BaseDistribution):
         """)
         return out
 
+    patch_gpg_locale = ""
+
     def dockerfile(self):
         dependencies = self.dependencies + self.build_dependencies + self.test_dependencies
-        return self._formatter(f"""
+        out = self._formatter(f"""
             FROM {self.base_image} AS base
 
             RUN {self.mirror.install_command}
@@ -153,10 +157,17 @@ class Arch(BaseDistribution):
             FROM base as build
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
             RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
+            {self.patch_gpg_locale}
 
             FROM base AS test
             RUN pacman -Syu --noconfirm --needed {shlex.join(self.test_dependencies)}
-    """)
+        """)
+        if self.signing_id:
+            out += self._formatter(f"""
+                RUN pacman-key --init
+                RUN echo '{self.public_key}' | base64 -d | pacman-key --add - && pacman-key --lsign '{self.signing_id}'
+            """)
+        return out
 
     def generate(self):
         with contextlib.suppress(FileNotFoundError):
@@ -169,10 +180,19 @@ class Arch(BaseDistribution):
         _misc.unix_write(self.distro_root / "PKGBUILD", self.pkgbuild())
 
     def build(self):
+        if self.signing_id:
+            signing_flags = ["--sign", "--key", self.signing_id]
+            gpg_home = os.environ.get("GNUPGHOME", Path.home() / ".gnupg")
+            gpg_volume = [(str(gpg_home), "/home/user/.gnupg")]
+        else:
+            signing_flags = []
+            gpg_volume = []
         with self.mirror:
-            _docker.run(self.build_builder_image(), "makepkg -fs --noconfirm",
-                        volumes=[(self.distro_root, "/io")], root=False,
-                        architecture=self.docker_architecture, tty=True, post_mortem=True)
+            _docker.run(self.build_builder_image(),
+                        ["makepkg", "-fs", "--noconfirm", *signing_flags],
+                        volumes=[(self.distro_root, "/io"), *gpg_volume],
+                        root=False, architecture=self.docker_architecture,
+                        tty=True, post_mortem=True, interactive=True)
         architecture = self.architecture if self.project.architecture != "none" else "any"
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-{architecture}.pkg.tar.zst")

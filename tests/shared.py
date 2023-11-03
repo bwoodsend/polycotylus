@@ -18,6 +18,8 @@ kitchen_sink = Path(__file__, "../mock-packages/kitchen-sink").resolve()
 fussy_arch = kitchen_sink.with_name("fussy_arch")
 poetry_based = kitchen_sink.with_name("poetry-based")
 
+gpg_home = Path(__file__).with_name("gpg-home").resolve()
+
 awkward_pypi_packages = [
     "zope.event",  # Contains a '.'
     "ruamel.yaml",

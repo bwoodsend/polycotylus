@@ -28,6 +28,11 @@ complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && 
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- u (commandline -t)' -a "$ubuntu_variants"
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
+# Suggest GPG signing only for distributions that use it or when no distribution is given.
+complete -c polycotylus -x -l gpg-signing-id -n "not __fish_seen_subcommand_from $all_variants || __fish_seen_subcommand_from arch fedora $fedora_variants manjaro opensuse" -a '(type -q gpg && __fish_complete_gpg_key_id gpg --list-secret-keys)'
+# Likewise with VoidLinux signing certificates.
+complete -c polycotylus -r -l void-signing-certificate -n "not __fish_seen_subcommand_from $all_variants || __fish_seen_subcommand_from void $void_variants"
+
 complete -c polycotylus -f -s q -l quiet -d 'Decrease verbosity'
 complete -c polycotylus -f -l post-mortem -d 'Enter container on error'
 complete -c polycotylus -f -s h -l help -d 'Show help'

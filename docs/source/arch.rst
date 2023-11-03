@@ -33,3 +33,39 @@ package is no longer findable. Once this happens, your existing built packages
 are effectively useless and you need to rebuild and release then encourage your
 users to run ``pacman -Syu`` (upgrade all packages) before installing/upgrading
 your package in case they still have the previous version of Python installed.
+
+
+Package Signing
+...............
+
+Arch packages are optionally signed using a GnuPG_ detached signature. See
+:ref:`gpg_signing` for the signing itself.
+
+**To consume** your signed package, downstream users will need to install your
+public key into their ``pacman`` key stores. You can get your key to them in two
+ways:
+
+1. The recommended way is to upload it to Arch's preferred keyserver::
+
+    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    # Copy/paste the output to http://keyserver.ubuntu.com/#submitKey
+
+  Note that there will be around a one hour propagation delay before the next
+  steps can work. Installers of your package should be instructed to import your
+  key from the keyserver as follows::
+
+    sudo pacman-key --init
+    sudo pacman-key --recv-keys 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    sudo pacman-key --lsign-key 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+
+2. Alternatively, you can boycott the keyserver and put the public key somewhere
+   on your website. Run::
+
+    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9 > 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+
+  Then put the ``.asc`` file somewhere downloadable on your website, with
+  instructions to your users to run::
+
+    sudo pacman-key --init
+    curl https://your.website/downloads/3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc | sudo pacman-key --add -
+    sudo pacman-key --lsign-key 3CB69E1833270B714034B7558CA85BF8D96DB4E9

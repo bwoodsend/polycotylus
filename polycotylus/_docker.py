@@ -64,6 +64,8 @@ class run:
                  interactive=False, tty=False, root=True, post_mortem=False,
                  architecture=machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
+        if interactive:
+            verbosity = 2
         if verbosity is None:
             verbosity = _verbosity()
         __tracebackhide__ = True
@@ -99,41 +101,34 @@ class run:
         if p.returncode:  # pragma: no cover
             raise SystemExit(p.stderr.decode())
         self.id = p.stdout.decode().splitlines()[-1]
-        if interactive:
-            if _run([docker, "start", "-ia", self.id]).returncode:
-                logs = _run([docker, "logs", self.id], stderr=STDOUT,
-                            stdout=PIPE, text=True).stdout
-                raise Error(human_friendly, logs)
+        p = _run([docker, "container", "start", "-ia" if interactive else "-a", self.id],
+                 stdout=None if verbosity >= 2 else DEVNULL,
+                 stderr=STDOUT if verbosity >= 2 else PIPE)
+        self.returncode = p.returncode
+        if check and self.returncode:
+            if post_mortem and globals()["post_mortem"]:
+                for shell in ["/usr/bin/fish", "/usr/bin/zsh", "/usr/sbin/bash", "/usr/bin/bash"]:  # pragma: no branch
+                    with contextlib.suppress(Exception):
+                        self[shell]
+                        break
+                else:  # pragma: no cover
+                    shell = "sh"
 
-        else:
-            p = _run([docker, "container", "start", "-a", self.id],
-                     stdout=None if verbosity >= 2 else DEVNULL,
-                     stderr=STDOUT if verbosity >= 2 else PIPE)
-            self.returncode = p.returncode
-            if check and self.returncode:
-                if post_mortem and globals()["post_mortem"]:
-                    for shell in ["/usr/bin/fish", "/usr/bin/zsh", "/usr/sbin/bash", "/usr/bin/bash"]:  # pragma: no branch
-                        with contextlib.suppress(Exception):
-                            self[shell]
-                            break
-                    else:  # pragma: no cover
-                        shell = "sh"
+                print("Error occurred. Entering post-mortem debug shell.",
+                      "The command polycotylus was trying to run was:",
+                      shlex.join(command) if isinstance(command, list) else command, flush=True)
+                image = self.commit()
+                run(image, [shell], *flags, volumes=volumes, tty=True,
+                    interactive=True, root=root, architecture=architecture,
+                    verbosity=0)
+                _run([docker, "image", "rm", image], stderr=DEVNULL, stdout=DEVNULL)
+                (images_cache() / image).unlink()
 
-                    print("Error occurred. Entering post-mortem debug shell.",
-                          "The command polycotylus was trying to run was:",
-                          shlex.join(command) if isinstance(command, list) else command, flush=True)
-                    image = self.commit()
-                    run(image, [shell], *flags, volumes=volumes, tty=True,
-                        interactive=True, root=root, architecture=architecture,
-                        verbosity=0)
-                    _run([docker, "image", "rm", image], stderr=DEVNULL, stdout=DEVNULL)
-                    (images_cache() / image).unlink()
+                raise SystemExit(1)
 
-                    raise SystemExit(1)
-
-                if not self.output and p.stderr:
-                    raise Error(human_friendly, p.stderr.decode())
-                raise Error(human_friendly, self.output)
+            if not self.output and p.stderr:
+                raise Error(human_friendly, p.stderr.decode())
+            raise Error(human_friendly, self.output)
 
     @property
     def output(self):

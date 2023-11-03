@@ -40,3 +40,10 @@ Caveats
 .......
 
 * Building for OpenSUSE is not supported with Podman_.
+
+
+Package Signing
+...............
+
+OpenSUSE's signing process is the same as Fedora's. See :ref:`Fedora package
+signing <fedora_signing>`.

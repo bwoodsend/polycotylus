@@ -95,11 +95,13 @@ def test_ubrotli():
 
 def test_kitchen_sink(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
-    self = Arch(Project.from_root(shared.kitchen_sink))
+    monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
+    self = Arch(Project.from_root(shared.kitchen_sink), signature="póĺýĉöţỹùṣ 🎩")
     # Test for encoding surprises such as https://bugs.archlinux.org/task/40805#comment124197
-    monkeypatch.setattr(self.dockerfile, lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
+    monkeypatch.setattr(self, "dockerfile", lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
     self.generate()
     package = self.build()["main"]
+    assert package.with_name(package.name + ".sig").exists()
     installed = self.test(package).commit()
     script = "pacman -Q --info python-99---s1lly---name---packag3--x--y--z"
     container = _docker.run(installed, script, architecture=self.docker_architecture)
