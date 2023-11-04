@@ -107,6 +107,8 @@ def test_kitchen_sink(monkeypatch):
     self.test(rpm)
     self.update_artifacts_json(rpms)
 
+    (self.distro_root / "noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.2-1.fc37.noarch.rpm").touch()
+
     self = Fedora37(Project.from_root(shared.kitchen_sink))
     rpms37 = self.build()
     rpm37 = rpms37["main"]
@@ -127,10 +129,10 @@ def test_kitchen_sink(monkeypatch):
   },
   {
     "distribution": "fedora",
-    "tag": "38",
+    "tag": "39",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm"
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc39.noarch.rpm"
   }
 ]"""
 

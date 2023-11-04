@@ -21,8 +21,8 @@ from polycotylus._base import BaseDistribution, _deduplicate
 
 class Fedora(BaseDistribution):
     name = "fedora"
-    version = "38"
-    base_image = "fedora:38"
+    version = "39"
+    base_image = "fedora:39"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
@@ -313,12 +313,12 @@ class Fedora37(Fedora):
     base_image = "fedora:37"
 
 
-Fedora38 = Fedora
+class Fedora38(Fedora):
+    version = "38"
+    base_image = "fedora:38/"
 
 
-class Fedora39(Fedora):
-    version = "39"
-    base_image = "fedora:39"
+Fedora39 = Fedora
 
 
 class Fedora40(Fedora):

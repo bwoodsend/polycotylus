@@ -12,7 +12,7 @@ homepage = "https://blah.blah"
 python = "^3.8"
 pyperclip = "^1.6"
 tabulate = "~0.9"
-certifi = "2022.*"
+certifi = "2023.*"
 cycler = ">= 0.8, < 10.5"
 toml = { version = "*", extras = ["kittens"] }
 filelock = { version = "^3", optional = true }
