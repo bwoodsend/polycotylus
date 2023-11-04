@@ -78,7 +78,7 @@ def test_dumb_text_viewer(Fedora):
 def test_png_source_icon(tmp_path, polycotylus_yaml):
     _raw = Project.from_root(shared.dumb_text_viewer).tar()
     with tarfile.open("", "r", io.BytesIO(_raw)) as tar:
-        tar.extractall(tmp_path)
+        tar.extractall(tmp_path, filter=tarfile.data_filter)
     config = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     config = config.replace("icon-source.svg", "dumb_text_viewer/icon.png")
     config = re.sub(".*pink-mode.svg", "", config)

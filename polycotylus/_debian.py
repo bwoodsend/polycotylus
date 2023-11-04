@@ -107,7 +107,7 @@ class Debian(BaseDistribution):
         preinstalled = set(re.findall("^([^/\n]+)/", _read("/installed"), flags=re.M))
         build_essential = {j for i in re.findall(r"  .*", _read("/build-essential")) for j in i.split()}
         cls._build_base_packages = preinstalled.union(build_essential)
-        cls._python_version = re.search("\npython3/.* (\d+\.\d+\.\d+)-", _read("/available"))[1]
+        cls._python_version = re.search(r"\npython3/.* (\d+\.\d+\.\d+)-", _read("/available"))[1]
 
     @classmethod
     @lru_cache()
@@ -143,7 +143,7 @@ class Debian(BaseDistribution):
         with open(self.distro_root / (self.source_name + ".orig.tar.gz"), "wb") as f:
             f.write(self.project.tar())
         with tarfile.open("", "r", io.BytesIO(self.project.tar(""))) as tar:
-            tar.extractall(self.distro_root / "build")
+            tar.extractall(self.distro_root / "build", filter=tarfile.data_filter)
 
     def dockerfile(self):
         return self._formatter(f"""
