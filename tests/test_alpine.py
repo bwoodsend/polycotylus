@@ -5,6 +5,7 @@ import shutil
 import re
 import platform
 import json
+import contextlib
 
 import toml
 import pytest
@@ -239,6 +240,8 @@ def test_license_handling(tmp_path):
 
 
 def test_kitchen_sink(monkeypatch):
+    with contextlib.suppress(FileNotFoundError):
+        shutil.rmtree(shared.kitchen_sink / ".polycotylus/fedora/noarch")
     (shared.kitchen_sink / ".polycotylus/fedora/noarch").mkdir(exist_ok=True, parents=True)
     (shared.kitchen_sink / ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm").touch()
     (shared.kitchen_sink / ".polycotylus/artifacts.json").write_text(json.dumps([
