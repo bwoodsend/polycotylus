@@ -18,8 +18,7 @@ class CompletionAction(argparse.Action):
             if sys.stdout.isatty():  # pragma: no cover
                 print("# Pipe the output of this command into source or ~/.config/fish/completions/polycotylus.fish\n",
                       file=sys.stderr, flush=True)
-        with resources.open_text("polycotylus._completions", self.files[shell]) as f:
-            print(f.read(), end="")
+        print((resources.files("polycotylus._completions") / self.files[shell]).read_text(), end="")
         parser.exit()
 
 

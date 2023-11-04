@@ -6,7 +6,6 @@ import io
 import tarfile
 import json
 import gzip
-import warnings
 from importlib import resources
 import itertools
 import textwrap
@@ -16,14 +15,6 @@ from fnmatch import fnmatch
 import toml
 
 from polycotylus import _exceptions, _yaml_schema, _misc
-
-
-# When dropping support for Python 3.8, replace
-# importlib.resources.read_bytes("polycotylus", "xyz") with
-# (importlib.resources.files("polycotylus") / "xyz").read_bytes().
-warnings.filterwarnings(
-    "ignore", r":(read|open)_(text|binary) is deprecated. Use files\(\) instead.",
-    DeprecationWarning)
 
 
 @dataclass
@@ -543,10 +534,8 @@ def check_maintainer(name):
         )
 
 
-with resources.open_binary("polycotylus", "trove-spdx-licenses.json") as f:
-    trove_to_spdx = json.load(f)
-with resources.open_binary("polycotylus", "spdx-osi-approval.json") as f:
-    spdx_osi_approval = json.load(f)
+trove_to_spdx = json.loads((resources.files("polycotylus") / "trove-spdx-licenses.json").read_bytes())
+spdx_osi_approval = json.loads((resources.files("polycotylus") / "spdx-osi-approval.json").read_bytes())
 
 if __name__ == "__main__":
     self = Project.from_root(".")

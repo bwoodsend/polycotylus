@@ -36,7 +36,7 @@ test = [
     "pytest_ordered @ https://github.com/bwoodsend/pytest-ordered/archive/c86f9f460bb24b1029f6ce77feefea0e011e1b90.zip",
     "coverage",
     "pytest-cov",
-    "pillow",
+#    "pillow",
     "pyzstd",
     "setuptools-scm",
 ]

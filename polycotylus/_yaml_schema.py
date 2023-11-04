@@ -79,8 +79,7 @@ class Maintainer(ScalarValidator):
         return dict(zip(["name", "email"], match.groups()))
 
 
-with resources.open_binary("polycotylus", "localizations.json") as f:
-    localizations = json.load(f)
+localizations = json.loads((resources.files("polycotylus") / "localizations.json").read_bytes())
 
 python_extra = Regex("(bz2|ctypes|curses|curses.panel|dbm|dbm.gnu|dbm.ndbm|decimal|lzma|readline|sqlite3|tkinter|zlib)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
