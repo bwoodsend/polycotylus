@@ -374,7 +374,7 @@ class OpenSUSE(BaseDistribution):
                 sudo zypper install --allow-unsigned-rpm -y /pkg/{package.name}
                 {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
-                               architecture=self.docker_architecture)
+                architecture=self.docker_architecture)
 
 
 def _join(args):

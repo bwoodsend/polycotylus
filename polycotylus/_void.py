@@ -216,7 +216,7 @@ class Void(BaseDistribution):
                 ln -s / masterdir
                 ./xbps-src -1 pkg {self.package_name}
             """, "--privileged", tty=True, post_mortem=True, volumes=volumes,
-                                    architecture=self.docker_architecture)
+                architecture=self.docker_architecture)
         name = f"{self.package_name}-{self.project.version}_1.{self.architecture}{self.libc_tag}.xbps"
         (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
         repodata = f"{self.architecture}{self.libc_tag}-repodata"
@@ -233,7 +233,7 @@ class Void(BaseDistribution):
                 sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
-                               architecture=self.docker_architecture)
+                architecture=self.docker_architecture)
 
     @lru_cache()
     def _void_packages_head(self):
