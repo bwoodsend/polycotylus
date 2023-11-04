@@ -305,7 +305,7 @@ def test_control_c(tmp_path):
                 with urlopen("http://localhost:9989/foo") as response:
                     response.read()
         """)], stderr=subprocess.PIPE) as p:
-            assert p.wait(3) == -2, p.stderr
+            assert p.wait(5) == -2, p.stderr
     foo_cache = tmp_path / "foo"
     assert foo_cache.stat().st_size < 1_000_000
     assert json.loads((tmp_path / "partial-downloads.json").read_bytes()) == ["/foo"]

@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         _:
-          - python: 3.11
+          - python: 3.12
             docker: docker
           - python: 3.8
             docker: podman
@@ -72,6 +72,9 @@ jobs:
     needs: main
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.12  # must match latest version tested against
       - run: pip install coverage
       - uses: actions/download-artifact@v3
         with:
