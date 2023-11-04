@@ -305,7 +305,7 @@ class Fedora(BaseDistribution):
                 sudo dnf install -y /pkg/{rpm.name}
                 {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
-                               architecture=self.docker_architecture)
+                architecture=self.docker_architecture)
 
 
 class Fedora37(Fedora):
