@@ -84,3 +84,15 @@ something like the following:
 
         - name: Install Alpine signing keys
           run: echo '${{ secrets.ALPINE_SIGNING_KEYS }}' | base64 -d | tar xz -C ~
+
+
+
++--------------+--------------+--------+
+|Distribution  | Architecture | Comment|
++======+=======+======+=======+========+
+|Alpine|       |x86_64|aarch64| poo    |
++      +-------+------+-------+ ``and  +
+|      |3.17   |10    |13     | wee``  |
++      +-------+------+-------+        |
+|      |3.18   |16    |19     |        |
++------+-------+------+-------+--------+
