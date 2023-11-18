@@ -212,6 +212,8 @@ class Void(BaseDistribution):
 
         mirror_url = "http://localhost:8902" if platform.system() == "Linux" else "http://host.docker.internal:8902"
         script = self._formatter(f"""
+            read -p 'Password?: ' password
+            export XBPS_PASSPHRASE="$password"
             git config --global --add safe.directory /io
             git config core.symlinks true
             git checkout {self._void_packages_head()} -- .
@@ -229,7 +231,7 @@ class Void(BaseDistribution):
             container = _docker.run(self.build_builder_image(), script, "--privileged",
                                     tty=True, post_mortem=True, volumes=volumes,
                                     architecture=self.docker_architecture,
-                                    interactive=bool(self.private_key))
+                                    interactive=bool(self.private_key), input=b"password\n")
         name = f"{self.package_name}-{self.project.version}_1.{self.architecture}{self.libc_tag}.xbps"
         (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
         repodata = f"{self.architecture}{self.libc_tag}-repodata"

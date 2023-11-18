@@ -62,7 +62,7 @@ def images_cache():
 class run:
     def __init__(self, base, command=None, *flags, volumes=(), check=True,
                  interactive=False, tty=False, root=True, post_mortem=False,
-                 architecture=machine(), verbosity=None):
+                 input=None, architecture=machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
         if interactive:
             verbosity = 2
@@ -72,7 +72,9 @@ class run:
         arguments = ["--network=host", "--platform=linux/" + architecture]
         for (source, dest) in volumes:
             arguments.append(f"-v{Path(source).resolve()}:{dest}:z")
-        if interactive or command:
+        if input:
+            arguments.append("-i")
+        elif interactive or command:
             arguments.append("-it" if tty else "-i")
         elif tty:  # pragma: no cover
             arguments.append("-t")
@@ -103,7 +105,7 @@ class run:
         self.id = p.stdout.decode().splitlines()[-1]
         p = _run([docker, "container", "start", "-ia" if interactive else "-a", self.id],
                  stdout=None if verbosity >= 2 else DEVNULL,
-                 stderr=STDOUT if verbosity >= 2 else PIPE)
+                 stderr=STDOUT if verbosity >= 2 else PIPE, input=input)
         self.returncode = p.returncode
         if check and self.returncode:
             if post_mortem and globals()["post_mortem"]:
