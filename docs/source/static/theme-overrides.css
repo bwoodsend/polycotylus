@@ -133,3 +133,8 @@ div[id="reference-polycotylus-yaml"] h3 {
   position: relative;
   font-family: Lato,proxima-nova,Helvetica Neue,Arial,sans-serif;
 }
+
+/* Make code block text easier to read. */
+.rst-content .linenodiv pre, .rst-content div[class^="highlight"] pre, .rst-content pre.literal-block {
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
+}
