@@ -293,7 +293,7 @@ class OpenSUSE(BaseDistribution):
             WORKDIR /io
 
             FROM base AS build
-            RUN zypper install -y which osc build perl-XML-Parser hostname python3-pip python3-setuptools awk
+            RUN zypper install -y which osc build perl-XML-Parser hostname python3-pip python3-setuptools awk zstd
             # OpenSUSE's build tool "build" creates a fakeroot environment in
             # which it reinstalls all the base packages plus some core build
             # tools and all the declared dependencies. Unfortunately, it
