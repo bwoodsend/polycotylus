@@ -44,7 +44,7 @@ class Fedora(GPGBased, BaseDistribution):
 
     def __init__(self, project, architecture=None, signing_id=None):
         if platform.system() == "Windows":  # pragma: no cover
-            # The mounting of dnf's cache onto the host filesystem requires UNIX
+            # The mounting of DNF's cache onto the host filesystem requires UNIX
             # permissions that Windows filesystems lack support for.
             raise _exceptions.PolycotylusUsageError(
                 "Building for Fedora is not supported on Windows.")

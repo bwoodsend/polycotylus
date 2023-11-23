@@ -106,7 +106,7 @@ def test_comments_in_polycotylus_yaml(polycotylus_yaml):
 
                     shoes
         desktop_entry_points:
-            bagpus:
+            bagpuss:
                 Name: hello
                 Exec: ...
                 MimeType: |
@@ -119,8 +119,8 @@ def test_comments_in_polycotylus_yaml(polycotylus_yaml):
     """)
     self = Project.from_root(bare_minimum)
     assert self.dependencies["pip"] == ["numpy", "pyperclip", "octopus", "foo", "bar", "shoes"]
-    assert "MimeType=x/a;x/b;x/c;y/a;y/b;\n" in self._desktop_file("bagpus", self.desktop_entry_points["bagpus"])
-    assert "Categories=Text editor;thing;\n" in self._desktop_file("bagpus", self.desktop_entry_points["bagpus"])
+    assert "MimeType=x/a;x/b;x/c;y/a;y/b;\n" in self._desktop_file("bagpuss", self.desktop_entry_points["bagpuss"])
+    assert "Categories=Text editor;thing;\n" in self._desktop_file("bagpuss", self.desktop_entry_points["bagpuss"])
 
 
 def test_license_handling(polycotylus_yaml, pyproject_toml):

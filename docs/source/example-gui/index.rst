@@ -177,7 +177,7 @@ applications menus. For example, in XFCE's Whisker menu, it looks like this:
 
     The reciprocal command to uninstall would be::
 
-        rm -rf ~/.local/share/applications/$your_desktopfile_identifier.deskop ~/.local/share/icons/hicolor/*/apps/$your_desktopfile_identifier.*
+        rm -rf ~/.local/share/applications/$your_desktopfile_identifier.desktop ~/.local/share/icons/hicolor/*/apps/$your_desktopfile_identifier.*
 
     Most desktops I have used will respond to new/updated desktop files
     instantly without needing to run some kind of *update-xyz* command although
