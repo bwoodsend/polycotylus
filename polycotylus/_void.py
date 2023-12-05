@@ -234,14 +234,16 @@ class Void(BaseDistribution):
         (self.distro_root / self.libc / name).write_bytes(container.file(f"/io/hostdir/binpkgs/{name}"))
         repodata = f"{self.architecture}{self.libc_tag}-repodata"
         (self.distro_root / self.libc / repodata).write_bytes(container.file(f"/io/hostdir/binpkgs/{repodata}"))
+        artifact = self._make_artifact(self.distro_root / self.libc / name, "main", None)
         if self.private_key:
-            signature = name + ".sig2"
-            (self.distro_root / self.libc / signature).write_bytes(container.file(f"/io/hostdir/binpkgs/{signature}"))
-        return {"main": self.distro_root / self.libc / name}
+            signature = self.distro_root / self.libc / (name + ".sig2")
+            signature.write_bytes(container.file(f"/io/hostdir/binpkgs/{signature.name}"))
+            artifact.signature_path = signature
+        return {"main": artifact}
 
     def test(self, package):
         base = self.build_test_image()
-        volumes = [(package.parent, "/pkg")]
+        volumes = [(package.path.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:

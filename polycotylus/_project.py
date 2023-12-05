@@ -12,6 +12,7 @@ import itertools
 import textwrap
 import os
 from fnmatch import fnmatch
+import contextlib
 
 import toml
 
@@ -493,6 +494,49 @@ class Project:
                 print("❌", name + ":")
                 print(textwrap.indent(str(ex), "    ") + "", flush=True)
         return exit_code
+
+    @contextlib.contextmanager
+    def artifacts_database(self):
+        import portalocker
+        json_path = self.root / ".polycotylus/artifacts.json"
+        with portalocker.Lock(json_path.with_name(".artifacts.lock")):
+            try:
+                artifacts = json.loads(json_path.read_bytes())
+            except:
+                artifacts = []
+            for artifact in artifacts:
+                artifact["path"] = self.root / artifact["path"]
+                if artifact.get("signature_path"):
+                    artifact["signature_path"] = self.root / artifact["path"]
+            artifacts = [Artifact(**i) for i in artifacts]
+            artifacts = [i for i in artifacts if (self.root / i.path).exists()]
+            try:
+                yield artifacts
+            finally:
+                deduplicated = {}
+                for artifact in artifacts:
+                    deduplicated[artifact._identifier] = artifact
+                artifacts = [deduplicated[i] for i in sorted(deduplicated)]
+                artifacts = [i.to_dict(self.root) for i in artifacts]
+                _misc.unix_write(json_path, json.dumps(artifacts, indent="  "))
+
+
+@dataclass
+class Artifact:
+    distribution: str
+    tag: str
+    architecture: str
+    variant: str
+    path: Path
+    signature_path: str = None
+
+    @property
+    def _identifier(self):
+        return self.distribution, self.tag, self.architecture, self.variant, self.path.name
+
+    def to_dict(self, root):
+        return {i: j.relative_to(root).as_posix() if isinstance(j, Path) else j
+                for (i, j) in self.__dict__.items()}
 
 
 class Dependency(str):

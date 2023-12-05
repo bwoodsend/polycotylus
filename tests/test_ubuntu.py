@@ -68,6 +68,7 @@ def test_ubrotli():
             "architecture": "amd64",
             "variant": "main",
             "path": ".polycotylus/ubuntu/23.04/python3-ubrotli_0.1.0-1_amd64.deb",
+            "signature_path": None,
         },
         {
             "distribution": "ubuntu",
@@ -75,6 +76,7 @@ def test_ubrotli():
             "architecture": "arm64",
             "variant": "main",
             "path": ".polycotylus/ubuntu/23.04/python3-ubrotli_0.1.0-1_arm64.deb",
+            "signature_path": None,
         },
         {
             "distribution": "ubuntu",
@@ -82,6 +84,7 @@ def test_ubrotli():
             "architecture": "amd64",
             "variant": "main",
             "path": ".polycotylus/ubuntu/23.10/python3-ubrotli_0.1.0-1_amd64.deb",
+            "signature_path": None,
         }
     ]
 

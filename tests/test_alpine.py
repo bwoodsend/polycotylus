@@ -76,7 +76,7 @@ def test_dumb_text_viewer():
     assert "pyc" in apks
     apk = apks["main"]
 
-    with tarfile.open(apk) as tar:
+    with tarfile.open(apk.path) as tar:
         files = tar.getnames()
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
@@ -108,7 +108,7 @@ def test_png_source_icon(polycotylus_yaml):
     self.generate()
     assert "svg" not in self.apkbuild()
     apks = self.build()
-    with tarfile.open(apks["main"]) as tar:
+    with tarfile.open(apks["main"].path) as tar:
         files = tar.getnames()
     for file in files:
         assert ".svg" not in file
@@ -129,7 +129,7 @@ def test_ubrotli():
     assert "$pkgname-pyc" not in self.apkbuild()
 
     apks = self.build()
-    with tarfile.open(apks["main"]) as tar:
+    with tarfile.open(apks["main"].path) as tar:
         for file in tar.getnames():
             assert ".desktop" not in file
             assert ".png" not in file
@@ -198,7 +198,7 @@ def test_license_handling(tmp_path):
     self.generate()
     apks = self.build()
     assert "doc" not in apks
-    with tarfile.open(apks["main"]) as tar:
+    with tarfile.open(apks["main"].path) as tar:
         for file in tar.getnames():
             assert "LICENSE" not in file
         with tar.extractfile(".PKGINFO") as f:
@@ -210,12 +210,12 @@ def test_license_handling(tmp_path):
     self = Alpine(Project.from_root(tmp_path))
     self.generate()
     apks = self.build()
-    with tarfile.open(apks["main"]) as tar:
+    with tarfile.open(apks["main"].path) as tar:
         for file in tar.getnames():
             assert "LICENSE" not in file
         with tar.extractfile(".PKGINFO") as f:
             assert re.search("license = (.+)", f.read().decode())[1] == "custom"
-    with tarfile.open(apks["doc"]) as tar:
+    with tarfile.open(apks["doc"].path) as tar:
         path = "usr/share/licenses/py3-bare-minimum/LICENSE"
         assert path in tar.getnames()
         with tar.extractfile(path) as f:
@@ -229,10 +229,10 @@ def test_license_handling(tmp_path):
     self = Alpine(Project.from_root(tmp_path))
     self.generate()
     apks = self.build()
-    with tarfile.open(apks["main"]) as tar:
+    with tarfile.open(apks["main"].path) as tar:
         with tar.extractfile(".PKGINFO") as f:
             assert re.search("license = (.+)", f.read().decode())[1] == "custom"
-    with tarfile.open(apks["doc"]) as tar:
+    with tarfile.open(apks["doc"].path) as tar:
         path = "usr/share/licenses/py3-bare-minimum/LICENSE"
         assert path in tar.getnames()
         with tar.extractfile(path) as f:
@@ -283,15 +283,15 @@ def test_kitchen_sink(monkeypatch):
         all_apks.extend(apks.values())
         self.update_artifacts_json(apks)
 
-        with tarfile.open(apks["doc"]) as tar:
+        with tarfile.open(apks["doc"].path) as tar:
             path = "usr/share/licenses/py3-99---s1lly---name---packag3--x--y--z/The license file"
             assert path in tar.getnames()
             with tar.extractfile(path) as f:
                 assert "🦄" in f.read().decode()
 
     for apk in all_apks:
-        assert apk.exists()
-    assert len(set(all_apks)) == 11
+        assert apk.path.exists()
+    assert len(set(i.path for i in all_apks)) == 11
 
     assert json.loads((shared.kitchen_sink / ".polycotylus/artifacts.json").read_bytes()) == [
         {
@@ -299,73 +299,85 @@ def test_kitchen_sink(monkeypatch):
             "tag": "3.17",
             "architecture": "x86_64",
             "variant": "doc",
-            "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.17",
             "architecture": "x86_64",
             "variant": "main",
-            "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
             "variant": "doc",
-            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
             "variant": "main",
-            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
             "variant": "pyc",
-            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
             "variant": "doc",
-            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
             "variant": "main",
-            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
             "variant": "pyc",
-            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
             "variant": "doc",
-            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
             "variant": "main",
-            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
             "variant": "pyc",
-            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk"
+            "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
+            "signature_path": None
         }, {
             "distribution": "fedora",
             "tag": "38",
             "architecture": "noarch",
             "variant": "main",
-            "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm"
+            "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm",
+            "signature_path": None
         }
     ]
 

@@ -196,17 +196,20 @@ class Arch(GPGBased, BaseDistribution):
         architecture = self.architecture if self.project.architecture != "none" else "any"
         package, = self.distro_root.glob(
             f"{self.package_name}-{self.project.version}-*-{architecture}.pkg.tar.zst")
-        return {"main": package}
+        artifact = self._make_artifact(package, "main")
+        if self.signing_id:
+            artifact.signature_path = package.with_name(package.name + ".sig")
+        return {"main": artifact}
 
     def test(self, package):
         with self.mirror:
             base = self.build_test_image()
-            volumes = [(package.parent, "/pkg")]
+            volumes = [(package.path.parent, "/pkg")]
             for path in self.project.test_files:
                 volumes.append((self.project.root / path, f"/io/{path}"))
             return _docker.run(base, f"""
                 sudo pacman -Syu --noconfirm
-                sudo pacman -U --noconfirm /pkg/{package.name}
+                sudo pacman -U --noconfirm /pkg/{package.path.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
