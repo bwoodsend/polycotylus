@@ -110,6 +110,6 @@ def test_unittest(monkeypatch):
 
     rpm_info = polycotylus._docker.run(
         polycotylus.OpenSUSE.base_image,
-        ["rpm", "-qpi"] + ["/io/" + i.name for i in set(rpms.values())],
-        volumes=[(rpms["main"].parent, "/io")]).output
+        ["rpm", "-qpi"] + ["/io/" + i for i in {i.path.name for i in rpms.values()}],
+        volumes=[(rpms["main"].path.parent, "/io")]).output
     assert rpm_info.count("ED7C694736BC74B3".lower()) == 3

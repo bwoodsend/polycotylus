@@ -265,21 +265,21 @@ class Alpine(BaseDistribution):
         apk = _dist / f"{self.package_name}-{self.project.version}-r1.apk"
         doc = _dist / f"{self.package_name}-doc-{self.project.version}-r1.apk"
         pyc = _dist / f"{self.package_name}-pyc-{self.project.version}-r1.apk"
-        apks = {"main": apk}
+        apks = {"main": self._make_artifact(apk, "main")}
         if doc.exists():
-            apks["doc"] = doc
+            apks["doc"] = self._make_artifact(doc, "doc")
         if pyc.exists():
-            apks["pyc"] = pyc
+            apks["pyc"] = self._make_artifact(pyc, "pyc")
         return apks
 
     def test(self, package):
         base = self.build_test_image()
-        volumes = [(package.parent, "/pkg")]
+        volumes = [(package.path.parent, "/pkg")]
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:
             return _docker.run(base, f"""
-                sudo apk add /pkg/{package.name}
+                sudo apk add /pkg/{package.path.name}
                 {self.project.test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)

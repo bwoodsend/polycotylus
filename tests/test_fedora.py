@@ -115,8 +115,8 @@ def test_kitchen_sink(monkeypatch):
     self.test(rpm37)
     self.update_artifacts_json(rpms37)
 
-    assert rpm.exists()
-    assert rpm != rpm37
+    assert rpm.path.exists()
+    assert rpm.path != rpm37.path
 
     assert (shared.kitchen_sink / ".polycotylus/artifacts.json").read_bytes() == b"""\
 [
@@ -125,14 +125,16 @@ def test_kitchen_sink(monkeypatch):
     "tag": "37",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc37.noarch.rpm"
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc37.noarch.rpm",
+    "signature_path": null
   },
   {
     "distribution": "fedora",
     "tag": "39",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc39.noarch.rpm"
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc39.noarch.rpm",
+    "signature_path": null
   }
 ]"""
 
@@ -174,8 +176,8 @@ def test_cli_signing(monkeypatch, capsys):
     assert "Built 3 artifacts:\n" in capture.out
 
     rpm_info = _docker.run(Fedora.base_image,
-                           ["rpm", "-qpi"] + ["/io/" + i.name for i in artifacts.values()],
-                           volumes=[(artifacts["main"].parent, "/io")]).output
+                           ["rpm", "-qpi"] + ["/io/" + i.path.name for i in artifacts.values()],
+                           volumes=[(artifacts["main"].path.parent, "/io")]).output
     assert rpm_info.count("ED7C694736BC74B3".lower()) == 3
 
     with pytest.raises(SystemExit, match='^Error: Architecture "ppc64le" '):

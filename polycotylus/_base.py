@@ -3,7 +3,6 @@ import shutil
 import re
 import os
 import platform
-import json
 from functools import lru_cache
 import subprocess
 import base64
@@ -11,6 +10,7 @@ import base64
 from packaging.requirements import Requirement
 
 from polycotylus import _docker, _exceptions, _misc, machine
+from polycotylus._project import Artifact
 from polycotylus._mirror import mirrors
 
 
@@ -312,30 +312,12 @@ class BaseDistribution(abc.ABC):
     def test(self, package):
         pass
 
+    def _make_artifact(self, path, variant, signature_path=None):
+        return Artifact(self.name, self.tag, self.architecture, variant, path, signature_path)
+
     def update_artifacts_json(self, packages):
-        import portalocker
-        json_path = self.project.root / ".polycotylus/artifacts.json"
-        with portalocker.Lock(json_path.with_name(".artifacts.lock")):
-            try:
-                artifacts = json.loads(json_path.read_bytes())
-            except:
-                artifacts = []
-            grouped = {
-                (i["distribution"], i["tag"], i["architecture"], i["variant"]): i["path"]
-                for i in artifacts
-            }
-            for (variant, path) in packages.items():
-                grouped[(self.name, self.tag, self.architecture, variant)] = \
-                    str(path.relative_to(self.project.root))
-            artifacts = []
-            for ((name, tag, architecture, variant), path) in sorted(grouped.items()):
-                if (self.project.root / path).exists():
-                    artifacts.append({
-                        "distribution": name, "tag": tag,
-                        "architecture": architecture, "variant": variant,
-                        "path": path,
-                    })
-            _misc.unix_write(json_path, json.dumps(artifacts, indent="  "))
+        with self.project.artifacts_database() as database:
+            database.extend(packages.values())
 
 
 class GPGBased(abc.ABC):

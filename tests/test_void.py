@@ -35,8 +35,8 @@ def test_ubrotli():
     self.test(glibc_xbps)
     glibc_builder = self
 
-    assert native_xbps.exists()
-    assert glibc_xbps.exists()
+    assert native_xbps.path.exists()
+    assert glibc_xbps.path.exists()
     native_builder.test(native_xbps)
     glibc_builder.test(glibc_xbps)
 
@@ -56,7 +56,7 @@ def test_png_source_icon(polycotylus_yaml):
     self.generate()
     assert "svg" not in self.template()
     packages = self.build()
-    raw = pyzstd.decompress(packages["main"].read_bytes())
+    raw = pyzstd.decompress(packages["main"].path.read_bytes())
     with tarfile.open("", "r", io.BytesIO(raw)) as tar:
         files = tar.getnames()
     for file in files:

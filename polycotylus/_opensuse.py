@@ -369,9 +369,9 @@ class OpenSUSE(GPGBased, BaseDistribution):
         for python in ["python3"] if self.project.frontend else self.active_python_abis():
             arch = self.architecture
             name = f"{python}-{self.fix_package_name(self.project.name)}-{self.project.version}-0.{arch}.rpm"
-            rpm = self.distro_root / "RPMS" / arch / name
+            rpm = self._make_artifact(self.distro_root / "RPMS" / arch / name, "main")
             rpms["main" if self.project.frontend else python] = rpm
-            assert rpm.exists(), rpm
+            assert rpm.path.exists(), rpm
             if python == self.default_python_abi():
                 rpms["main"] = rpm
         return rpms
@@ -379,12 +379,12 @@ class OpenSUSE(GPGBased, BaseDistribution):
     def test(self, package):
         with self.mirror:
             base = self.build_test_image()
-            volumes = [(package.parent, "/pkg")]
+            volumes = [(package.path.parent, "/pkg")]
             for path in self.project.test_files:
                 volumes.append((self.project.root / path, f"/io/{path}"))
             test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
             return _docker.run(base, f"""
-                sudo zypper install --allow-unsigned-rpm -y /pkg/{package.name}
+                sudo zypper install --allow-unsigned-rpm -y /pkg/{package.path.name}
                 {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)

@@ -263,9 +263,9 @@ class Debian(BaseDistribution):
         path = self.distro_root / f"{self.package_name}_{self.project.version}-1_{self.architecture}.deb"
         assert path.exists(), path
         debug = path.with_name(f"{self.package_name}-dbgsym_{self.project.version}-1_{self.architecture}.deb")
-        packages = {"main": path}
+        packages = {"main": self._make_artifact(path, "main")}
         if debug.exists():
-            packages["dbgsym"] = debug
+            packages["dbgsym"] = self._make_artifact(debug, "dbgsym")
         return packages
 
     def test(self, package):
@@ -273,7 +273,7 @@ class Debian(BaseDistribution):
         with self.mirror:
             return _docker.run(self.build_builder_image(), f"""
                 sudo apt-get update
-                sudo apt-get install -y '/io/{package.name}'
+                sudo apt-get install -y '/io/{package.path.name}'
                 {test_command}
             """, volumes=[(self.distro_root, "/io")], tty=True, root=False,
                 post_mortem=True, architecture=self.docker_architecture)

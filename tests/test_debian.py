@@ -44,28 +44,32 @@ def test_ubrotli():
             "tag": "13",
             "architecture": "amd64",
             "variant": "dbgsym",
-            "path": ".polycotylus/debian/13/python3-ubrotli-dbgsym_0.1.0-1_amd64.deb"
+            "path": ".polycotylus/debian/13/python3-ubrotli-dbgsym_0.1.0-1_amd64.deb",
+            "signature_path": None,
         },
         {
             "distribution": "debian",
             "tag": "13",
             "architecture": "amd64",
             "variant": "main",
-            "path": ".polycotylus/debian/13/python3-ubrotli_0.1.0-1_amd64.deb"
+            "path": ".polycotylus/debian/13/python3-ubrotli_0.1.0-1_amd64.deb",
+            "signature_path": None,
         },
         {
             "distribution": "debian",
             "tag": "13",
             "architecture": "i386",
             "variant": "dbgsym",
-            "path": ".polycotylus/debian/13/python3-ubrotli-dbgsym_0.1.0-1_i386.deb"
+            "path": ".polycotylus/debian/13/python3-ubrotli-dbgsym_0.1.0-1_i386.deb",
+            "signature_path": None,
         },
         {
             "distribution": "debian",
             "tag": "13",
             "architecture": "i386",
             "variant": "main",
-            "path": ".polycotylus/debian/13/python3-ubrotli_0.1.0-1_i386.deb"
+            "path": ".polycotylus/debian/13/python3-ubrotli_0.1.0-1_i386.deb",
+            "signature_path": None,
         }
     ]
 

@@ -93,7 +93,7 @@ def qemu(cls):
         package = self.build()["main"]
         packages[architecture] = package
         for (_architecture, _package) in packages.items():
-            assert _package.is_file()
+            assert _package.path.is_file()
         container = self.test(package)
         with container[self.python_prefix] as tar:
             files = tar.getnames()

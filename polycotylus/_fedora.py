@@ -302,12 +302,12 @@ class Fedora(GPGBased, BaseDistribution):
             fr"{re.escape(self.package_name)}(?:-([^-]+))?-{self.project.version}.*\.{machine}\.rpm")
         for path in (self.distro_root / machine).glob(f"*.fc{self.version}.*.rpm"):
             if m := pattern.match(path.name):
-                rpms[m[1] or "main"] = path
+                rpms[m[1] or "main"] = self._make_artifact(path, m[1] or "main")
         assert "main" in rpms
         return rpms
 
     def test(self, rpm):
-        volumes = [(rpm.parent, "/pkg")] + self._mounted_caches
+        volumes = [(rpm.path.parent, "/pkg")] + self._mounted_caches
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         test_dependencies = []
@@ -316,7 +316,7 @@ class Fedora(GPGBased, BaseDistribution):
         test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
-                sudo dnf install -y /pkg/{rpm.name}
+                sudo dnf install -y /pkg/{rpm.path.name}
                 {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)

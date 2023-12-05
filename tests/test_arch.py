@@ -82,7 +82,7 @@ def test_ubrotli():
     assert "gcc" not in self.pkgbuild()
 
     package = self.build()["main"]
-    raw = pyzstd.decompress(package.read_bytes())
+    raw = pyzstd.decompress(package.path.read_bytes())
     with tarfile.open("", "r", io.BytesIO(raw)) as tar:
         for file in tar.getnames():
             assert ".desktop" not in file
@@ -101,13 +101,21 @@ def test_kitchen_sink_signing(monkeypatch):
     # Test for encoding surprises such as https://bugs.archlinux.org/task/40805#comment124197
     monkeypatch.setattr(self, "dockerfile", lambda: Arch.dockerfile(self) + "ENV LANG=C\n")
     self.generate()
-    package = self.build()["main"]
-    assert package.with_name(package.name + ".sig").exists()
+    packages = self.build()
+    package = packages["main"]
+    assert package.signature_path.exists()
     installed = self.test(package).commit()
     script = "pacman -Q --info python-99---s1lly---name---packag3--x--y--z"
     container = _docker.run(installed, script, architecture=self.docker_architecture)
     assert re.search(r"""Description *: 🚀 🦄 "quoted" 'quoted again' \$\$\$""",
                      container.output)
+    self.update_artifacts_json(packages)
+    with self.project.artifacts_database() as artifacts:
+        artifact, = (i for i in artifacts if i._identifier == package._identifier)
+        assert artifact.path.exists()
+        assert artifact.path.is_absolute()
+        assert artifact.signature_path.exists()
+        assert artifact.signature_path.is_absolute()
 
 
 def test_signing_id_normalisation(monkeypatch):
