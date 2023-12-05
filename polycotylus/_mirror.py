@@ -274,13 +274,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             # File is cached but is one which may be updated in-place upstream
             # without changing its name. Determine if it needs re-downloading,
             timestamp = self.cache.stat().st_mtime
-            for get_last_update in self.parent.last_sync_time:
-                if get_last_update(self) > timestamp:
-                    self.cache.unlink()
-                    use_cache = False
-                    break
-            else:
+            if any(last_update(self) < timestamp for last_update in self.parent.last_sync_time):
+                use_cache = True
                 os.utime(self.cache)
+            else:
+                self.cache.unlink()
+                use_cache = False
 
         self.send_response(HTTPStatus.OK)
         with self.parent._lock:
