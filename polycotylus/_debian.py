@@ -143,7 +143,7 @@ class Debian(BaseDistribution):
         with open(self.distro_root / (self.source_name + ".orig.tar.gz"), "wb") as f:
             f.write(self.project.tar())
         with tarfile.open("", "r", io.BytesIO(self.project.tar(""))) as tar:
-            tar.extractall(self.distro_root / "build", filter=tarfile.data_filter)
+            _misc.tar_extract_all(tar, self.distro_root / "build")
 
     def dockerfile(self):
         return self._formatter(f"""

@@ -1,6 +1,7 @@
 import textwrap
 import shlex
 import re
+import tarfile
 
 
 def array(*items):
@@ -40,3 +41,10 @@ def unix_write(path, text):
     """
     with open(path, "wb") as f:
         f.write(text.encode())
+
+
+def tar_extract_all(tar, path):
+    if hasattr(tarfile, "data_filter"):  # pragma: no cover
+        tar.extractall(path, filter=tarfile.data_filter)
+    else:  # pragma: no cover
+        tar.extractall(path)

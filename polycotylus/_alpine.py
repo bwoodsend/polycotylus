@@ -11,7 +11,6 @@ import hashlib
 from pathlib import Path
 import contextlib
 import platform
-import tarfile
 
 from polycotylus import _misc, _docker
 from polycotylus._project import spdx_osi_approval
@@ -234,7 +233,7 @@ class Alpine(BaseDistribution):
                 abuild-keygen -nq
             """)
         with container["/root/.abuild"] as tar:
-            tar.extractall(Path.home(), filter=tarfile.data_filter)
+            _misc.tar_extract_all(tar, Path.home())
             _, key, _ = sorted(tar.getnames(), key=len)
 
         if config.exists():

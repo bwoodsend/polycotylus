@@ -10,7 +10,7 @@ jobs:
         _:
           - python: 3.12
             docker: docker
-          - python: 3.8
+          - python: 3.8.12  # Test https://docs.python.org/3/library/tarfile.html#supporting-older-python-versions
             docker: podman
         suite:
           - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py tests/test_docs.py

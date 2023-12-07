@@ -10,7 +10,7 @@ import contextlib
 import toml
 import pytest
 
-from polycotylus import _docker, _exceptions
+from polycotylus import _docker, _exceptions, _misc
 from polycotylus._project import Project
 from polycotylus._fedora import Fedora, Fedora37, Fedora40
 from polycotylus.__main__ import cli
@@ -78,7 +78,7 @@ def test_dumb_text_viewer(Fedora):
 def test_png_source_icon(tmp_path, polycotylus_yaml):
     _raw = Project.from_root(shared.dumb_text_viewer).tar()
     with tarfile.open("", "r", io.BytesIO(_raw)) as tar:
-        tar.extractall(tmp_path, filter=tarfile.data_filter)
+        _misc.tar_extract_all(tar, tmp_path)
     config = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     config = config.replace("icon-source.svg", "dumb_text_viewer/icon.png")
     config = re.sub(".*pink-mode.svg", "", config)
