@@ -78,6 +78,7 @@
     "License :: OSI Approved :: Vovida Software License 1.0": "VSL-1.0",
     "License :: OSI Approved :: W3C License": "W3C",
     "License :: OSI Approved :: X.Net License": "Xnet",
+    "License :: OSI Approved :: Zero-Clause BSD (0BSD)": "0BSD",
     "License :: OSI Approved :: zlib/libpng License": "Zlib",
     "License :: OSI Approved :: Zope Public License": ["ZPL-1.1", "ZPL-2.0", "ZPL-2.1"],
     "License :: Other/Proprietary License": "ignore",
