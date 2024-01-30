@@ -331,7 +331,7 @@ class Fedora(GPGBased, BaseDistribution):
             mkdir -p /var/cache/mock /var/cache/dnf
             dnf install -y dnf-utils createrepo_c
         """, volumes=self._mounted_caches)
-        paths = {"/io/" + self.repository_layout(i["tag"], i["architecture"]) for i in artifacts}
+        paths = {"/io/" + self.repository_layout(i.tag, i.architecture) for i in artifacts}
         command = ["createrepo", *paths]
         _docker.run(image, command, interactive=True, tty=True,
                     volumes=[(root, "/io")] + self._mounted_caches, root=False)

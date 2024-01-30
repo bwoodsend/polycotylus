@@ -54,7 +54,9 @@ class Alpine(BaseDistribution):
         with cls.mirror:
             container = _docker.run(cls.base_image, f"""
                 {cls.mirror.install_command}
-                apk update
+                echo 'http://0.0.0.0:9999/alpine/v3.19/' >> /etc/apk/repositories
+                wget http://0.0.0.0:9999/alpine/bwoodsend@gmail.com-63b087db.rsa.pub -P /etc/apk/keys/
+                apk update --allow-untrusted
                 apk search -q > /packages
                 apk info -q > /base-packages
                 apk add --simulate alpine-sdk > /sdk-packages
@@ -178,6 +180,7 @@ class Alpine(BaseDistribution):
             FROM {self.base_image} AS base
 
             RUN {self.mirror.install_command}
+            RUN echo 'http://0.0.0.0:9999/alpine/v3.19/' >> /etc/apk/repositories
             RUN echo -e {repr(public.read_text("utf8"))} > "/etc/apk/keys/{public.name}"
 
             RUN apk add shadow sudo
@@ -300,7 +303,7 @@ class Alpine(BaseDistribution):
                 RUN {self.mirror.install_command}
                 RUN apk add abuild
             """), ".")
-        types = {(i["tag"], i["architecture"]) for i in artifacts}
+        types = {(i.tag, i.architecture) for i in artifacts}
         command = ""
         for (tag, architecture) in types:
             repo_path = self.repository_layout(tag, architecture)

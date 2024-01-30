@@ -6,7 +6,7 @@ import platform
 from functools import lru_cache
 import subprocess
 import base64
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 from packaging.requirements import Requirement
 
@@ -323,10 +323,10 @@ class BaseDistribution(abc.ABC):
 
     @classmethod
     def copy_to_repository(cls, root, artifact):
-        dest = Path(root, artifact["distribution"],
-                    cls.repository_layout(artifact["tag"], artifact["architecture"]))
+        dest = Path(root, artifact.distribution,
+                    cls.repository_layout(artifact.tag, artifact.architecture))
         dest.mkdir(exist_ok=True, parents=True)
-        shutil.copyfile(artifact["path"], dest / PurePosixPath(artifact["path"]).name)
+        shutil.copyfile(artifact.path, dest / artifact.path.name)
 
     @abc.abstractmethod
     def index_repository(self, root, files):

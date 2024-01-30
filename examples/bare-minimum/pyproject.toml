@@ -10,7 +10,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 
-dependencies = []
+dependencies = ["ubrotli"]
 
 [project.urls]
 "homepage" = "https://github.com/bwoodsend/polycotylus"

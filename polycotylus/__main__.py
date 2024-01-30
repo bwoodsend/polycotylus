@@ -4,7 +4,6 @@ from importlib import resources
 import re
 import contextlib
 import sys
-import json
 from pathlib import Path
 
 import polycotylus
@@ -62,16 +61,18 @@ class PresubmitCheckAction(argparse.Action):
 
 class AddToRepositoryAction(argparse.Action):
     def __call__(self, parser, namespace, path, option_string=None):
+        project = polycotylus.Project.from_root(".")
         by_distribution = {}
-        for artifact in json.loads(Path(".polycotylus/artifacts.json").read_bytes()):
-            cls = polycotylus.distributions[artifact["distribution"]]
-            cls.copy_to_repository(path, artifact)
-            by_distribution.setdefault(artifact["distribution"], []).append(artifact)
+        with project.artifacts_database() as artifacts:
+            for artifact in artifacts:
+                cls = polycotylus.distributions[artifact.distribution]
+                cls.copy_to_repository(path, artifact)
+                by_distribution.setdefault(artifact.distribution, []).append(artifact)
 
         for (distribution, artifacts) in by_distribution.items():
             cls = polycotylus.distributions[distribution]
-            self = cls(polycotylus.Project.from_root("."))
-            self.index_repository(Path(path, artifacts[0]["distribution"]), artifacts)
+            self = cls(project)
+            self.index_repository(Path(path, artifacts[0].distribution), artifacts)
         parser.exit()
 
 

@@ -46,7 +46,7 @@ class Void(BaseDistribution):
     @_misc.classproperty
     def base_image(self, cls):
         architecture = cls.preferred_architecture if self is None else self.architecture
-        return _void_base_image(architecture, cls.libc)
+        return _void_base_image(cls.libc, architecture)
 
     @_misc.classproperty
     def tag(_, cls):
@@ -337,9 +337,9 @@ class Void(BaseDistribution):
         return tag
 
     def index_repository(self, root, artifacts):
-        for (tag, architecture) in {(i["tag"], i["architecture"]) for i in artifacts}:
+        for (tag, architecture) in {(i.tag, i.architecture) for i in artifacts}:
             _docker.run(_void_base_image(tag, architecture),
-                        f"cd /io/{tag} && xbps-rindex --add *.{architecture}*.xbps",
+                        f"cd /io/{tag} && xbps-rindex --force --add *.{architecture}*.xbps",
                         volumes=[(root, "/io")], architecture=architecture)
 
 

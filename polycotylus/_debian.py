@@ -2,6 +2,7 @@
 https://www.debian.org/doc/manuals/debmake-doc/index.en.html
 https://www.debian.org/doc/manuals/maint-guide/
 https://wiki.debian.org/Python/LibraryStyleGuide
+https://deb.moep.com/manual.html
 """
 
 import shlex
@@ -315,7 +316,7 @@ class Debian(BaseDistribution):
                 commands.append(["reprepro", "-Vb", "/repo", "-A", self.architecture,
                                  "remove", self.codename, self.package_name])
             commands.append(["reprepro", "-Vb", "/repo", "includedeb",
-                             self.codename, "/io/" + artifact["path"]])
+                             self.codename, "/io/" + artifact.path.relative_to(self.project.root).as_posix()])
         _docker.run(image, "\n".join(shlex.join(i) for i in commands), root=False,
                     volumes=[(self.project.root, "/io"), (root, "/repo")])
 
