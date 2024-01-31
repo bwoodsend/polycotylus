@@ -13,7 +13,7 @@ import contextlib
 import platform
 
 from polycotylus import _misc, _docker
-from polycotylus._project import spdx_osi_approval
+from polycotylus._project import spdx_osi_approved
 from polycotylus._base import BaseDistribution
 
 
@@ -99,7 +99,7 @@ class Alpine(BaseDistribution):
         top_level = self.project.source_top_level.format(version="$pkgver")
 
         license_names = [
-            i if spdx_osi_approval.get(i) else "custom"
+            i if i in spdx_osi_approved else "custom"
             for i in self.project.license_names
         ]
         out += _misc.variables(

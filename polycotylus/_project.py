@@ -589,8 +589,8 @@ def check_maintainer(name):
 
 with resources.open_binary("polycotylus", "trove-spdx-licenses.json") as f:
     trove_to_spdx = json.load(f)
-with resources.open_binary("polycotylus", "spdx-osi-approval.json") as f:
-    spdx_osi_approval = json.load(f)
+with resources.open_binary("polycotylus", "spdx-osi-approved.txt") as f:
+    spdx_osi_approved = set(re.findall("[^\n]+", f.read().decode()))
 
 if __name__ == "__main__":
     self = Project.from_root(".")

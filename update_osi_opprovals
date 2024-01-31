@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-curl -L https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json | jq --indent 4 '.licenses | map({(.licenseId): (.isOsiApproved)}) | add' > polycotylus/spdx-osi-approval.json
+curl -L https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json | jq --raw-output '.licenses[] | select(.isOsiApproved) | .licenseId' > polycotylus/spdx-osi-approved.txt
