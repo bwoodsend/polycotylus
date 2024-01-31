@@ -13,6 +13,9 @@ desktop_entry_points:
     Name: Dumb Text Viewer
     Exec: dumb_text_viewer %u
     GenericName: Text Viewer
+    Categories: |
+      Utility
+      TextEditor
     MimeType: |
       text/css;text/csv;text/html;text/plain;text/richtext;
       text/tab-separated-values;text/x-python;text/x-setext;

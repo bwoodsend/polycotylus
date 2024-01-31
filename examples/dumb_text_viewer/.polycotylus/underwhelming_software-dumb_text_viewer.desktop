@@ -1,5 +1,6 @@
 [Desktop Entry]
 Actions=pink-mode;
+Categories=Utility;TextEditor;
 Comment=Read plain text files
 Comment[ar]=اقرأ ملفات النص العادي
 Comment[es]=Leer archivos de texto sin formato
