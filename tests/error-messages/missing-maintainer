@@ -1,0 +1,10 @@
+No maintainer declared in either the pyproject.toml or polycotylus.yaml. Nominate who will be responsible for maintaining this and declare them using either:
+
+[30m# pyproject.toml[0m
+[[36mproject[0m]
+[36mmaintainers[0m = [{name=[32m"Your Name"[0m, email=[32m"your@email.com"[0m}]
+
+Or:
+
+[30m# polycotylus.yaml[0m
+[36mmaintainer[0m: Your Name <your.email@address.com>

@@ -1,0 +1,6 @@
+Dependency [32m'Hippos_can_fly'[0m appears to be unavailable on Alpine Linux. You will need to submit [32m'Hippos_can_fly'[0m to Alpine Linux's package repositories before you can build your own project. It's also possible that it is already there but is named something weird, in which case, supply its name to the [36mdependency_name_map[0m option in the polycotylus.yaml:
+
+[30m# polycoylus.yaml[0m
+[36mdependency_name_map[0m:
+  [36mHippos_can_fly[0m:
+    [36malpine[0m: whatever-its-really-called

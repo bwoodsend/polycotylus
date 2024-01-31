@@ -162,10 +162,9 @@ def test_unknown_package(polycotylus_yaml):
                 pip: Hippos_can_fly
     """)
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
-    with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match="Dependency \"Hippos_can_fly\" appears .* on Alpine Linux. "
-                       ".* submit Hippos_can_fly to Alpine Linux\'s package"):
+    with pytest.raises(_exceptions.PolycotylusUsageError) as capture:
         self.apkbuild()
+    assert str(capture.value) == shared.error_messages["unavailable-package"]
     polycotylus_yaml("""
         dependencies:
             test:
@@ -385,15 +384,15 @@ def test_kitchen_sink(monkeypatch):
 test_multiarch = shared.qemu(Alpine)
 
 
-def test_architecture_errors(monkeypatch):
+def test_architecture_errors(monkeypatch, no_color):
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match='Architecture "donkey" is not available on Alpine Linux.'):
+                       match="Architecture 'donkey' is not available on Alpine Linux."):
         Alpine(Project.from_root(shared.ubrotli), "donkey")
 
     monkeypatch.setattr(shutil, "which", lambda x: None)
     monkeypatch.setattr(platform, "system", lambda: "Linux")
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match='Emulating "ppc64le" requires the "qemu-ppc64le-static" command'):
+                       match="Emulating 'ppc64le' requires the 'qemu-ppc64le-static' command"):
         Alpine(Project.from_root(shared.ubrotli), "ppc64le")
 
 

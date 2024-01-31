@@ -1,0 +1,1 @@
+Field [36m'license'[0m is missing from poetry's configuration (the [[36mtool.poetry[0m] section of the pyproject.toml). See https://python-poetry.org/docs/pyproject/#license for what to set it to.

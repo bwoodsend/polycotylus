@@ -57,6 +57,8 @@ class Project:
 
     @classmethod
     def from_root(cls, root):
+        from polycotylus._exceptions import comment, string, key, highlight_toml
+
         root = Path(root)
         try:
             pyproject_options = toml.load(str(root / "pyproject.toml"))
@@ -107,8 +109,9 @@ class Project:
                 poetry_spdx = poetry_project["license"]
             except KeyError as ex:
                 raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                    Field "{ex.args[0]}" is missing from poetry's configuration
-                    (the [tool.poetry] section of the pyproject.toml). See
+                    Field {key(repr(ex.args[0]))} is missing from poetry's
+                    configuration (the [{key("tool.poetry")}] section of the
+                    pyproject.toml). See
                     https://python-poetry.org/docs/pyproject/#{ex.args[0]} for
                     what to set it to.
                 """)) from None
@@ -128,12 +131,12 @@ class Project:
                         str(root), version_scheme=lambda v: str(v.tag), local_scheme=lambda x: "")
                     _setuptools_scm = True
                 except ImportError:
-                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
                         setuptools-scm project detected (implied by the
-                        [tool.setuptools_scm] section in the pyproject.toml).
-                        polycotylus requires setuptools-scm to be installed to
-                        process setuptools-scm versioned projects. Please pip
-                        install setuptools-scm.
+                        [{key("tool.setuptools_scm")}] section in the
+                        pyproject.toml). polycotylus requires setuptools-scm to
+                        be installed to process setuptools-scm versioned
+                        projects. Please {string("pip install setuptools-scm")}
                     """))
             else:
                 missing_fields["version"] = "1.2.3"
@@ -156,39 +159,47 @@ class Project:
                 missing_fields["license"] = {"file": "LICENSE.txt"}
         if missing_fields:
             raise _exceptions.PolycotylusUsageError(
-                f"Missing pyproject.toml fields {sorted(missing_fields)}. "
+                f"Missing pyproject.toml fields {highlight_toml(str(sorted(missing_fields)))}. "
                 "Add or migrate them to the pyproject.toml.\n\n"
-                + textwrap.indent(toml.dumps({"project": missing_fields}), "    ")
-                + "\nThey cannot be dynamic."
+                + highlight_toml("# pyproject.toml\n" +
+                                 toml.dumps({"project": missing_fields}))
             )
         if invalid := re.sub(r"[\d.]", "", project["version"]):
             raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                Your project version "{project["version"]}" contains the
-                disallowed characters "{invalid}". Linux distributions
-                ubiquitously only support versions made up of numbers and periods.
+                Your project version {string(repr(project["version"]))} contains
+                the disallowed characters {string(repr(invalid))}. Linux
+                distributions ubiquitously only support versions made up of
+                numbers and periods.
             """))
         if not (maintainer := polycotylus_options.get("maintainer")):
             maintainers = project.get("maintainers", project.get("authors", []))
             if not maintainers:
-                raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
-                    No maintainer declared in either the pyproject.toml or
-                    polycotylus.yaml. Nominate who will be responsible for
-                    maintaining this and declare them using either:
-                        # in pyproject.toml
+                raise _exceptions.PolycotylusUsageError(
+                    "No maintainer declared in either the pyproject.toml or "
+                    "polycotylus.yaml. Nominate who will be responsible for "
+                    "maintaining this and declare them using either:\n" +
+                    highlight_toml(textwrap.dedent("""
+                        # pyproject.toml
                         [project]
                         maintainers = [{name="Your Name", email="your@email.com"}]
-                    Or:
-                        # polycotylus.yaml
-                        maintainer: Your Name <your.email@address.com>
-                """))
+                    """)) + textwrap.dedent(f"""
+                        Or:
+
+                        {comment(f"# polycotylus.yaml")}
+                        {key("maintainer")}: Your Name <your.email@address.com>
+                    """)
+                )
             if len(maintainers) > 1:
                 raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
                     Multiple maintainers declared in pyproject.toml.
                     Linux repositories require exactly one maintainer of the
                     Linux package. Nominate who that should be and specify
                     their contact details in the polycotylus.yaml.
-                        maintainer: your name <your@email.org>"
-                    """))
+                """) + textwrap.dedent(f"""
+
+                    {comment("# polycotylus.yaml")}
+                    {key("maintainer")}: your name <your@email.org>
+                """))
             maintainer, = maintainers
 
         if polycotylus_options.get("spdx"):
@@ -449,15 +460,19 @@ class Project:
     def presubmit_missing_build_backend(self):
         pyproject_options = toml.load(str(self.root / "pyproject.toml"))
         if pyproject_options.get("build-system", {}).get("build-backend") is None:
-            raise _exceptions.PresubmitCheckError(_exceptions._unravel("""
-                No build backend specified via the build-system.build-backend
-                key in the pyproject.toml. Pip/build correctly defaults to
-                setuptools but Fedora does not handle this case properly. Add
-                    [build-system]
-                    requires = ["setuptools>=61.0"]
-                    build-backend = "setuptools.build_meta"
-                to your pyproject.toml to keep fedpkg happy.
-            """))
+            from polycotylus._exceptions import highlight_toml, key
+            raise _exceptions.PresubmitCheckError(_exceptions._unravel(f"""
+                No build backend specified via the
+                {key("build-system.build-backend")} key in the pyproject.toml.
+                Pip/build correctly defaults to setuptools but Fedora does not
+                handle this case properly. Add the following to your
+                pyproject.toml to keep fedpkg happy.
+            """) + highlight_toml(textwrap.dedent('''
+
+                # pyproject.toml
+                [build-system]
+                requires = ["setuptools>=61.0"]
+                build-backend = "setuptools.build_meta"''')))
 
     def presubmit_nonfunctional_dependencies(self):
         prohibited = []
@@ -482,7 +497,7 @@ class Project:
         checks = {
             "Implicit build backend": self.presubmit_missing_build_backend,
             "Nonfunctional dependencies": self.presubmit_nonfunctional_dependencies,
-            "Human maintainer": lambda: check_maintainer(self.maintainer),
+            "Non human maintainer": lambda: check_maintainer(self.maintainer),
         }
         exit_code = 0
         for (i, (name, method)) in enumerate(checks.items(), start=1):
@@ -491,8 +506,8 @@ class Project:
                 print("✅", name, flush=True)
             except _exceptions.PresubmitCheckError as ex:
                 exit_code += (1 << i)
-                print("❌", name + ":")
-                print(textwrap.indent(str(ex), "    ") + "", flush=True)
+                print("❌", name + ":\n")
+                print(str(ex) + "\n", flush=True)
         return exit_code
 
     @contextlib.contextmanager
@@ -579,11 +594,12 @@ def expand_pip_requirements(requirement, cwd, source, extras=None):
 def check_maintainer(name):
     if re.search(r"\b(the|team|et al\.?|contributors|and|development|developers"
                  r"|llc|inc\.?|limited)\b", name.lower()):
+        from polycotylus._exceptions import comment, key, string
         raise _exceptions.PresubmitCheckError(
-            f'Maintainer "{name}" appears to be a generic team or organization '
-            'name. Linux repositories require personal contact details. '
-            "Set them in the polycotylus.yaml.\n"
-            "    maintainer: your name <your@email.org>"
+            f'Maintainer {string(repr(name))} appears to be a generic team or '
+            'organization name. Linux repositories require personal contact details. '
+            "Set them in the polycotylus.yaml:\n\n"
+            f"{comment('# polycotylus.yaml')}\n{key('maintainer')}: your name <your@email.org>"
         )
 
 

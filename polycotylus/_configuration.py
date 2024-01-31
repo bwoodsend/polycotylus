@@ -26,7 +26,8 @@ def read(key):
 def write(key, value):
     if key not in options:
         raise _exceptions.PolycotylusUsageError(
-            f"Unknown configuration option '{key}'. Supported options are {options}")
+            f"Unknown configuration option {_exceptions.key(repr(key))}. "
+            f"Supported options are {_exceptions.highlight_toml(str(options))}")
     path = Path(appdirs.user_config_dir("polycotylus", appauthor=False), key)
     path.parent.mkdir(parents=True, exist_ok=True)
     _misc.unix_write(path, value)

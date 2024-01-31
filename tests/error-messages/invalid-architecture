@@ -1,0 +1,1 @@
+[31mError[0m: Architecture [32m'ppc64le'[0m is not available on Fedora Linux. Valid architectures are [[32m'aarch64'[0m, [32m'x86_64'[0m].

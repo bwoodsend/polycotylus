@@ -1,6 +1,8 @@
 import textwrap
 import re
 
+import termcolor
+
 
 def _unravel(text):
     return re.sub("(^ .*\n)|\n(?! )", lambda m: m[1] or " ",
@@ -15,6 +17,26 @@ class PolycotylusYAMLParseError(PolycotylusUsageError):
     pass
 
 
+def key(x):
+    return termcolor.colored(x, "cyan")
+
+
+def comment(x):
+    return termcolor.colored(x, "grey")
+
+
+def string(x):
+    return termcolor.colored(x , "green")
+
+
+def highlight_toml(x):
+    x = re.sub(r"\[([\w.-]+)\]", lambda m: "[" + key(m[1]) + "]" , x)
+    x = re.sub(r"([\"'])[^\"']+\1", lambda m: string(m[0]), x)
+    x = re.sub(r"^([\w-]+) =", lambda m: key(m[1]) + " =", x, flags=re.M)
+    x = re.sub(r"#.*", lambda m: comment(m[0]), x)
+    return x
+
+
 class AmbiguousLicenseError(PolycotylusUsageError):
     def __init__(self, classifier, possibilities):
         self.classifier = classifier
@@ -23,14 +45,17 @@ class AmbiguousLicenseError(PolycotylusUsageError):
     def __str__(self):
         return _unravel(f"""
             Polycotylus can't determine the SPDX license type. The Trove
-            classifier '{self.classifier}' could refer to any of the SPDX codes
-            {self.possibilities}. Either choose a more specific classifier from
+            classifier {string(repr(self.classifier))} could refer to any of the
+            SPDX codes [{", ".join(string(repr(i)) for i in self.possibilities)}].
+            Either choose a more specific classifier from
             https://pypi.org/classifiers/ if such a classifier exists or choose
             the appropriate SPDX identifier from https://spdx.org/licenses/ and
-            set it in your polycotylus.yaml as:
-                spdx:
-                  {self.possibilities[-1]}:
-        """) + "\n"
+            set it in your polycotylus.yaml:
+        """) + "\n" + textwrap.dedent(f"""
+            {comment("# polycotylus.yaml")}
+            {key("spdx")}:
+              {key(self.possibilities[-1])}:
+        """)
 
 
 class NoLicenseSpecifierError(PolycotylusUsageError):
@@ -39,14 +64,22 @@ class NoLicenseSpecifierError(PolycotylusUsageError):
             No license classifier specified in the pyproject.toml. Choose a
             Trove license classifier from https://pypi.org/classifiers/ and add
             it to your pyproject.toml:
-                [project]
-                classifiers = [
-                    "License :: OSI Approved :: MIT License",
-                ]
+        """) + highlight_toml(textwrap.dedent("""
+
+            # pyproject.toml
+            [project]
+            classifiers = [
+                "License :: OSI Approved :: MIT License",
+            ]
+
+        """)) + _unravel("""
             Or select the appropriate SPDX identifier from
             https://spdx.org/licenses/ and set it in your polycotylus.yaml:
-                spdx:
-                  MIT:
+        """) + textwrap.dedent(f"""
+
+            {comment("# polycotylus.yaml")}
+            {key("spdx")}:
+              {key("MIT")}:
         """)
 
 
@@ -57,18 +90,19 @@ class PackageUnavailableError(PolycotylusUsageError):
 
     def __str__(self):
         return _unravel(f"""
-            Dependency "{self.package}" appears to be unavailable on
+            Dependency {string(repr(self.package))} appears to be unavailable on
             {self.distribution.title()} Linux. You will need to submit
-            {self.package} to {self.distribution.title()} Linux's package
-            repositories before you can build your own project. It's also
-            possible that it is already there but is named something weird,
-            in which case, supply its name to the dependency_name_map option in
-            the polycotylus.yaml:
+            {string(repr(self.package))} to
+            {self.distribution.title()} Linux's package repositories before you
+            can build your own project. It's also possible that it is already
+            there but is named something weird, in which case, supply its name
+            to the {key("dependency_name_map")} option in the polycotylus.yaml:
+        """) + textwrap.dedent(f"""
 
-            # polycoylus.yaml
-            dependency_name_map:
-              {self.package}:
-                {self.distribution}: whatever-its-really-called
+            {comment("# polycoylus.yaml")}
+            {key("dependency_name_map")}:
+              {key(self.package)}:
+                {key(self.distribution)}: whatever-its-really-called
         """)
 
 
@@ -85,7 +119,7 @@ class NonFunctionalTestDependenciesError(PresubmitCheckError):
         out = ""
         for package in self.packages:
             out += f"  - {package.ljust(padding)} (from {package.origin})\n"
-        out += _unravel("""
+        out += "\n" + _unravel("""
             Linux distributions do not allow linters, formatters or coverage
             tools in testing. Such checks do not reflect the correctness of
             packaging and when new versions of these tools come out, they bring

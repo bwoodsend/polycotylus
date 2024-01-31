@@ -5,6 +5,8 @@ import re
 import contextlib
 import sys
 
+import termcolor
+
 import polycotylus
 
 
@@ -104,10 +106,11 @@ def cli(argv=None):
         self.test(artifacts["main"])
         self.update_artifacts_json(artifacts)
     except polycotylus.PolycotylusUsageError as ex:
-        raise SystemExit("Error: " + str(ex))
-    print(f"Built {len({i.path for i in artifacts.values()})} artifact{'s' if len(artifacts) != 1 else ''}:")
+        raise SystemExit(termcolor.colored("Error", "red") + ": " + str(ex))
+    print(termcolor.colored(f"Built {len({i.path for i in artifacts.values()})} artifact{'s' if len(artifacts) != 1 else ''}:", "green"))
     for (variant, package) in artifacts.items():
         print(f"{variant}: {package.path}")
+    print()
     return artifacts
 
 
