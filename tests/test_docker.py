@@ -23,7 +23,7 @@ def test_container_removal():
                        stdout=subprocess.PIPE).stdout)
 
 
-def test_interactive():
+def test_interactive(no_color):
     code = dedent("""
         from polycotylus import _docker
         _docker.run("alpine", interactive=True)
@@ -142,7 +142,7 @@ def test_build(tmp_path):
         _docker.build("cake", tmp_path)
 
 
-def test_verbosity(monkeypatch, capsys, tmp_path):
+def test_verbosity(monkeypatch, capsys, tmp_path, no_color):
     _misc.unix_write(tmp_path / "Dockerfile", "FROM alpine\nRUN touch /foo\n")
     run = lambda: _docker.run(_docker.build("Dockerfile", tmp_path), "seq 10")
     command_re = re.compile(r"^\$.+", re.M)

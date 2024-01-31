@@ -1,0 +1,26 @@
+❌ Implicit build backend:
+
+No build backend specified via the [36mbuild-system.build-backend[0m key in the pyproject.toml. Pip/build correctly defaults to setuptools but Fedora does not handle this case properly. Add the following to your pyproject.toml to keep fedpkg happy.
+
+[30m# pyproject.toml[0m
+[[36mbuild-system[0m]
+[36mrequires[0m = [[32m"setuptools>=61.0"[0m]
+[36mbuild-backend[0m = [32m"setuptools.build_meta"[0m
+
+❌ Nonfunctional dependencies:
+
+  - coverage      (from pyproject.toml)
+  - mypy          (from foo/bar/../yet-more-requirements.txt)
+  - pytest-flake8 (from requirements.txt)
+  - black         (from requirements.txt)
+  - pyflakes      (from polycotylus.yaml)
+
+Linux distributions do not allow linters, formatters or coverage tools in testing. Such checks do not reflect the correctness of packaging and when new versions of these tools come out, they bring new and stricter rules which break builds unnecessarily (bear in mind that Linux distributions can not pin the versions of these tools).
+
+❌ Non human maintainer:
+
+Maintainer [32m'The blahblahblah team'[0m appears to be a generic team or organization name. Linux repositories require personal contact details. Set them in the polycotylus.yaml:
+
+[30m# polycotylus.yaml[0m
+[36mmaintainer[0m: your name <your@email.org>
+

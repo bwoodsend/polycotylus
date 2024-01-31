@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def polycotylus_yaml(monkeypatch):
 
     def with_polycotylus_yaml(content):
@@ -13,7 +13,7 @@ def polycotylus_yaml(monkeypatch):
     return with_polycotylus_yaml
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def pyproject_toml(monkeypatch):
 
     def with_pyproject_toml(content):
@@ -30,3 +30,15 @@ def pyproject_toml(monkeypatch):
         monkeypatch.setattr(toml, "load", toml_loads)
 
     return with_pyproject_toml
+
+
+@pytest.fixture
+def force_color(monkeypatch):
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", False)
+
+
+@pytest.fixture
+def no_color(monkeypatch):
+    monkeypatch.setenv("NO_COLOR", "1")
+    monkeypatch.delenv("FORCE_COLOR", False)

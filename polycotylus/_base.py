@@ -28,9 +28,9 @@ class BaseDistribution(abc.ABC):
         self.architecture = architecture or self.preferred_architecture
         if self.architecture not in self.supported_architectures:
             raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                Architecture "{self.architecture}" is not available on
-                {type(self).__name__} Linux. Valid architectures are
-                {sorted(self.supported_architectures)}.
+                Architecture {_exceptions.string(repr(self.architecture))} is not
+                available on {type(self).__name__} Linux. Valid architectures are
+                {_exceptions.highlight_toml(str(sorted(self.supported_architectures)))}.
             """))
         self.docker_architecture = self.supported_architectures[self.architecture]
         # Check that the appropriate Qemu emulators are installed to virtualise
@@ -43,9 +43,10 @@ class BaseDistribution(abc.ABC):
                 qemu = f"qemu-{qemu_architecture.split('/')[0]}-static"
                 if not shutil.which(qemu):
                     raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                        Missing qemu emulator: Emulating "{self.architecture}"
-                        requires the "{qemu}" command. Install it with your
-                        native package manager.
+                        Missing qemu emulator: Emulating
+                        {_exceptions.string(repr(self.architecture))} requires
+                        the {_exceptions.string(repr(qemu))} command. Install
+                        it with your native package manager.
                     """))
                 _docker.setup_binfmt()
         if self.signature_property:
@@ -340,14 +341,15 @@ class GPGBased(abc.ABC):
         if p.returncode:
             assert "[GNUPG:] ERROR keylist.getkey 17" in p.stderr, p.stderr + "\nI am a bug in polycotylus, please report me!"
             raise _exceptions.PolycotylusUsageError(
-                f'No private GPG key found with user ID or fingerprint "{id}"')
+                f'No private GPG key found with user ID or fingerprint {_exceptions.string(repr(id))}')
         # For GPG's machine readable (--with-colons) mode, see:
         # https://github.com/gpg/gnupg/blob/gnupg-2.5-base/doc/DETAILS#format-of-the-colon-listings
         lines = p.stdout.splitlines()
         keys = sorted(i.split(":")[4] for i in lines if i.startswith("sec:"))
         if len(keys) > 1:
             raise _exceptions.PolycotylusUsageError(
-                f'The GPG signing key identifier "{id}" is ambiguous. It could refer to either of {keys}')
+                f'The GPG signing key identifier {_exceptions.string(repr(id))} is ambiguous. '
+                f'It could refer to any of {_exceptions.highlight_toml(str(keys))}')
         fingerprints = [i.split(":")[9] for i in lines if i.startswith("fpr:")]
         self._signing_id, = [i for i in fingerprints if i.endswith(keys[0])]
 

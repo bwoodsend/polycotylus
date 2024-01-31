@@ -130,3 +130,6 @@ def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
     assert b'fill="#fe55fe"' in container.file(
         "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer-pink-mode.svg")
     assert container.file("/usr/bin/dumb_text_viewer").startswith(shebang)
+
+
+error_messages = {i.name: i.read_text("utf8") for i in Path(__file__).with_name("error-messages").glob("*")}

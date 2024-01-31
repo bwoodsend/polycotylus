@@ -118,7 +118,7 @@ def test_kitchen_sink_signing(monkeypatch):
         assert artifact.signature_path.is_absolute()
 
 
-def test_signing_id_normalisation(monkeypatch):
+def test_signing_id_normalisation(monkeypatch, no_color):
     monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
     self = Arch(Project.from_root(shared.bare_minimum))
 
@@ -132,10 +132,10 @@ def test_signing_id_normalisation(monkeypatch):
     assert self.signing_id == "AD4A871B79599B9DD0F62EBE2DD6A735C5B889E7"
 
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match="identifier \"example.com\" is ambiguous.* either of \\['2DD6A735C5B889E7', 'ED7C694736BC74B3'\\]"):
+                       match="identifier 'example.com' is ambiguous.* any of \\['2DD6A735C5B889E7', 'ED7C694736BC74B3'\\]"):
         self.signing_id = "example.com"
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match='No private GPG key .* fingerprint "KoЯn"'):
+                       match="No private GPG key .* fingerprint 'KoЯn'"):
         self.signing_id = "KoЯn"
 
 
@@ -174,8 +174,8 @@ def test_post_mortem(polycotylus_yaml):
     p.stdin.close()
     assert p.wait() == 1
     post_mortem_output = p.stdout.readlines()
-    assert post_mortem_output[-1].strip() == "Made it!!"
-    assert "/bash" in post_mortem_output[-2]
+    assert post_mortem_output[-2].strip() == "Made it!!"
+    assert "/bash" in post_mortem_output[-3]
 
 
 def test_poetry():

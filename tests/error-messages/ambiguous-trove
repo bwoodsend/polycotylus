@@ -1,0 +1,5 @@
+Polycotylus can't determine the SPDX license type. The Trove classifier [32m'License :: OSI Approved :: Apache Software License'[0m could refer to any of the SPDX codes [[32m'Apache-1.0'[0m, [32m'Apache-1.1'[0m, [32m'Apache-2.0'[0m]. Either choose a more specific classifier from https://pypi.org/classifiers/ if such a classifier exists or choose the appropriate SPDX identifier from https://spdx.org/licenses/ and set it in your polycotylus.yaml:
+
+[30m# polycotylus.yaml[0m
+[36mspdx[0m:
+  [36mApache-2.0[0m:

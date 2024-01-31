@@ -22,6 +22,7 @@ dependencies = [
     "toml",
     "portalocker",
     "packaging",
+    "termcolor >= 2.1.0",
 ]
 description = """\
   A CLI tool to convert Python packages into a wide range of Linux distributions \

@@ -1,0 +1,4 @@
+Multiple maintainers declared in pyproject.toml. Linux repositories require exactly one maintainer of the Linux package. Nominate who that should be and specify their contact details in the polycotylus.yaml.
+
+[30m# polycotylus.yaml[0m
+[36mmaintainer[0m: your name <your@email.org>

@@ -1,0 +1,13 @@
+Missing pyproject.toml fields [[32m'description'[0m, [32m'license'[0m, [32m'name'[0m, [32m'urls'[0m, [32m'version'[0m]. Add or migrate them to the pyproject.toml.
+
+[30m# pyproject.toml[0m
+[[36mproject[0m]
+[36mname[0m = [32m"your_package_name"[0m
+[36mversion[0m = [32m"1.2.3"[0m
+[36mdescription[0m = [32m"Give a one-line description of your package here"[0m
+
+[[36mproject.urls[0m]
+[36mhomepage[0m = [32m"https://your.project.site"[0m
+
+[[36mproject.license[0m]
+[36mfile[0m = [32m"LICENSE.txt"[0m

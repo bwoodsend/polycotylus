@@ -1,0 +1,13 @@
+No license classifier specified in the pyproject.toml. Choose a Trove license classifier from https://pypi.org/classifiers/ and add it to your pyproject.toml:
+
+[30m# pyproject.toml[0m
+[[36mproject[0m]
+[36mclassifiers[0m = [
+    [32m"License :: OSI Approved :: MIT License"[0m,
+]
+
+Or select the appropriate SPDX identifier from https://spdx.org/licenses/ and set it in your polycotylus.yaml:
+
+[30m# polycotylus.yaml[0m
+[36mspdx[0m:
+  [36mMIT[0m:

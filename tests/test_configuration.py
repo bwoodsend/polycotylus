@@ -5,9 +5,10 @@ import sys
 import pytest
 
 import polycotylus.__main__
+import shared
 
 
-def test_docker_configure(tmp_path):
+def test_docker_configure(tmp_path, force_color):
     user_config = tmp_path / "user-config"
     root_config = tmp_path / "root-config"
     common = dedent(f"""
@@ -44,5 +45,6 @@ def test_docker_configure(tmp_path):
     assert _exec("polycotylus.__main__.cli(['--configure', 'docker='])") == ""
     assert _exec("print(polycotylus._docker.docker)") == "docker\n"
 
-    with pytest.raises(SystemExit, match="Unknown .* option 'cake'"):
+    with pytest.raises(SystemExit) as capture:
         polycotylus.__main__.cli(["--configure", "cake=socks"])
+    assert str(capture.value) == shared.error_messages["unknown-configuration"]
