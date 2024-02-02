@@ -29,7 +29,7 @@ Caveats
 .......
 
 * An extra top level ``debian`` directory is added to a temporary copy of your
-  project before building it. If you are using `setuptools` without a ``src``
+  project before building it. If you are using setuptools without a ``src``
   layout and have not already set setuptools`s ``packages.find`` option then
   setuptools will refuse to build with an error like the following. ::
 
