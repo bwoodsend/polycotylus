@@ -94,10 +94,10 @@ Void_          rolling
 Development status
 ..................
 
-This project is not considered production ready. It is not available on PyPI nor
-is its documentation on readthedocs. To use this project as it is right now, you
-will have to install ``polycotylus`` from version control and build the
-documentation from source:
+This project is still fairly work in progress. It is not available on PyPI. To
+use this project as it is right now, you will have to install ``polycotylus``
+from version control (instructions below). It does have documentation but that
+documentation is not on readthedocs – you'll have to build that from source too:
 
 .. code-block:: bash
 
@@ -108,3 +108,24 @@ documentation from source:
     cd docs
     make html
     xdg-open build/html/index.html
+
+In terms of feature completeness:
+
+* The biggest gaping feature gap is polycotylus's requirement that all your
+  dependencies are already available on each target distribution's repositories.
+  If your application is made up of multiple custom packages or depends on an
+  unavailable 3rd party package then you polycotylus is useless to you. For
+  this, the plan is to facilitate making personal package repositories, where
+  builds for packages can depend on other packages in the personal repository.
+
+Other, less significant but more achievable things I'd like to do:
+
+* Formalise the process for submitting to official package repositories. In
+  practice, this should be more about documentation and talking to repository
+  maintainers than writing code.
+
+* Custom MIME Type support (i.e. declaring a new made-up file suffix and its
+  association with your application).
+
+* See if I can get hardware related functionality (audio, USB) to work with
+  Docker.
