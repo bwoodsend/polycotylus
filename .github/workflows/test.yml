@@ -29,8 +29,8 @@ jobs:
       FORCE_COLOR: 1
       POLYCOTYLUS_VERBOSITY: 1
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix._.python }}
 
@@ -62,22 +62,23 @@ jobs:
       - run: polycotylus --configure docker=${{ matrix._.docker }}
       - run: pytest --cov-fail-under=0 -sv ${{ matrix.suite }}
       - run: mv .coverage .coverage-$(uuidgen)
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: coverage-${{ strategy.job-index }}
           path: .coverage-*
 
   coverage:
     runs-on: ubuntu-latest
     needs: main
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.12  # must match latest version tested against
       - run: pip install coverage
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: coverage
+          pattern: coverage-*
+          merge-multiple: true
       - run: coverage combine .coverage-*
       - run: coverage report
