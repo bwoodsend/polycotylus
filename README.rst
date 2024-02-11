@@ -97,7 +97,7 @@ Development status
 This project is still fairly work in progress. It is not available on PyPI. To
 use this project as it is right now, you will have to install ``polycotylus``
 from version control (instructions below). It does have documentation but that
-documentation is not on readthedocs – you'll have to build that from source too:
+documentation is not on readthedocs – you'll need to build that from source too:
 
 .. code-block:: bash
 
@@ -114,9 +114,9 @@ In terms of feature completeness:
 * The biggest gaping feature gap is polycotylus's requirement that all your
   dependencies are already available on each target distribution's repositories.
   If your application is made up of multiple custom packages or depends on an
-  unavailable 3rd party package then you polycotylus is useless to you. For
-  this, the plan is to facilitate making personal package repositories, where
-  builds for packages can depend on other packages in the personal repository.
+  unavailable 3rd party package then polycotylus is useless to you. For this,
+  the plan is to facilitate making personal package repositories, where builds
+  for packages can depend on other packages in the personal repository.
 
 Other, less significant but more achievable things I'd like to do:
 
@@ -125,7 +125,7 @@ Other, less significant but more achievable things I'd like to do:
   maintainers than writing code.
 
 * Custom MIME Type support (i.e. declaring a new made-up file suffix and its
-  association with your application).
+  association with an application).
 
 * See if I can get hardware related functionality (audio, USB) to work with
   Docker.
