@@ -34,8 +34,11 @@ def test_ubrotli():
         assert sorted(packages) == ["dbgsym", "main"]
         container = self.test(packages["main"])
         with container["/usr/lib/python3/dist-packages"] as tar:
+            # Test that only one architecture .so is present.
             binaries = [i for i in tar.getnames() if re.search("ubrotli.*.so", i)]
-            assert len(binaries) == 1
+            # At times, Debian builds for multiple Python versions.
+            without_abi = {re.sub(r"cpython-(\d+)-", "", i) for i in binaries}
+            assert len(without_abi) == 1
         self.update_artifacts_json(packages)
 
     assert json.loads((shared.ubrotli / ".polycotylus/artifacts.json").read_bytes()) == [
