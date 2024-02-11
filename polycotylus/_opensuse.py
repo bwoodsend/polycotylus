@@ -348,7 +348,14 @@ class OpenSUSE(GPGBased, BaseDistribution):
 
     def build(self):
         uid = "1000:1000" if platform.system() == "Windows" else f"{os.getuid()}:{os.getgid()}"
-        command = ["build", f"--uid={uid}", "--dist=tumbleweed", "--vm-network"]
+        if self.project.frontend:
+            defines = []
+        else:
+            # Force builds for all the Python versions that official packages
+            # are built for. Most of the time, this is already the default –
+            # only during the migration from one minor version to the next.
+            defines = [" ".join(["--define=pythons", *self.active_python_abis()])]
+        command = ["build", *defines, f"--uid={uid}", "--dist=tumbleweed", "--vm-network"]
         volumes = [(self.distro_root, "/io"),
                    (self.distro_root / "RPMS", "/var/tmp/build-root/home/abuild/rpmbuild/RPMS")]
         if self.signing_id:

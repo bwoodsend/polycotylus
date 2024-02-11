@@ -59,7 +59,7 @@ def test_ubrotli():
     self.generate()
     assert not junk.exists()
     rpms = self.build()
-    assert len(rpms) == 4
+    assert len(rpms) in (4, 5)
     self.test(rpms["main"])
     self.update_artifacts_json(rpms)
 
@@ -70,7 +70,7 @@ def test_kitchen_sink(monkeypatch):
     test_fedora._check_values_align(self.spec())
     self.generate()
     rpms = self.build()
-    assert len(rpms) == 4
+    assert len(rpms) in (4, 5)
     self.test(rpms["main"])
 
 
@@ -90,7 +90,7 @@ def test_poetry():
     self = polycotylus.OpenSUSE(polycotylus.Project.from_root(shared.poetry_based))
     self.generate()
     rpms = self.build()
-    assert len(rpms) == 4
+    assert len(rpms) in (4, 5)
     container = self.test(rpms["main"])
     assert container["/usr/bin/print_hello"].getmembers()[0].issym()
     python_version = polycotylus.OpenSUSE.python_version().rsplit(".", maxsplit=1)[0]
@@ -104,7 +104,7 @@ def test_unittest(monkeypatch):
                                 None, "ED7C694736BC74B3")
     self.generate()
     rpms = self.build()
-    assert len(rpms) == 4
+    assert len(rpms) in (4, 5)
     container = self.test(rpms["main"])
     assert "Ran 1 test" in container.output
 
@@ -112,4 +112,4 @@ def test_unittest(monkeypatch):
         polycotylus.OpenSUSE.base_image,
         ["rpm", "-qpi"] + ["/io/" + i for i in {i.path.name for i in rpms.values()}],
         volumes=[(rpms["main"].path.parent, "/io")]).output
-    assert rpm_info.count("ED7C694736BC74B3".lower()) == 3
+    assert rpm_info.count("ED7C694736BC74B3".lower()) in (3, 4)
