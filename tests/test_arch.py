@@ -60,7 +60,7 @@ def test_dumb_text_viewer():
 
     with mirror:
         script = "sudo pacman -S --noconfirm --needed python-pip && pip show dumb_text_viewer"
-        assert "Name: dumb-text-viewer" in _docker.run(
+        assert "Name: dumb_text_viewer" in _docker.run(
             installed, script, architecture=self.docker_architecture).output
     info = _docker.run(installed, "pacman -Q --info dumb-text-viewer",
                        architecture=self.docker_architecture).output
