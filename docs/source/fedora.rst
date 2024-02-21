@@ -44,6 +44,7 @@ or newer using the commands below respectively. ::
     polycotylus fedora:38
     polycotylus fedora:39  # default
     polycotylus fedora:40  # pre-release
+    polycotylus fedora:41  # rawhide
 
 Installing a package built for a different release of Fedora will mean that the
 build and runtime minor versions of Python do not match and by implication

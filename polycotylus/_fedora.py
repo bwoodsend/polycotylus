@@ -338,3 +338,8 @@ Fedora39 = Fedora
 class Fedora40(Fedora):
     version = "40"
     base_image = "fedora:40"
+
+
+class Fedora41(Fedora):
+    version = "41"
+    base_image = "fedora:41"

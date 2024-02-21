@@ -1,7 +1,7 @@
 set -l distributions alpine arch debian fedora manjaro opensuse ubuntu void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:3.19 alpine:edge
 set -l debian_variants debian:13
-set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40
+set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40 fedora:41
 set -l ubuntu_variants ubuntu:23.04 ubuntu:23.10
 set -l void_variants void:musl void:glibc
 set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $ubuntu_variants $void_variants

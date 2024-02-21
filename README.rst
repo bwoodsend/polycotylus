@@ -74,7 +74,7 @@ Distributions  Supported versions
 Alpine_        3.17-3.19, edge
 Arch_          rolling
 Debian_        13 (pre-release)
-Fedora_        37-39, 40 (pre-release)
+Fedora_        37-39, 40 (pre-release), 41 (rawhide)
 Manjaro_       rolling
 OpenSUSE_      Tumbleweed only (rolling)
 Ubuntu_        23.04, 23.10 (interim releases)
