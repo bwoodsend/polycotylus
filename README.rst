@@ -46,14 +46,14 @@ and *no* are often simultaneously wrong.
 
 Polycotylus doesn't just dump your code into an archive and hope for the best –
 it verifies it too! It installs your package into a clean, minimal Docker
-container and runs your test suite in it. Unless your test suite is a no-op, it
-should be almost impossible to forget a dependency or miss a data file without
-finding out immediately.
+container and runs your test suite inside of it. Given even a modest test suite,
+it should be almost impossible to forget a dependency or miss a data file
+without polycotylus letting you know.
 
 For GUI applications, using a system package manager also allows you to add
 desktop integration. This means registering your application so that launch
-menus (e.g. Gnome's App tiles) know your application exists, adding icons,
-descriptions, registering supported file types, etc.
+menus (e.g. Gnome's App tiles) and file browsers know that your application
+exists, adding icons, descriptions, registering supported file types, etc.
 
 
 Supported distributions
@@ -65,8 +65,8 @@ official package repositories. This unfortunately rules out all of the
 *stable*/long term support distributions (which also happen to be the most
 popular) currently including all stable branches of Debian, Ubuntu <23.04, SLES,
 OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
-This just leaves rolling build distributions and distributions with fast release
-cycles and up to date package repositories.
+This leaves rolling build distributions and fast releasing distributions with
+low latency package repositories.
 
 =============  ============================================
 Distributions  Supported versions

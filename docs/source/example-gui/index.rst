@@ -110,7 +110,7 @@ enough to get a working build for any other Linux distribution. You'll notice
 though that the resultant packages aren't called ``dumb-text-viewer`` – they're
 called something like ``python-dumb-text-viewer``. The ``python`` prefix is
 expected for libraries but not frontend applications. Tell `polycotylus` not to
-add the prefix using the `frontend` option.
+add the prefix by setting the `frontend` option.
 
 .. code-block:: yaml
 
@@ -131,7 +131,7 @@ Rebuilding and then installing one of the resultant packages will add a
 ``dumb_text_viewer`` executable, findable in ``$PATH``, which launches the
 application. However, most human beings do not expect to need to use a terminal
 in order to launch an application. To tell the desktop that this application
-exists, we need a ``.desktop`` file. At this point, you'll probably want to
+exists, we need a ``.desktop`` file. For this part, you'll probably want to
 switch over to building for your native Linux distribution (assuming it's
 supported) so that you can see the results of your changes.
 
@@ -158,8 +158,8 @@ application. These should be provided as follows:
         # Note the lack of quotes around %u.
         Exec: dumb_text_viewer %u
 
-If you build and install the package now, it should now appear in your desktop's
-applications menus. For example, in XFCE's Whisker menu, it looks like this:
+If you build and install the package now, it should appear in your desktop's
+applications menu. For example, in XFCE's Whisker menu, it looks like this:
 
 .. image:: initial.jpg
 
@@ -234,7 +234,8 @@ Now the application menu item looks like this:
     be found in the desktop file's spec's `list of available options
     <https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s06.html>`_.
     The others are `polycotylus` specific options that trigger special
-    processing.
+    processing. e.g. `icon` adds an image conversation, resize and install step
+    to each distribution's build scripts.
 
 
 Supported filetypes
@@ -243,7 +244,7 @@ Supported filetypes
 Currently the desktop knows the application exists but not that it is intended
 to interact with text files. If you wanted to open a text file with
 ``dumb_text_viewer`` from a graphical file manager then you'd have to go through
-the *right click 🠚 open with 🠚 other application 🠚 rummage through every
+the tedious *right click 🠚 open with 🠚 other application 🠚 rummage through every
 application on you computer* flow. Declare supported *mimetypes* in the
 `MimeType` section – in this case, an assortment of text based file types.
 
@@ -301,7 +302,7 @@ can all be specified in multiple languages. The desktop will automatically
 select the right one based on the configured system locale. To do this, replace
 the string you pass to one of these fields in the `polycotylus.yaml` with a map
 of locale names to translations. (Disclaimer: translations below are from Google
-Translate and are may be nonsense!)
+Translate and may be garbled!)
 
 .. code-block:: yaml
 
@@ -330,8 +331,8 @@ item becomes:
 .. image:: localised.jpg
 
 The locale IDs (the ``es``, ``ar`` or ``sh_CN`` keys from above) are tricky to
-find. `polycotylus` is designed to help you find the IDs corresponding to any
-given dialect.
+find. `polycotylus` is designed to help you find and avoid screwing up the IDs
+corresponding to any given dialect.
 
 A locale ID uses the format ``language_COUNTRY@modifier`` (note the case of each
 part) where all but the ``language`` part is optional. To construct a locale ID

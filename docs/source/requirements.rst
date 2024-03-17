@@ -10,14 +10,15 @@ but the first two.
 
 #.  Your project should be a ``pip install``-able Python distribution as if it were
     going to be uploaded to PyPI -- **not** just an assortment of ``.py`` files
-    and a ``requirements.txt``! See the `Python packaging tutorial
+    and a ``requirements.txt``! If you're new to creating such packages then see
+    the `Python packaging tutorial
     <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`_.
 
 #.  All your dependencies, including build and test dependencies must already be
     available on each Linux distribution's package repositories. Few Linux
     distributions support either vendoring unavailable dependencies or mixing
     system package managers with pip and those that do do it very badly hence
-    `polycotylus` does not allow it either.
+    `polycotylus` does not support it.
 
 #.  Core metadata is stored using the :pep:`621` `pyproject.toml
     <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/>`_
@@ -43,15 +44,17 @@ but the first two.
     - `urls
       <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#urls>`_
 
-    (A special exemption is made for :ref:`poetry <poetry_support>`.)
+    You can still use a ``setup.py`` in your project but these specific fields
+    must be migrated. A special exemption is made for :ref:`poetry
+    <poetry_support>`.
 
 #.  Your package should have a fully autonomous test suite.
 
 #.  The package must not write into its own installation directory at runtime.
-    This is because the installation directory will be owned by root, meaning
-    that it won't be writable. This applies to settings, caches, logs, implicit
-    working state dumps, dynamically generated resources or anything else that
-    would violate the immutability of the package.
+    The installation directory will be owned by root and your application
+    therefore will get a permission denied error if it tries to put settings,
+    caches, logs, implicit working state dumps, dynamically generated resources
+    or any other mutable object in there.
 
     .. code-block:: python
 
@@ -68,8 +71,8 @@ Doing a trial run
 .................
 
 When anything goes wrong in `polycotylus`, you'll be deep inside a Docker
-container where you'll have limited ability to debug and any adjustments you
-make will require a rebuild to propagate. If you want flush out non
+container where you'll have limited ability to debug and any line of code you
+change will require waiting on a rebuild to propagate. If you want flush out non
 `polycotylus` related packaging errors (usually data file collection related)
 outside of `polycotylus` then you can do so with just a clean virtual
 environment (e.g. using `venv`). Polycotylus's internal workflow essentially

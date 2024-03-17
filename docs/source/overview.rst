@@ -2,7 +2,10 @@
 The build process
 =================
 
-The work that `polycotylus` does can be summarised as three steps.
+The work that `polycotylus` does can be summarised as three steps. Whilst you're
+not expected to absorb everything on this page, it's important to at least be
+aware of these top level *generate*, *build* and *test* steps and that steps
+*build* and *test* happen inside Docker containers.
 
 1.  Generate some files:
 
@@ -38,7 +41,7 @@ The work that `polycotylus` does can be summarised as three steps.
 
     * Create the package itself
 
-    * Sign the package (currently Alpine only)
+    * Maybe sign the package
 
     This step runs inside a *build* Docker container with all your dependencies
     (:mod:`~dependencies.build`, :mod:`~dependencies.run` and

@@ -24,8 +24,7 @@ Alpine will produce up to three packages in one build:
 * ``main``: Created unconditionally.
 
 * ``doc``: Contains the license file(s). Created only if the license is
-  considered *non-standard* (which `polycotylus` derives from the `spdx`
-  option).
+  considered *non-standard* (which `polycotylus` infers from the `spdx` option).
 
 * ``pyc``: Contains pre-compiled Python bytecode (a.k.a. the
   ``__pycache__/*.pyc`` files). Created for Alpine ``>=3.18`` if
@@ -45,7 +44,7 @@ implies the latest released version. ::
 
     polycotylus alpine:3.17
     polycotylus alpine:3.18
-    polycotylus alpine:3.19
+    polycotylus alpine:3.19  # Default
     polycotylus alpine:edge  # Unstable branch
 
 
@@ -55,8 +54,8 @@ Package Signing
 Alpine makes signing a mandatory step in building and distributing packages. If
 you intend to distribute binary packages (as opposed to submitting
 ``.polycotylus/alpine/APKBUILD`` to Alpine's official package repositories), you
-need to make the public key from the key pair used to do the signing is
-available to downloaders of your package.
+need to make the public key from the key pair used to do the signing available
+to downloaders of your package.
 
 `polycotylus` generates a set of signing keys on the fly the first time you run
 ``polycotylus alpine``. These keys are stored in the (currently
@@ -79,7 +78,7 @@ something like the following:
 #.  Copy/paste the output into your CI provider's secret storage.
 
 #.  In your CI/CD jobs, pipe the secret into ``base64 -d | tar xz``.
-    e.g. On GitHub Actions, you could use:
+    e.g. On GitHub Actions, you would use:
 
     .. code-block:: yaml
 

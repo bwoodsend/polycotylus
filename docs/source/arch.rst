@@ -24,22 +24,22 @@ Lifetime of a build
 
 Arch Linux is a rolling build meaning that new versions of packages containing
 ABI incompatibilities (or any other incompatibilities arising from the build and
-runtime environments being different) can be released at any time and pinning or
-downgrading dependencies is prohibited – your only option is to rebuild and
-re-release. One prominent case of this is the annual increment of the Arch
-repositories' Python's minor version. When this happens, the ``site-packages``
-directory (e.g. ``/usr/lib/python3.11/site-packages/``) moves so that your
-package is no longer findable. Once this happens, your existing built packages
-are effectively useless and you need to rebuild and release then encourage your
-users to run ``pacman -Syu`` (upgrade all packages) before installing/upgrading
-your package in case they still have the previous version of Python installed.
+runtime environments being different) can be released at any time. One prominent
+case of this is the annual increment of the Arch repositories' Python minor
+version which causes the ``site-packages`` directory (e.g.
+``/usr/lib/python3.11/site-packages/``) to move and your package to therefore no
+longer be findable.  Pinning or downgrading dependencies is prohibited so once
+this happens, all existing packages are useless. You'll need to rebuild and
+release then encourage your users to run ``pacman -Syu`` (upgrade all packages)
+before installing/upgrading your package in case they still have the previous
+version of Python installed.
 
 
 Package Signing
 ...............
 
-Arch packages are optionally signed using a GnuPG_ detached signature. See
-:ref:`gpg_signing` for the signing itself.
+Arch packages are optionally signed using a GnuPG_ detached signature. See the
+generic :ref:`gpg_signing` guide for the signing itself.
 
 **To consume** your signed package, downstream users will need to install your
 public key into their ``pacman`` key stores. You can get your key to them in two

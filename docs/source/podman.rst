@@ -33,8 +33,8 @@ Caveats
 
       sudo: effective uid is not 0, is /usr/bin/sudo on a file system with the 'nosuid' option set or an NFS file system without root privileges?
 
-  If anyone thinks they know how to fix this, please post the answer on `this
-  StackOverflow question <https://stackoverflow.com/q/75954301/>`_.
+  An explanation and fix can be found in `here
+  <https://stackoverflow.com/a/77354286>`_.
 
 * Building for OpenSUSE doesn't work.
 
@@ -43,3 +43,6 @@ Caveats
   <https://podman.io/docs/installation#debian>`_ to get a usable version.
 
 * Build times are roughly double what they are with Docker_.
+
+* Expect a degree of sourness from me if you ever need to report a
+  Podman-specific issue.

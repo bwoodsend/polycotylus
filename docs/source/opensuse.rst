@@ -25,8 +25,8 @@ OpenSUSE Tumbleweed supports many minor versions of Python:
   range, has all Python packages built for it.
 * Two neighbouring versions (usually the one above and the one below) have
   libraries but not frontend tools built for them (although don't ask me what
-  the purpose of a library is if it won't be serving a front end tool 🤔).
-  During a transitional period, this set may include a third version.
+  the purpose of a library is if it won't be serving a front end tool!). During
+  a transitional period, this set may include a third version.
 * Another two versions above or below (possibly including a beta release or end
   of life Python) are available but have no packages built for them – not even
   ``pip``!
@@ -40,8 +40,14 @@ you'll get three or four.
 Caveats
 .......
 
+* OpenSUSE's official builds consume only certain parts of their own build
+  system, regularly allowing the other parts to introduce catastrophic
+  regressions without anyone from OpenSUSE noticing. When faced with a gibberish
+  OpenSUSE specific error that wasn't there before, try building `one of the
+  examples <https://github.com/bwoodsend/polycotylus/tree/main/examples>`_ to
+  ascertain whether the issue is out of your control before looking for
+  misconfiguration in your own project.
 * Building for OpenSUSE is not supported with Podman_.
-
 
 Package Signing
 ...............

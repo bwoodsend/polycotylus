@@ -5,8 +5,8 @@ Building from Windows
 =====================
 
 `polycotylus` supports building from (but not for!) Windows with almost complete
-feature parity. See `Docker Desktop for Windows`_ to obtain a suitable Docker
-installation.
+feature parity. The recommended way to to obtain a suitable Docker installation
+is to use `Docker Desktop for Windows`_.
 
 
 .. _windows_caveats:

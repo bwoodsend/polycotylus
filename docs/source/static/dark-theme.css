@@ -510,4 +510,11 @@
     border-color: #132739;
   }
 
+  .highlight .go {
+    color: #918b8b;
+  }
+
+  .rst-content .admonition .code.literal, .rst-content .admonition code {
+    background: #00000000;
+  }
 }

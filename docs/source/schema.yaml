@@ -34,7 +34,7 @@ dependencies:
   # Each of those categories are then in-turn broken down into:
   #
   #   - ``pip``: Pip/PyPI packages.
-  #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which may be packaged separately from Python itself for size or licensing reasons.
+  #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which may be packaged separately from Python itself for size, licensing or inexplicable reasons.
   #   - ``alpine|arch|debian|fedora|manjaro|opensuse|ubuntu|void``: Linux packages installed by each distribution's native package manager.
 
   run:
@@ -161,22 +161,22 @@ contains_py_files: false
   # subpackage being generated on Alpine.
 
 maintainer: Your Name <your.email@address.com>
-  # Contact details for whoever's job it will be to fix it if there are package
-  # issues. If you plan to submit your package to official repositories then this
-  # must be a real human being – not an organization. If non-ambiguous,
-  # `polycotylus` will default to the ``project.maintainer`` field in the
-  # ``pyproject.toml``.
+  # Contact details for whoever's job it will be to fix it if there are issues.
+  # If you plan to submit your package to official repositories then this must
+  # be a real human being – not a support channel or mailing list. If
+  # non-ambiguous, `polycotylus` will default to the ``project.maintainer``
+  # field in the ``pyproject.toml``.
 
 test_command: pytest -k 'not unrunable_test'
-  # The verification command, defaults to ``pytest``. This command will be
+  # The verification command, defaulting to ``pytest``. This command will be
   # invoked using ``sh`` from the root of a copy of your project but note that
   # only the files listed in `test_files` will be available when `polycotylus`
   # runs its end to end test. If you want to invoke Python, use ``python`` and
   # not ``python3`` or ``/usr/bin/python`` so that `polycotylus` can replace
-  # ``python`` with whatever s̶i̶l̶l̶y̶ ̶m̶a̶c̶r̶o̶ abstraction each RPM based distribution
-  # insists on using. Note that ``python -m unittest`` is supported but strongly
-  # discouraged in favour of `pytest's unittest support`_ due to its rather
-  # dangerous behaviour of not failing if no tests are found.
+  # ``python`` with whatever s̶i̶l̶l̶y̶ ̶m̶a̶c̶r̶o̶ *abstraction* each RPM based
+  # distribution insists on using. Note that ``python -m unittest`` is supported
+  # but strongly discouraged in favour of `pytest's unittest support`_ due to
+  # its rather dangerous behaviour of not failing if no tests are found.
   #
   # .. _`pytest's unittest support`: https://docs.pytest.org/en/7.3.x/how-to/unittest.html
 
@@ -186,23 +186,23 @@ test_files:
   - pytest.ini
   - conftest.py
   # The files needed to run the test suite. `polycotylus`, when testing the
-  # final package, will mount only these files into the test container so that
-  # tests can't accidentally use your original source code rather than the
-  # installed package. The patterns listed here are the defaults. Setting this
-  # field replaces the defaults so remember to re-add any of the default ones
-  # you need. Globs are expanded using `pathlib.Path.glob`. All paths are
-  # relative to the directory containing the ``polycotylus.yaml``.
+  # final package, will mount only these files or directories into the test
+  # container so that tests can't accidentally use your original source code
+  # rather than the installed package. The patterns listed here are the
+  # defaults. Setting this field replaces the defaults so remember to re-add any
+  # of the default ones you need. Globs are expanded using `pathlib.Path.glob`.
+  # All paths are relative to the directory containing the ``polycotylus.yaml``.
 
 dependency_name_map:
   GitPython:
     debian: python3-git
   # An override for `polycotylus`\ 's mapping of pip/PyPI package to Linux
-  # package equivalents. To be used if one of your dependencies is available in
-  # the Linux package repositories but `polycotylus` can't find it because it's
-  # been named something that breaks the distribution's naming convention. Note
-  # that this option does not exist for ``fedora`` or ``opensuse`` due to their
-  # handling the mapping using package *capabilities* rather than a naming
-  # pattern.
+  # package equivalents. If one of your dependencies is available in the Linux
+  # package repositories but `polycotylus` can't find it because it's been named
+  # something that breaks the distribution's naming conventions, you can tell
+  # `polycotylus` what its real name is here. Note that this option does not
+  # exist for ``fedora`` or ``opensuse`` due to their handling the mapping using
+  # package *capabilities* rather than a naming pattern.
 
 
 # --------------------
@@ -219,14 +219,13 @@ frontend: true
   # distributions that provide more than one Python version.
 
 gui: true
-  # Enable GUI support. Defaults to false but enables itself automatically if
-  # the ``gui-scripts`` field in the ``pyproject.toml`` is non-empty. Setting
-  # this field will enable XVFB_ display virtualisation so that GUIs can run
-  # inside Docker containers.
+  # Enable GUI support. The default is false unless the ``gui-scripts`` field in
+  # the ``pyproject.toml`` is non-empty. Setting this field will enable XVFB_
+  # display virtualisation so that GUIs can run inside Docker containers.
 
 desktop_entry_points:
-  # Desktop files are the glue between your application and the desktop.
-  # Creating one allows you to:
+  # Desktop integration! Desktop files are the glue between your application and
+  # the desktop. Creating one allows you to:
 
   # * Attach an icon, localised pretty name, keywords and summary description to
   #   your executable

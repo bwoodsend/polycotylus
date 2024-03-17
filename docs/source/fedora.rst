@@ -27,8 +27,8 @@ Fedora will build up to three packages for one build:
 * ``debuginfo``: Contains the debugging symbols stripped from compiled binaries.
   Created only if your project contains compiled code.
 
-* ``debugsource``: Contains the source code for any compiled binaries. Created
-  only if your project contains compiled code.
+* ``debugsource``: Contains the source code for any compiled binaries. Again
+  created only if your project contains compiled code.
 
 Distribute the debug packages if you expect your users to need to use a C
 debugger on your code.
@@ -46,10 +46,11 @@ or newer using the commands below respectively. ::
     polycotylus fedora:40  # pre-release
     polycotylus fedora:41  # rawhide
 
-Installing a package built for a different release of Fedora will mean that the
-build and runtime minor versions of Python do not match and by implication
-neither will their paths to ``site-packages``. Support for ``v36`` or lower is
-impossible due to its not providing a recent enough version of setuptools.
+Installing a package built for a different release of Fedora will usually mean
+that the build and runtime minor versions of Python do not match and by
+implication neither will their paths to ``site-packages``. Support for ``v36``
+or lower is impossible due to its not providing a recent enough version of
+setuptools.
 
 
 .. _fedora_caveats:
@@ -57,22 +58,21 @@ impossible due to its not providing a recent enough version of setuptools.
 Caveats
 .......
 
-Fedora's repository indexes are huge and are inefficiently stored. Fedora
+Fedora's repository indexes are enormous and are not efficiently stored. Fedora
 compensates by using ``zchunk`` (a fancy delta/compression tool) when
 downloading its indexes so that, whilst the first update takes hundreds of
-megabytes, subsequent updates require only a few megabytes. The complexity of
-``zchunk`` causes havoc to `polycotylus`:
+megabytes, subsequent updates are just diffs and therefore require only a few
+megabytes. The complexity of ``zchunk`` causes havoc to `polycotylus`:
 
 * `polycotylus`\ 's usual behaviour of intercepting package downloads and
-  caching them cannot handle ``zchunk``. As a compromise, ``dnf``\ 's cache
-  directories are mounted directly on the host's file system. This in turn means
-  that:
+  caching them cannot handle ``zchunk``. Instead, ``dnf``\ 's cache directories
+  are mounted directly on the host's file system. This in turn means that:
 
-  - Package managers run as root so the host cache directory's contents end up
-    owned by root.
+  - Since package managers run as root, the cache directory on the host ends up
+    also owned by root.
 
   - Building on Windows doesn't work due to the NTFS file system not supporting
-    UNIX permissions and user/groups that ``dnf`` relies on.
+    the UNIX permissions and user/groups that ``dnf`` relies on.
 
 * ``zchunk`` performs so badly under ``qemu`` architecture emulation that even a
   minimal package takes around 20 minutes to build. Building for non-native
@@ -85,11 +85,11 @@ Package Signing
 ...............
 
 Fedora packages are optionally signed using an embedded GnuPG_ signature. See
-:ref:`gpg_signing` for the signing itself.
+the generic :ref:`gpg_signing` guide for the signing itself.
 
-**To consume** your signed package, downstream users should (although ``rpm``
-strangely does nothing to prevent you from installing packages with untrusted
-signatures) install your public key into their ``rpm`` key stores.
+**To consume** your signed package, downstream users should install your public
+key into their ``rpm`` key stores (although ``rpm`` strangely does nothing to
+prevent you from installing packages with untrusted signatures).
 
 Export your public key::
 
@@ -101,7 +101,7 @@ then import the key using::
     curl -O https://your.website/downloads/3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
     sudo rpm --import 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
 
-The should now be able to verify your package using::
+They should now be able to verify your package using::
 
     rpm -K your-package-0.1.0-1.fc39.noarch.rpm
 

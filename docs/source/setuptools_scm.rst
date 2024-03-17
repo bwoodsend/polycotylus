@@ -6,7 +6,8 @@ Projects using setuptools_scm
 
 `polycotylus` supports projects using `setuptools_scm
 <https://github.com/pypa/setuptools_scm/>`_ to dynamically extract version
-information from git tags.
+information from git tags. Provided that the constraints listed below are
+satisfied, the process should by automatic enough to be invisible.
 
 Some things to be aware of:
 
@@ -19,7 +20,8 @@ Some things to be aware of:
 * Linux distributions only ubiquitously support simple numerical versions
   meaning that `polycotylus` will have to strip the elaborate development
   suffixes that ``setuptools_scm`` provides. i.e. Instead of
-  ``5.7.1.dev11+g2fe4237.d20230818`` you will just get ``5.7.1``.
+  ``5.7.1.post2.dev11+g2fe4237.d20230818.zipadeedoo`` you will just get
+  ``5.7.1``.
 
 * And the usual caveat that in a shallow git clone without the tags fetched
   (most common on CI/CD), `polycotylus` won't be able to get the version any
