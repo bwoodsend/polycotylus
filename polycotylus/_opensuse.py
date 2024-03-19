@@ -217,15 +217,16 @@ class OpenSUSE(GPGBased, BaseDistribution):
 
             %install
             %pyproject_install
-        """) + "\n"
+        """)
         if self.project.architecture == "none":
-            site_packages = "%{buildroot}%{python_sitelib}"
+            site_packages = "%{buildroot}%{$python_sitelib}"
         else:
-            site_packages = "%{buildroot}%{python_sitearch}"
+            site_packages = "%{buildroot}%{$python_sitearch}"
         if not self.project.frontend:
             for script in self.project.scripts:
                 out += self._formatter(f"%python_clone -a %{{buildroot}}%{{_bindir}}/{script}")
         if self.project.frontend:
+            site_packages = site_packages.replace("$python", "python3")
             out += self._formatter(f"%fdupes {site_packages}")
         else:
             out += self._formatter(f"%python_expand %fdupes {site_packages}")

@@ -1,3 +1,5 @@
+import contextlib
+
 import pytest
 
 import polycotylus
@@ -71,7 +73,8 @@ def test_kitchen_sink(monkeypatch):
     self.generate()
     rpms = self.build()
     assert len(rpms) in (4, 5)
-    self.test(rpms["main"])
+    container = self.test(rpms["main"])
+    _check_fdupes(container, "")
 
 
 def test_dumb_text_viewer():
@@ -80,6 +83,8 @@ def test_dumb_text_viewer():
     rpms = self.build()
     assert len(rpms) == 1
     container = self.test(rpms["main"])
+    _check_fdupes(container, "dumb_text_viewer")
+    shared.check_dumb_text_viewer_installation(container)
     container.file("/usr/share/applications/underwhelming_software-dumb_text_viewer.desktop")
     assert container.file(
         "/usr/share/icons/hicolor/scalable/apps/underwhelming_software-dumb_text_viewer.svg"
@@ -92,6 +97,7 @@ def test_poetry():
     rpms = self.build()
     assert len(rpms) in (4, 5)
     container = self.test(rpms["main"])
+    _check_fdupes(container, "poetry_based")
     assert container["/usr/bin/print_hello"].getmembers()[0].issym()
     python_version = polycotylus.OpenSUSE.python_version().rsplit(".", maxsplit=1)[0]
     script = container.file("/usr/bin/print_hello-" + python_version).decode()
@@ -106,6 +112,7 @@ def test_unittest(monkeypatch):
     rpms = self.build()
     assert len(rpms) in (4, 5)
     container = self.test(rpms["main"])
+    _check_fdupes(container, "")
     assert "Ran 1 test" in container.output
 
     rpm_info = polycotylus._docker.run(
@@ -113,3 +120,15 @@ def test_unittest(monkeypatch):
         ["rpm", "-qpi"] + ["/io/" + i for i in {i.path.name for i in rpms.values()}],
         volumes=[(rpms["main"].path.parent, "/io")]).output
     assert rpm_info.count("ED7C694736BC74B3".lower()) in (3, 4)
+
+
+def _check_fdupes(container, project):
+    for abi in polycotylus.OpenSUSE.active_python_abis():
+        site_packages = "/usr/lib/" + abi.replace("python3", "python3.") + "/site-packages"
+        with contextlib.suppress(FileNotFoundError):
+            tar = container[f"{site_packages}/{project}/__pycache__"]
+            break
+    else:
+        pytest.fail("site-packages not found")
+    assert len(tar.getmembers()) > 2
+    assert any([i.islnk() for i in tar.getmembers()])
