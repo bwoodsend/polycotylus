@@ -169,6 +169,7 @@ class OpenSUSE(GPGBased, BaseDistribution):
 
 
             %define {"pythons python3" if self.project.frontend else "skip_python2 1"}
+            %define source_date_epoch_from_changelog 0
             Name:             {self.package_name}
             Version:          {self.project.version}
             Release:          0
