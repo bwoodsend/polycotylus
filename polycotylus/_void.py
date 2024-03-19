@@ -22,8 +22,8 @@ class Void(BaseDistribution):
     }
     _packages = {
         "python": "python3",
-        "imagemagick": "ImageMagick",
-        "imagemagick_svg": "librsvg",
+        "image-conversion": ["ImageMagick"],
+        "svg-conversion": ["ImageMagick", "librsvg"],
         "xvfb-run": "xvfb-run util-linux",
         "font": "dejavu-fonts-ttf",
     }

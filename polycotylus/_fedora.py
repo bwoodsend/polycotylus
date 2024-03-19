@@ -37,8 +37,8 @@ class Fedora(GPGBased, BaseDistribution):
     _packages = {
         "python": "python3",
         "xvfb-run": "/usr/bin/xvfb-run",
-        "imagemagick": "ImageMagick",
-        "imagemagick_svg": "librsvg2-tools",
+        "image-conversion": ["ImageMagick"],
+        "svg-conversion": ["ImageMagick", "librsvg2-tools"],
         "font": "dejavu-fonts-all",
     }
 
@@ -114,9 +114,10 @@ class Fedora(GPGBased, BaseDistribution):
         if self.project.gui:
             build_requires.append(self._packages["xvfb-run"])
         if self.icons:
-            build_requires.append(self._packages["imagemagick"])
+            if any(not source.endswith(".svg") for (source, _) in self.icons):
+                build_requires += self._packages["image-conversion"]
             if any(source.endswith(".svg") for (source, _) in self.icons):
-                build_requires.append(self._packages["imagemagick_svg"])
+                build_requires += self._packages["svg-conversion"]
         for dependency in _deduplicate(build_requires):
             out += f"BuildRequires:  {dependency}\n"
         for extra in self.project.dependencies.get("python", ()):

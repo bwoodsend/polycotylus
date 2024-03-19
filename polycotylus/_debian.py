@@ -71,8 +71,8 @@ class Debian(BaseDistribution):
     _formatter = _misc.Formatter("\t")
     _packages = {
         "python": "python3:any",
-        "imagemagick": "imagemagick",
-        "imagemagick_svg": "librsvg2-bin",
+        "image-conversion": ["imagemagick"],
+        "svg-conversion": ["imagemagick", "librsvg2-bin"],
         "xvfb-run": "xvfb xauth",
         "font": "fonts-dejavu",
     }

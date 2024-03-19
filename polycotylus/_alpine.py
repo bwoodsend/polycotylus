@@ -36,8 +36,8 @@ class Alpine(BaseDistribution):
     }
     _packages = {
         "python": "python3",
-        "imagemagick": "imagemagick",
-        "imagemagick_svg": "librsvg",
+        "image-conversion": ["imagemagick"],
+        "svg-conversion": ["imagemagick", "librsvg"],
         "xvfb-run": "xvfb-run",
         "font": "ttf-dejavu",
     }

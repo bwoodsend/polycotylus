@@ -25,8 +25,8 @@ class Arch(GPGBased, BaseDistribution):
     _formatter = _misc.Formatter()
     _packages = {
         "python": "python",
-        "imagemagick": "imagemagick",
-        "imagemagick_svg": "librsvg",
+        "image-conversion": ["imagemagick"],
+        "svg-conversion": ["imagemagick", "librsvg"],
         "xvfb-run": "xorg-server-xvfb",
         "font": "ttf-dejavu",
     }

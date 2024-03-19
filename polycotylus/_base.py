@@ -227,9 +227,10 @@ class BaseDistribution(abc.ABC):
             # setuptools.
             out.append(self.python_package("setuptools>=61.0"))
         if self.icons:
-            out.append(self._packages["imagemagick"])
+            if any(not source.endswith(".svg") for (source, _) in self.icons):
+                out += self._packages["image-conversion"]
             if any(source.endswith(".svg") for (source, _) in self.icons):
-                out.append(self._packages["imagemagick_svg"])
+                out += self._packages["svg-conversion"]
         disallowed = self.build_base_packages()
         out = [i for i in out if i not in disallowed]
         return _deduplicate(out)

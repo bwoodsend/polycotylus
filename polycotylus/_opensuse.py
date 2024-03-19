@@ -38,8 +38,8 @@ class OpenSUSE(GPGBased, BaseDistribution):
     _packages = {
         "python": "python3",
         "xvfb-run": "xvfb-run awk",
-        "imagemagick": "ImageMagick",
-        "imagemagick_svg": "librsvg",
+        "image-conversion": ["ImageMagick"],
+        "svg-conversion": ["rsvg-convert"],
         "font": "dejavu-fonts",
     }
 
@@ -341,6 +341,13 @@ class OpenSUSE(GPGBased, BaseDistribution):
         else:
             command = tokenizer.sub(lambda m: "%pytest" if m[4] else "%pyunittest", command)
         return command.strip(" \n")
+
+    def install_icons(self, indentation, sysroot):
+        # OpenSUSE's default security policy (/etc/ImageMagick-7/policy.xml)
+        # blocks SVG. Rather than try to reconfigure it, switch conversion tool.
+        return re.sub('convert .+? ("[^"]+.svg") (".+)',
+                      r"rsvg-convert -h $_size -w $_size \1 -o \2",
+                      super().install_icons(indentation, sysroot))
 
     def generate(self):
         super().generate()
