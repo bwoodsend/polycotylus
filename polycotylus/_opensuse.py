@@ -129,6 +129,8 @@ class OpenSUSE(GPGBased, BaseDistribution):
             out.append("update-desktop-files")
         if self.icons:
             out.append("hicolor-icon-theme")
+        # Interchangeable (which makes them ambiguous) dependencies of gcc.
+        out += ["libasan8", "libtsan2", "libubsan1"]
         return out
 
     def _dependencies(self, dependencies):
