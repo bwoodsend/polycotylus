@@ -19,6 +19,7 @@ dependencies = [
     "appdirs",
     "toml",
     "portalocker",
+    "packaging",
 ]
 description = """\
   A CLI tool to convert Python packages into a wide range of Linux distributions \
