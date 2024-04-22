@@ -330,7 +330,7 @@ class Fedora37(Fedora):
 
 class Fedora38(Fedora):
     version = "38"
-    base_image = "fedora:38/"
+    base_image = "fedora:38"
 
 
 Fedora39 = Fedora
