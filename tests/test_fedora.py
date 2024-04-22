@@ -130,10 +130,10 @@ def test_kitchen_sink(monkeypatch):
   },
   {
     "distribution": "fedora",
-    "tag": "39",
+    "tag": "40",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc39.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc40.noarch.rpm",
     "signature_path": null
   }
 ]"""
