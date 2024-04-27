@@ -26,11 +26,11 @@ def comment(x):
 
 
 def string(x):
-    return termcolor.colored(x , "green")
+    return termcolor.colored(x, "green")
 
 
 def highlight_toml(x):
-    x = re.sub(r"\[([\w.-]+)\]", lambda m: "[" + key(m[1]) + "]" , x)
+    x = re.sub(r"\[([\w.-]+)\]", lambda m: "[" + key(m[1]) + "]", x)
     x = re.sub(r"([\"'])[^\"']+\1", lambda m: string(m[0]), x)
     x = re.sub(r"^([\w-]+) =", lambda m: key(m[1]) + " =", x, flags=re.M)
     x = re.sub(r"#.*", lambda m: comment(m[0]), x)
