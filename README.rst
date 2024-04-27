@@ -77,7 +77,7 @@ Debian_        13 (pre-release)
 Fedora_        37-40, 41 (rawhide)
 Manjaro_       rolling
 OpenSUSE_      Tumbleweed only (rolling)
-Ubuntu_        23.04, 23.10 (interim releases)
+Ubuntu_        23.04-24.04
 Void_          rolling
 =============  ============================================
 

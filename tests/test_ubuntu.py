@@ -53,8 +53,8 @@ def test_ubrotli():
     # unfortunately makes it necessary to do an extremely slow qemu platform test.
     for self in [
         polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="amd64"),
-        polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="arm64"),
-        polycotylus.Ubuntu2310(Project.from_root(shared.ubrotli), architecture="amd64"),
+        polycotylus.Ubuntu2310(Project.from_root(shared.ubrotli), architecture="arm64"),
+        polycotylus.Ubuntu2404(Project.from_root(shared.ubrotli), architecture="amd64"),
     ]:
         self.generate()
         artifacts = self.build()
@@ -72,18 +72,18 @@ def test_ubrotli():
         },
         {
             "distribution": "ubuntu",
-            "tag": "23.04",
+            "tag": "23.10",
             "architecture": "arm64",
             "variant": "main",
-            "path": ".polycotylus/ubuntu/23.04/python3-ubrotli_0.1.0-1_arm64.deb",
+            "path": ".polycotylus/ubuntu/23.10/python3-ubrotli_0.1.0-1_arm64.deb",
             "signature_path": None,
         },
         {
             "distribution": "ubuntu",
-            "tag": "23.10",
+            "tag": "24.04",
             "architecture": "amd64",
             "variant": "main",
-            "path": ".polycotylus/ubuntu/23.10/python3-ubrotli_0.1.0-1_amd64.deb",
+            "path": ".polycotylus/ubuntu/24.04/python3-ubrotli_0.1.0-1_amd64.deb",
             "signature_path": None,
         }
     ]

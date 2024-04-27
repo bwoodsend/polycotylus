@@ -9,10 +9,9 @@ Basic usage::
 * Supported architectures: ``amd64 arm64 armhf ppc64el s390x``
 
 * Ubuntu packages will be compatible with the following distributions **only**
-  when they migrate to a Ubuntu >= 23.04 base, which is unlikely to happen until
-  Ubuntu's next LTS release: `Linux Mint <https://linuxmint.com/>`_, `Pop!_OS
-  <https://pop.system76.com/>`_, `Zorin OS <https://zorin.com/os/>`_, `KDE Neon
-  <https://neon.kde.org/>`_
+  when they migrate to a Ubuntu >= 23.04 base: `Linux Mint
+  <https://linuxmint.com/>`_, `Pop!_OS <https://pop.system76.com/>`_, `Zorin OS
+  <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_
 
 * Ubuntu packages are not compatible with Debian or any of its other
   derivatives.
@@ -20,7 +19,8 @@ Basic usage::
 Specific versions of Ubuntu can be targeted using:
 
 * ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
-* ``polycotylus ubuntu:23.10`` for Mantic Minotaur (Beta)
+* ``polycotylus ubuntu:23.10`` for Mantic Minotaur (interim release)
+* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default)
 
 No earlier versions of Ubuntu are supported.
 
@@ -58,6 +58,3 @@ Caveats
 
     [tool.setuptools.packages.find]
     include = ["your_top_level_package"]
-
-* No existing long term support Ubuntu version is up to date enough to be
-  supportable by `polycotylus`.
