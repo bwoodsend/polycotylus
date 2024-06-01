@@ -12,13 +12,13 @@ import pytest
 
 from polycotylus import _docker, _exceptions, machine
 from polycotylus._project import Project
-from polycotylus._alpine import Alpine, Alpine317, Alpine318, AlpineEdge
+from polycotylus._alpine import Alpine, Alpine317, Alpine318, Alpine319, AlpineEdge
 import shared
 
 
 class TestCommon(shared.Base):
     cls = Alpine
-    package_install = "apk add"
+    package_install = "apk upgrade && apk add"
 
 
 class TestCommon317(TestCommon):
@@ -91,7 +91,7 @@ def test_dumb_text_viewer():
 
     with self.mirror:
         script = "sudo apk add py3-pip && pip show dumb_text_viewer"
-        assert "Name: dumb-text-viewer" in _docker.run(
+        assert "Name: dumb_text_viewer" in _docker.run(
             installed, script, architecture=self.docker_architecture).output
 
         assert _docker.run(installed, """
@@ -267,7 +267,7 @@ def test_kitchen_sink(monkeypatch):
 
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     all_apks = []
-    for _Alpine in (Alpine, Alpine317, Alpine318, AlpineEdge):
+    for _Alpine in (Alpine, Alpine317, Alpine318, Alpine319, AlpineEdge):
         self = _Alpine(Project.from_root(shared.kitchen_sink))
         self.generate()
         assert "pywin32-ctypes" not in self.apkbuild()
@@ -290,7 +290,7 @@ def test_kitchen_sink(monkeypatch):
 
     for apk in all_apks:
         assert apk.path.exists()
-    assert len(set(i.path for i in all_apks)) == 11
+    assert len(set(i.path for i in all_apks)) == 14
 
     assert json.loads((shared.kitchen_sink / ".polycotylus/artifacts.json").read_bytes()) == [
         {
@@ -348,6 +348,27 @@ def test_kitchen_sink(monkeypatch):
             "architecture": "x86_64",
             "variant": "pyc",
             "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
+            "signature_path": None
+        }, {
+            "distribution": "alpine",
+            "tag": "3.20",
+            "architecture": "x86_64",
+            "variant": "doc",
+            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "signature_path": None
+        }, {
+            "distribution": "alpine",
+            "tag": "3.20",
+            "architecture": "x86_64",
+            "variant": "main",
+            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "signature_path": None
+        }, {
+            "distribution": "alpine",
+            "tag": "3.20",
+            "architecture": "x86_64",
+            "variant": "pyc",
+            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",

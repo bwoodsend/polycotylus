@@ -71,7 +71,7 @@ low latency package repositories.
 =============  ============================================
 Distributions  Supported versions
 =============  ============================================
-Alpine_        3.17-3.19, edge
+Alpine_        3.17-3.20, edge
 Arch_          rolling
 Debian_        13 (pre-release)
 Fedora_        37-40, 41 (rawhide)
