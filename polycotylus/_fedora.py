@@ -24,7 +24,6 @@ from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 class Fedora(GPGBased, BaseDistribution):
     name = "fedora"
     version = "40"
-    base_image = "fedora:40"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
@@ -57,6 +56,10 @@ class Fedora(GPGBased, BaseDistribution):
     @_misc.classproperty
     def tag(_, cls):
         return cls.version
+
+    @_misc.classproperty
+    def base_image(_, cls):
+        return "docker.io/fedora:" + cls.version
 
     @staticmethod
     def fix_package_name(name):
@@ -325,17 +328,14 @@ class Fedora(GPGBased, BaseDistribution):
 
 class Fedora37(Fedora):
     version = "37"
-    base_image = "fedora:37"
 
 
 class Fedora38(Fedora):
     version = "38"
-    base_image = "fedora:38"
 
 
 class Fedora39(Fedora):
     version = "39"
-    base_image = "fedora:39"
 
 
 Fedora40 = Fedora
@@ -343,4 +343,3 @@ Fedora40 = Fedora
 
 class Fedora41(Fedora):
     version = "41"
-    base_image = "fedora:41"
