@@ -14,7 +14,7 @@ from ._fedora import Fedora, Fedora37, Fedora38, Fedora39, Fedora40, Fedora41
 from ._void import Void, VoidGlibc, VoidMusl
 from ._opensuse import OpenSUSE
 from ._debian import Debian, Debian13
-from ._ubuntu import Ubuntu, Ubuntu2304, Ubuntu2310, Ubuntu2404
+from ._ubuntu import Ubuntu, Ubuntu2304, Ubuntu2310, Ubuntu2404, Ubuntu2410
 
 distributions = {i.name: i for i in (Alpine, Arch, Debian, Fedora, Manjaro, OpenSUSE, Ubuntu, Void)}
 distributions["alpine:3.17"] = Alpine317
@@ -31,5 +31,6 @@ distributions["fedora:41"] = Fedora41
 distributions["ubuntu:23.04"] = Ubuntu2304
 distributions["ubuntu:23.10"] = Ubuntu2310
 distributions["ubuntu:24.04"] = Ubuntu2404
+distributions["ubuntu:24.10"] = Ubuntu2410
 distributions["void:glibc"] = VoidGlibc
 distributions["void:musl"] = VoidMusl
