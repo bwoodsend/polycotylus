@@ -130,7 +130,7 @@ class OpenSUSE(GPGBased, BaseDistribution):
         if self.icons:
             out.append("hicolor-icon-theme")
         # Interchangeable (which makes them ambiguous) dependencies of gcc.
-        out += ["libasan8", "libtsan2", "libubsan1"]
+#        out += ["libasan8", "libtsan2", "libubsan1"]
         return out
 
     def _dependencies(self, dependencies):
@@ -323,6 +323,9 @@ class OpenSUSE(GPGBased, BaseDistribution):
         if self.signing_id:
             out += f"RUN echo '{self.public_key}' | base64 -d > /tmp/key.pub && rpm --import /tmp/key.pub\n"
         return out
+
+    def _install_user(self):
+        return super()._install_user().replace("/etc/sudoers", "/etc/sudoers.d/00-passwordless-sudo")
 
     @property
     def test_command(self):
