@@ -16,13 +16,24 @@ Basic usage::
 * Ubuntu packages are not compatible with Debian or any of its other
   derivatives.
 
-Specific versions of Ubuntu can be targeted using:
+The default target Ubuntu version is the latest long term support releases.
+Other versions can be targeted using:
 
 * ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
 * ``polycotylus ubuntu:23.10`` for Mantic Minotaur (interim release)
 * ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default)
+* ``polycotylus ubuntu:24.10`` for Oracular Oriole (pre-release)
 
 No earlier versions of Ubuntu are supported.
+
+..
+    See the following for checking the Ubuntu base versions of derivative
+    distributions:
+
+    * https://linuxmint.com/download_all.php
+    * https://zorin.com/os/details/
+    * https://pop.system76.com/ (Try to download. It uses the same version numbers as Ubuntu)
+    * https://neon.kde.org/faq#what-is-neon
 
 
 Caveats

@@ -35,3 +35,9 @@ class Ubuntu2310(Ubuntu):
 
 
 Ubuntu2404 = Ubuntu
+
+
+class Ubuntu2410(Ubuntu):
+    base_image = "ubuntu:24.10"
+    tag = "24.10"
+    mirror = _mirror.mirrors["ubuntu2410"]
