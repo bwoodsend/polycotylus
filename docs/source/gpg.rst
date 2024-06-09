@@ -4,9 +4,9 @@
 GnuPG Signing
 =============
 
-Some distributions, namely Arch, Fedora, Manjaro and OpenSUSE, optionally use
-GnuPG_ to sign their packages. Other distributions either use their own wrappers
-around OpenSSL, for which the signing process is documented under :ref:`each
+Some distributions, namely Arch, Fedora and Manjaro, optionally use GnuPG_ to
+sign their packages. Other distributions either use their own wrappers around
+OpenSSL, for which the signing process is documented under :ref:`each
 distribution's quirks page <building for>`, or don't meaningfully support
 signing.
 

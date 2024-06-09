@@ -68,25 +68,24 @@ OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
 This leaves rolling build distributions and fast releasing distributions with
 low latency package repositories.
 
-=============  ============================================
+=============  ===========================================
 Distributions  Supported versions
-=============  ============================================
+=============  ===========================================
 Alpine_        3.17-3.20, edge
 Arch_          rolling
 Debian_        13 (pre-release)
 Fedora_        37-40, 41 (rawhide)
 Manjaro_       rolling
-OpenSUSE_      Tumbleweed only (rolling)
+O̶p̶e̶n̶S̶U̶S̶E       Redacted due to too many upstream breakages
 Ubuntu_        23.04-24.04, 24.10 (pre-release)
 Void_          rolling
-=============  ============================================
+=============  ===========================================
 
 .. _Alpine: https://alpinelinux.org/
 .. _Arch: https://archlinux.org/
 .. _Debian: https://www.debian.org/
 .. _Fedora: https://fedoraproject.org/
 .. _Manjaro: https://manjaro.org/
-.. _OpenSUSE: https://www.opensuse.org/
 .. _Ubuntu: https://ubuntu.com/
 .. _Void: https://voidlinux.org/
 

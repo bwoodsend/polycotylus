@@ -134,35 +134,6 @@ This reference should answer those questions.
         dnf repoquery -l python3
 
 
-.. tab:: OpenSUSE
-
-    ::
-
-        # Install packages:
-        zypper install -y python3-numpy python3-pip
-
-        # Uninstall packages:
-        zypper remove -y python3-numpy python3-pip
-
-        # Search packages by name+description:
-        zypper search substring
-
-        # Search by file:
-        zypper search --match-exact --file-list /usr/bin/python3
-
-        # List all available packages:
-        zypper search
-
-        # List all installed packages:
-        zypper search --installed-only
-
-        # Show a package's metadata:
-        zypper info python310
-
-        # List a package's files:
-        # unsupported
-
-
 .. tab:: Void
 
     ::
@@ -281,29 +252,6 @@ Working with local packages
         # Read package's metadata. Not possible with cross distribution tools.
         rpm --query --info package-1.2.3-1.fc38.noarch.rpm
         rpm --query --requires package-1.2.3-1.fc38.noarch.rpm
-
-
-.. tab:: OpenSUSE
-
-    OpenSUSE RPMs are a custom file format consisting of an embedded cpio archive
-    (containing the files) plus some added metadata. The embedded cpio can be
-    accessed via ``bsdcpio``. The metadata is untouchable without the distro
-    specific ``rpm`` command.
-
-    ::
-
-        # Install local package
-        zypper install -y package-1.2.3-0.noarch.rpm
-
-        # List package's contents
-        bsdcpio -itF package-1.2.3-0.noarch.rpm
-
-        # Extract package's contents
-        bsdcpio -idF package-1.2.3-0.noarch.rpm
-
-        # Read package's metadata. Not possible with cross distribution tools.
-        rpm --query --info package-1.2.3-0.noarch.rpm
-        rpm --query --requires package-1.2.3-0.noarch.rpm
 
 
 .. tab:: Void

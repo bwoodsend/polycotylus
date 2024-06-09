@@ -19,7 +19,6 @@ jobs:
           - tests/test_manjaro.py
           - tests/test_fedora.py
           - tests/test_void.py
-          - tests/test_opensuse.py
           - tests/test_debian.py
           - tests/test_ubuntu.py
       fail-fast: false

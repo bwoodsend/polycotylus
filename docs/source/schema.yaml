@@ -35,7 +35,7 @@ dependencies:
   #
   #   - ``pip``: Pip/PyPI packages.
   #   - ``python``: Python's optional stdlib dependencies (e.g. ``tkinter`` or ``sqlite3``) which may be packaged separately from Python itself for size, licensing or inexplicable reasons.
-  #   - ``alpine|arch|debian|fedora|manjaro|opensuse|ubuntu|void``: Linux packages installed by each distribution's native package manager.
+  #   - ``alpine|arch|debian|fedora|manjaro|ubuntu|void``: Linux packages installed by each distribution's native package manager.
 
   run:
     # Dependencies needed to run the application/package.
@@ -55,7 +55,6 @@ dependencies:
     arch manjaro: ffmpeg xorg-xsetroot
     debian ubuntu: ffmpeg
     fedora: ffmpeg-free xsetroot
-    opensuse: ffmpeg xsetroot
     void: ffmpeg xsetroot
       # External command line tools or runtime libraries used by the
       # application. Similar distributions with identical dependencies (e.g.
@@ -77,7 +76,6 @@ dependencies:
     arch manjaro: gcc
     debian ubuntu: gcc
     fedora: python3-devel gcc
-    opensuse: gcc
     void: python3-devel gcc
       # System build dependencies: This is where packages containing compiled
       # extension modules will need to add the appropriate compiler for your
@@ -201,8 +199,8 @@ dependency_name_map:
   # package repositories but `polycotylus` can't find it because it's been named
   # something that breaks the distribution's naming conventions, you can tell
   # `polycotylus` what its real name is here. Note that this option does not
-  # exist for ``fedora`` or ``opensuse`` due to their handling the mapping using
-  # package *capabilities* rather than a naming pattern.
+  # exist for ``fedora`` due to its handling the mapping using package
+  # *capabilities* rather than a naming pattern.
 
 
 # --------------------
