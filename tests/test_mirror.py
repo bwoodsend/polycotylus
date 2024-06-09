@@ -360,23 +360,6 @@ obsolete_caches = {
         "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps",
         "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps.sig",
     ],
-    "opensuse": [
-        './tumbleweed/repo/oss/noarch/python310-setuptools-67.6.1-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python310-setuptools-67.7.2-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python310-setuptools_scm-7.0.5-2.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python311-setuptools-67.6.1-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python311-setuptools-67.7.2-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python311-setuptools_scm-7.0.5-2.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python39-setuptools-67.6.1-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python39-setuptools-67.7.2-1.1.noarch.rpm',
-        './tumbleweed/repo/oss/noarch/python39-setuptools_scm-7.0.5-2.1.noarch.rpm',
-        './tumbleweed/repo/oss/x86_64/busybox-1.36.0-1.2.x86_64.rpm',
-        './tumbleweed/repo/oss/x86_64/cpp13-13.0.1+git7231-1.1.x86_64.rpm',
-        './tumbleweed/repo/oss/x86_64/glibc-2.37-3.1.x86_64.rpm',
-        './tumbleweed/repo/oss/x86_64/glibc-devel-2.37-3.1.x86_64.rpm',
-        './tumbleweed/repo/oss/x86_64/glibc-locale-base-2.37-3.1.x86_64.rpm',
-        './tumbleweed/repo/oss/x86_64/libitm1-13.0.1+git7231-1.1.x86_64.rpm'
-    ],
     "debian13": [
         "./debian/pool/main/n/ncurses/libncursesw6_6.2%2b20201114-2_amd64.deb",
         "./debian/pool/main/p/python3-defaults/libpython3-stdlib_3.9.2-3_amd64.deb",

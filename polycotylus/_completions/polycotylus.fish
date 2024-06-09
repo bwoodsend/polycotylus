@@ -1,4 +1,4 @@
-set -l distributions alpine arch debian fedora manjaro opensuse ubuntu void
+set -l distributions alpine arch debian fedora manjaro ubuntu void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:3.19 alpine:3.20 alpine:edge
 set -l debian_variants debian:13
 set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40 fedora:41
@@ -17,7 +17,6 @@ complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch"
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debian" -a 'amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manjaro" -a 'x86_64 aarch64'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from opensuse" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from ubuntu" -a 'amd64 arm64 armhf ppc64el s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void $void_variants" -a 'aarch64 armv6l armv7l x86_64'
 
@@ -29,7 +28,7 @@ complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && 
 complete -x -c polycotylus -n 'not __fish_seen_subcommand_from $all_variants && string match -rq -- v (commandline -t)' -a "$void_variants"
 
 # Suggest GPG signing only for distributions that use it or when no distribution is given.
-complete -c polycotylus -x -l gpg-signing-id -n "not __fish_seen_subcommand_from $all_variants || __fish_seen_subcommand_from arch fedora $fedora_variants manjaro opensuse" -a '(type -q gpg && __fish_complete_gpg_key_id gpg --list-secret-keys)'
+complete -c polycotylus -x -l gpg-signing-id -n "not __fish_seen_subcommand_from $all_variants || __fish_seen_subcommand_from arch fedora $fedora_variants manjaro" -a '(type -q gpg && __fish_complete_gpg_key_id gpg --list-secret-keys)'
 # Likewise with VoidLinux signing certificates.
 complete -c polycotylus -r -l void-signing-certificate -n "not __fish_seen_subcommand_from $all_variants || __fish_seen_subcommand_from void $void_variants"
 

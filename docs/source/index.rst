@@ -25,7 +25,6 @@
     Debian <debian>
     Fedora <fedora>
     Manjaro <manjaro>
-    OpenSUSE <opensuse>
     Ubuntu <ubuntu>
     Void <void>
 

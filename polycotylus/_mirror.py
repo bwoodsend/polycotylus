@@ -398,10 +398,6 @@ def _manjaro_preferred_mirror():
             return url
 
 
-def opensuse_last_sync_time(self: RequestHandler):
-    return float("inf")
-
-
 class UbuntuRequestHandler(RequestHandler):
     # Ubuntu's package repositories are split across multiple subnets. e.g.
     # http://archive.ubuntu.com/ubuntu/ vs http://ports.ubuntu.com/ubuntu-ports/
@@ -452,16 +448,6 @@ mirrors["manjaro"] = mirrors["arch"].with_(
     base_dir=cache_root / "manjaro",
     port=8903,
     install_command="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
-)
-mirrors["opensuse"] = CachedMirror(
-    "http://download.opensuse.org",
-    cache_root / "opensuse",
-    ["repomd.xml", "repomd.xml.key", "repomd.xml.asc"],
-    [],
-    8904,
-    "sed -r -i 's|http://download.opensuse.org/|http://localhost:8904/|g' /etc/zypp/repos.d/*",
-    (opensuse_last_sync_time,),
-    r"(.+-)([^-]+-[^-]+)(\.\w+\.rpm)",
 )
 mirrors["debian13"] = CachedMirror(
     "http://deb.debian.org/",

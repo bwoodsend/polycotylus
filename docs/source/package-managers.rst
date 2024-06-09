@@ -283,29 +283,6 @@ Working with local packages
         rpm --query --requires package-1.2.3-1.fc38.noarch.rpm
 
 
-.. tab:: OpenSUSE
-
-    OpenSUSE RPMs are a custom file format consisting of an embedded cpio archive
-    (containing the files) plus some added metadata. The embedded cpio can be
-    accessed via ``bsdcpio``. The metadata is untouchable without the distro
-    specific ``rpm`` command.
-
-    ::
-
-        # Install local package
-        zypper install -y package-1.2.3-0.noarch.rpm
-
-        # List package's contents
-        bsdcpio -itF package-1.2.3-0.noarch.rpm
-
-        # Extract package's contents
-        bsdcpio -idF package-1.2.3-0.noarch.rpm
-
-        # Read package's metadata. Not possible with cross distribution tools.
-        rpm --query --info package-1.2.3-0.noarch.rpm
-        rpm --query --requires package-1.2.3-0.noarch.rpm
-
-
 .. tab:: Ubuntu
 
     Ubuntu ``deb`` packages are the same as Debian packages except that the

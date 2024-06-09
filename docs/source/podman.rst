@@ -36,8 +36,6 @@ Caveats
   An explanation and fix can be found in `here
   <https://stackoverflow.com/a/77354286>`_.
 
-* Building for OpenSUSE doesn't work.
-
 * On Debian/Ubuntu, the latest version of Podman_ available is too old for
   `polycotylus`. Use the `Podman PPA
   <https://podman.io/docs/installation#debian>`_ to get a usable version.
