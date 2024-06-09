@@ -238,7 +238,7 @@ Working with local packages
         tar xOf package-1.2.3-1-any.pkg.tar.zst .PKGINFO
 
 
-.. tab:: Debian/Ubuntu
+.. tab:: Debian
 
     ``deb`` packages are a nested archive – the top level is an `Ar archive
     <https://en.wikipedia.org/wiki/Ar_(Unix)>`_\ , inside is a
@@ -304,6 +304,26 @@ Working with local packages
         # Read package's metadata. Not possible with cross distribution tools.
         rpm --query --info package-1.2.3-0.noarch.rpm
         rpm --query --requires package-1.2.3-0.noarch.rpm
+
+
+.. tab:: Ubuntu
+
+    Ubuntu ``deb`` packages are the same as Debian packages except that the
+    inner archives use Zstandard compression instead of LZMA.
+
+    ::
+
+        # Install local package
+        apt-get install -y package_1.2.3-1_all.deb
+
+        # List package's contents
+        ar pf package_1.2.3-1_all.deb data.tar.zst | tar t --zstd
+
+        # Extract package's contents
+        ar pf package_1.2.3-1_all.deb data.tar.zst | tar x --zstd
+
+        # Read package's metadata
+        ar pf package_1.2.3-1_all.deb control.tar.zst | tar xO --zstd ./control
 
 
 .. tab:: Void
