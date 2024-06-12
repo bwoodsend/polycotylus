@@ -134,35 +134,6 @@ This reference should answer those questions.
         dnf repoquery -l python3
 
 
-.. tab:: OpenSUSE
-
-    ::
-
-        # Install packages:
-        zypper install -y python3-numpy python3-pip
-
-        # Uninstall packages:
-        zypper remove -y python3-numpy python3-pip
-
-        # Search packages by name+description:
-        zypper search substring
-
-        # Search by file:
-        zypper search --match-exact --file-list /usr/bin/python3
-
-        # List all available packages:
-        zypper search
-
-        # List all installed packages:
-        zypper search --installed-only
-
-        # Show a package's metadata:
-        zypper info python310
-
-        # List a package's files:
-        # unsupported
-
-
 .. tab:: Void
 
     ::
