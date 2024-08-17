@@ -122,6 +122,18 @@ Use '--' to separate paths from revisions, like this:
 --> d39228d6bbf
 d39228d6bbf39d98ce875c9143aaa88a400ededa02ca8947aabe2ac49a197f93
 """, "d39228d6bbf39d98ce875c9143aaa88a400ededa02ca8947aabe2ac49a197f93"),
+
+    "containerd-snapshotter": ("""
+#22 exporting to image
+#22 exporting layers done
+#22 exporting manifest sha256:8ff0d2f901ad92e8ee87ee460cd69b2afa1f35d3df74d2239965e39510f1ce4b done
+#22 exporting config sha256:0b420318f6a1dc8eb26dd7d9a29c377805a8169b7e2dd9ac8f43bbe6ae8d5d2c done
+#22 exporting attestation manifest sha256:b03ee1e6e462883a82ea1e7b0dc645e180b4eb6d2c5f2f7fd63695d9a5b3e79c done
+#22 exporting manifest list sha256:af40dee35f527f685ed91a1c37b6080e66f6a361b3f07e4e8772d9165c56e79c done
+#22 naming to moby-dangling@sha256:af40dee35f527f685ed91a1c37b6080e66f6a361b3f07e4e8772d9165c56e79c done
+#22 unpacking to moby-dangling@sha256:af40dee35f527f685ed91a1c37b6080e66f6a361b3f07e4e8772d9165c56e79c done
+#22 DONE 0.1s
+""", "sha256:af40dee35f527f685ed91a1c37b6080e66f6a361b3f07e4e8772d9165c56e79c"),
 }
 
 

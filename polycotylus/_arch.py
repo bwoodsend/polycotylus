@@ -154,7 +154,7 @@ class Arch(GPGBased, BaseDistribution):
             RUN mkdir /io && chown user /io
             WORKDIR /io
 
-            FROM base as build
+            FROM base AS build
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
             RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
             {self.patch_gpg_locale}
