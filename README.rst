@@ -21,17 +21,15 @@ the usual Linux nightmare that is ABI compatibility) and uses each
 distribution's packaging tool. In the process, it produces a build script which,
 if your project is open source, can be submitted upstream so that your package
 will become available on official package repositories (although please don't do
-this yet – I want to get some form of review from the distribution maintainers
-first).
+this yet – I want to get some review from the distribution maintainers first).
 
 Polycotylus uses Docker to virtualize each Linux distribution and Qemu to
 virtualize almost any architecture meaning that you can build for any supported
 distribution or architecture from a single machine. You can even build on
-Windows or macOS thanks to Docker Desktop. You can also build apps for Linux
-phones: running ``polycotylus manjaro --architecture aarch64`` will build an app
-installable on a phone running Manjaro or ``polycotylus alpine --architecture
-aarch64`` will build a `postmarketOS <https://postmarketos.org/>`_ compatible
-app.
+Windows or macOS. And you can build apps for Linux phones: running ``polycotylus
+manjaro --architecture aarch64`` will build an app installable on a phone
+running Manjaro or ``polycotylus alpine --architecture aarch64`` will build a
+`postmarketOS <https://postmarketos.org/>`_ compatible app.
 
 Unlike PyInstaller, Flatpaks or Snaps, polycotylus does not bundle dependencies
 into your packages – rather dependencies (including Python itself) are declared
@@ -51,9 +49,9 @@ it should be almost impossible to forget a dependency or miss a data file
 without polycotylus letting you know.
 
 For GUI applications, using a system package manager also allows you to add
-desktop integration. This means registering your application so that launch
-menus (e.g. Gnome's App tiles) and file browsers know that your application
-exists, adding icons, descriptions, registering supported file types, etc.
+*desktop integration*. You can register your application so that launch menus
+(e.g. Gnome's App tiles) and file browsers know that your application exists,
+have icons and descriptions, and are aware of their supported file types.
 
 
 Supported distributions
@@ -61,7 +59,7 @@ Supported distributions
 
 Polycotylus is limited by a hard constraint in that it can not support any
 target Linux distribution that does not provide ``setuptools>=61.0`` in its
-official package repositories. This unfortunately rules out all of the
+official package repositories. This unfortunately rules out almost all of the
 *stable*/long term support distributions (which also happen to be the most
 popular) currently including all stable branches of Debian, Ubuntu <23.04, SLES,
 OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
@@ -76,7 +74,7 @@ Arch_          rolling
 Debian_        13 (pre-release)
 Fedora_        37-40, 41 (pre-release)
 Manjaro_       rolling
-O̶p̶e̶n̶S̶U̶S̶E       Redacted due to too many upstream breakages
+O̶p̶e̶n̶S̶U̶S̶E       Redacted due to too many upstream issues
 Ubuntu_        23.04-24.04, 24.10 (pre-release)
 Void_          rolling
 =============  ===========================================
@@ -93,10 +91,10 @@ Void_          rolling
 Development status
 ..................
 
-This project is still fairly work in progress. It is not available on PyPI. To
-use this project as it is right now, you will have to install ``polycotylus``
-from version control (instructions below). It does have documentation but that
-documentation is not on readthedocs – you'll need to build that from source too:
+This project is not complete. It is not available on PyPI. To use this project
+as it is right now, install ``polycotylus`` from version control (instructions
+below). It does have documentation but that documentation is not on readthedocs
+– you'll need to build that from source too:
 
 .. code-block:: bash
 
@@ -128,3 +126,6 @@ Other, less significant but more achievable things I'd like to do:
 
 * See if I can get hardware related functionality (audio, USB) to work with
   Docker.
+
+That said, if you don't need any of the above then polycotylus should work for
+you.
