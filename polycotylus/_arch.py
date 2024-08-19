@@ -72,22 +72,12 @@ class Arch(GPGBased, BaseDistribution):
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
         """ % top_level)
-        license_names = []
         shareable = True
         for spdx in self.project.license_names:
-            for name in self.available_licenses():
-                if spdx.replace("-", "").startswith(name):
-                    license_names.append(name)
-                    break
-            else:
-                for name in ("MIT", "BSD", "ZLIB"):
-                    if spdx.upper().startswith(name):
-                        license_names.append(name)
-                        shareable = False
-                        break
-                else:
-                    shareable = False
-                    license_names.append(spdx)
+            if spdx.startswith(("MIT", "BSD", "ZLIB")):
+                shareable = False
+            elif spdx not in self.available_licenses():
+                shareable = False
         if not shareable:
             for license in self.project.licenses:
                 package += self._formatter(
@@ -115,7 +105,7 @@ class Arch(GPGBased, BaseDistribution):
             pkgdesc=shlex.quote(self.project.description),
             arch=architecture,
             url=self.project.url,
-            license=license_names,
+            license=self.project.license_names,
             depends=self.dependencies,
             makedepends=self.build_dependencies,
             checkdepends=self.test_dependencies,
@@ -220,9 +210,9 @@ class Arch(GPGBased, BaseDistribution):
         out = []
         container = _docker.run(cls.base_image, verbosity=0,
                                 architecture=cls.preferred_architecture)
-        with container["/usr/share/licenses/common"] as tar:
+        with container["/usr/share/licenses/spdx"] as tar:
             for member in tar.getmembers():
-                m = re.fullmatch("common/([^/]+)/license.txt", member.name)
+                m = re.fullmatch("spdx/([^/]+).txt", member.name)
                 if m:
                     out.append(m[1])
         return out
