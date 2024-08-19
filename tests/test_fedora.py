@@ -200,7 +200,7 @@ def test_poetry(tmp_path):
     subprocess.run(["git", "init"], cwd=tmp_path)
     pyproject = toml.load(str(shared.poetry_based / "pyproject.toml"))
     pyproject["tool"]["poetry"]["dependencies"].pop("toml")
-    pyproject["tool"]["poetry"]["dependencies"].pop("filelock")
+    pyproject["tool"]["poetry"]["dependencies"].pop("snowballstemmer")
 
     (tmp_path / "pyproject.toml").write_text(toml.dumps(pyproject))
     self = Fedora(Project.from_root(tmp_path))

@@ -11,4 +11,4 @@ def test_dependencies():
     import certifi
     import cycler
     with pytest.raises(ImportError):
-        import filelock
+        import snowballstemmer
