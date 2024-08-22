@@ -136,6 +136,7 @@ Unlicense
 UPL-1.0
 VSL-1.0
 W3C
+W3C-20150513
 Watcom-1.0
 wxWindows
 Xnet
