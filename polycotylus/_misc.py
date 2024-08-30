@@ -2,6 +2,8 @@ import textwrap
 import shlex
 import re
 import tarfile
+import sys
+import importlib.resources
 
 
 def array(*items):
@@ -48,3 +50,11 @@ def tar_extract_all(tar, path):
         tar.extractall(path, filter=tarfile.data_filter)
     else:  # pragma: no cover
         tar.extractall(path)
+
+
+def read_resource(name):
+    if sys.version_info >= (3, 12):
+        return (importlib.resources.files("polycotylus") / name).read_bytes()
+    else:
+        parts = ("polycotylus", *name.split("/"))
+        return importlib.resources.read_binary(".".join(parts[:-1]), parts[-1])

@@ -1,6 +1,5 @@
 import argparse
 import os
-from importlib import resources
 import re
 import contextlib
 import sys
@@ -20,8 +19,8 @@ class CompletionAction(argparse.Action):
             if sys.stdout.isatty():  # pragma: no cover
                 print("# Pipe the output of this command into source or ~/.config/fish/completions/polycotylus.fish\n",
                       file=sys.stderr, flush=True)
-        with resources.open_text("polycotylus._completions", self.files[shell]) as f:
-            print(f.read(), end="")
+        content = polycotylus._misc.read_resource("_completions/" + self.files[shell])
+        print(content.decode(), end="")
         parser.exit()
 
 

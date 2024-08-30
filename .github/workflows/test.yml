@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         _:
-          - python: 3.12
+          - python: 3.13-dev
             docker: docker
           - python: 3.8.12  # Test https://docs.python.org/3/library/tarfile.html#supporting-older-python-versions
             docker: podman

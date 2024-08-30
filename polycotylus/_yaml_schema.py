@@ -1,11 +1,11 @@
 import re
 import json
-from importlib import resources
 
 from strictyaml import Any, Seq, Map, MapCombined, MapPattern, Str, EmptyDict, \
     Optional, OrValidator, Regex, Bool, load, ScalarValidator, \
     StrictYAMLError, YAMLValidationError
 
+from polycotylus import _misc
 from polycotylus._exceptions import PolycotylusYAMLParseError
 
 
@@ -79,8 +79,7 @@ class Maintainer(ScalarValidator):
         return dict(zip(["name", "email"], match.groups()))
 
 
-with resources.open_binary("polycotylus", "localizations.json") as f:
-    localizations = json.load(f)
+localizations = json.loads(_misc.read_resource("localizations.json"))
 
 python_extra = Regex("(bz2|ctypes|curses|curses.panel|dbm|dbm.gnu|dbm.ndbm|decimal|lzma|readline|sqlite3|tkinter|zlib)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")

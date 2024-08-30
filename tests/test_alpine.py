@@ -155,7 +155,7 @@ def test_user_privilege_escalation():
     assert user == "root"
 
 
-def test_unknown_package(polycotylus_yaml):
+def test_unknown_package(polycotylus_yaml, force_color):
     polycotylus_yaml("""
         dependencies:
             test:
