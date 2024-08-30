@@ -187,7 +187,10 @@ def test_verbosity(monkeypatch, capsys, tmp_path, no_color):
     assert not output_re.findall(out)
 
 
-def test_lazy_run_timeout(monkeypatch):
+def test_lazy_run_timeout(monkeypatch, tmp_path):
+    (tmp_path / "Dockerfile").write_bytes(b"FROM scratch\n")
+    _docker.build(tmp_path / "Dockerfile", tmp_path)
+
     command = ["ash", "-c", "date +%s > /timestamp"]
     old = _docker.lazy_run("alpine", command)
     assert _docker.lazy_run("alpine", command.copy()) == old

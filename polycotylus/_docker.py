@@ -211,7 +211,7 @@ def _parse_build_output(output):
     match = re.search(r"Successfully built ([a-f0-9]{8,})\n*\Z", output) \
         or re.search(r"([a-f0-9]{64})\n*\Z", output) \
         or re.search(r".*writing image (sha256:[a-f0-9]{64})", output, re.DOTALL) \
-        or re.search(r".*exporting manifest list (sha256:[a-f0-9]{64})", output)
+        or re.search(r".*naming to moby-dangling@(sha256:[a-f0-9]{64})", output)
     return match[1]
 
 
@@ -222,10 +222,10 @@ def lazy_run(base, command, **kwargs):
     _images = _run([docker, "images", "-q"], stdout=PIPE).stdout.decode().split()
     images = json.loads(_run([docker, "image", "inspect"] + _images, stdout=PIPE).stdout)
     for image in images:
-        _time = time.strptime(image["Created"].split(".")[0].rstrip("Z"),
-                              "%Y-%m-%dT%H:%M:%S")
         if image["Parent"].startswith((base, "sha256:" + base)):
             if (image.get("ContainerConfig") or image["Config"])["Cmd"] == command:
+                _time = time.strptime(image["Created"].split(".")[0].rstrip("Z"),
+                                      "%Y-%m-%dT%H:%M:%S")
                 if time.time() - time.mktime(_time) < 3600 * 24 * 3:
                     return image["Id"]
     container = run(base, command, **kwargs)
