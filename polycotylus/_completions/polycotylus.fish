@@ -1,7 +1,7 @@
 set -l distributions alpine arch debian fedora manjaro ubuntu void
 set -l alpine_variants alpine:3.17 alpine:3.18 alpine:3.19 alpine:3.20 alpine:edge
 set -l debian_variants debian:13
-set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40 fedora:41
+set -l fedora_variants fedora:37 fedora:38 fedora:39 fedora:40 fedora:41 fedora:42
 set -l ubuntu_variants ubuntu:23.04 ubuntu:23.10 ubuntu:24.04 ubuntu:24.10
 set -l void_variants void:musl void:glibc
 set -l all_variants $distributions $alpine_variants $debian_variants $fedora_variants $ubuntu_variants $void_variants
@@ -14,10 +14,10 @@ complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_variants $at
 complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_variants $atomic_flags" -a 'aarch64 amd64 arm64 armel armhf armv7 i386 mips64el ppc64el ppc64le riscv64 s390x x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from alpine $alpine_variants" -a 'aarch64 armv7 ppc64le x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch" -a 'x86_64'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debian" -a 'amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora" -a 'x86_64 aarch64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debian $debian_variants" -a 'amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora $fedora_variants" -a 'x86_64 aarch64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from manjaro" -a 'x86_64 aarch64'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from ubuntu" -a 'amd64 arm64 armhf ppc64el s390x'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from ubuntu $ubuntu_variants" -a 'amd64 arm64 armhf ppc64el s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from void $void_variants" -a 'aarch64 armv6l armv7l x86_64'
 
 # Suggest variants of distributions only if the user has already started typing the distribution's name.
