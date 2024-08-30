@@ -258,11 +258,16 @@ class Fedora(GPGBased, BaseDistribution):
 
     @property
     def _mounted_caches(self):
-        mock_cache = cache_root / ("fedora-mock-" + _docker.docker.variant)
-        mock_cache.mkdir(parents=True, exist_ok=True)
-        dnf_cache = cache_root / ("fedora-dnf-" + _docker.docker.variant)
-        dnf_cache.mkdir(parents=True, exist_ok=True)
-        return [(mock_cache, "/var/cache/mock"), (dnf_cache, "/var/cache/dnf")]
+        if int(self.version) >= 42:
+            dnf_cache = cache_root / f"fedora-libdnf5-{_docker.docker.variant}"
+            dnf_cache.mkdir(parents=True, exist_ok=True)
+            return [(dnf_cache, "/var/cache/libdnf5")]
+        else:
+            mock_cache = cache_root / ("fedora-mock2-" + _docker.docker.variant)
+            mock_cache.mkdir(parents=True, exist_ok=True)
+            dnf_cache = cache_root / ("fedora-dnf-" + _docker.docker.variant)
+            dnf_cache.mkdir(parents=True, exist_ok=True)
+            return [(mock_cache, "/var/cache/mock"), (dnf_cache, "/var/cache/dnf")]
 
     def build_builder_image(self):
         base = super().build_builder_image()
@@ -343,3 +348,7 @@ Fedora40 = Fedora
 
 class Fedora41(Fedora):
     version = "41"
+
+
+class Fedora42(Fedora):
+    version = "42"

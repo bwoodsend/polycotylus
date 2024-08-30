@@ -12,7 +12,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions, _misc
 from polycotylus._project import Project
-from polycotylus._fedora import Fedora, Fedora37, Fedora41
+from polycotylus._fedora import Fedora, Fedora37, Fedora42
 from polycotylus.__main__ import cli
 import shared
 
@@ -37,11 +37,11 @@ def test_pretty_spec():
 
 def test_python_extras():
     for (packages, imports) in shared._group_python_extras(Fedora.python_extras):
-        _docker.run("fedora:37", f"""
+        _docker.run(Fedora.base_image, f"""
             {Fedora.dnf_config_install}
             dnf install -y {shlex.join(packages)} python3
             python3 -c 'import {", ".join(imports)}'
-        """, volumes=Fedora._mounted_caches.fget(None))
+        """, volumes=Fedora._mounted_caches.fget(Fedora))
 
 
 def test_python_package():
@@ -49,8 +49,8 @@ def test_python_package():
         Fedora.python_package(i) for i in shared.awkward_pypi_packages
         if i != "zope.deferredimport"]
     script = Fedora.dnf_config_install + "\ndnf install --assumeno " + shlex.join(packages)
-    container = _docker.run("fedora:37", script, check=False,
-                            volumes=Fedora._mounted_caches.fget(None))
+    container = _docker.run(Fedora.base_image, script, check=False,
+                            volumes=Fedora._mounted_caches.fget(Fedora))
     assert "Operation aborted." in container.output
 
 
@@ -66,7 +66,7 @@ def test_ubrotli():
     self.test(packages["main"])
 
 
-@pytest.mark.parametrize("Fedora", [Fedora37, Fedora41])
+@pytest.mark.parametrize("Fedora", [Fedora37, Fedora42])
 def test_dumb_text_viewer(Fedora):
     self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
