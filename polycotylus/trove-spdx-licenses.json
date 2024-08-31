@@ -11,8 +11,8 @@
     "License :: Freely Distributable": "ignore",
     "License :: Free To Use But Restricted": "ignore",
     "License :: Freeware": "ignore",
-    "License :: GUST Font License 1.0": "ignore",
-    "License :: GUST Font License 2006-09-30": "ignore",
+    "License :: GUST Font License 1.0": "custom",
+    "License :: GUST Font License 2006-09-30": "custom",
     "License :: Netscape Public License (NPL)": ["NPL-1.0", "NPL-1.1"],
     "License :: Nokia Open Source License (NOKOS)": "Nokia",
     "License :: OSI Approved :: Academic Free License (AFL)": ["AFL-1.1", "AFL-1.2", "AFL-2.0", "AFL-2.1", "AFL-3.0"],
@@ -51,11 +51,11 @@
     "License :: OSI Approved": "ignore",
     "License :: OSI Approved :: Intel Open Source License": "Intel",
     "License :: OSI Approved :: ISC License (ISCL)": "ISC",
-    "License :: OSI Approved :: Jabber Open Source License": "ignore",
+    "License :: OSI Approved :: Jabber Open Source License": "custom",
     "License :: OSI Approved :: MirOS License (MirOS)": "MirOS",
     "License :: OSI Approved :: MIT License": "MIT",
     "License :: OSI Approved :: MIT No Attribution License (MIT-0)": "MIT-0",
-    "License :: OSI Approved :: MITRE Collaborative Virtual Workspace License (CVW)": "ignore",
+    "License :: OSI Approved :: MITRE Collaborative Virtual Workspace License (CVW)": "custom",
     "License :: OSI Approved :: Motosoto License": "Motosoto",
     "License :: OSI Approved :: Mozilla Public License 1.0 (MPL)": "MPL-1.0",
     "License :: OSI Approved :: Mozilla Public License 1.1 (MPL 1.1)": "MPL-1.1",
@@ -86,5 +86,5 @@
     "License :: OSI Approved :: Zope Public License": ["ZPL-1.1", "ZPL-2.0", "ZPL-2.1"],
     "License :: Other/Proprietary License": "ignore",
     "License :: Public Domain": "ignore",
-    "License :: Repoze Public License": "Ignore"
+    "License :: Repoze Public License": "custom"
 }
