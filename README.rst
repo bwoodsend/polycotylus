@@ -12,8 +12,6 @@ D̶o̶c̶u̶m̶e̶n̶t̶a̶t̶i̶o̶n
 `Source code <https://github.com/bwoodsend/polycotylus>`_
 ∘
 `Bug reports <https://github.com/bwoodsend/polycotylus/issues>`_
-∘
-`Support <https://github.com/bwoodsend/polycotylus/discussions>`_
 
 Polycotylus converts Python packages into native Linux distribution packages
 such as RPMs or APKs. It builds on each target Linux distribution (thus dodging
