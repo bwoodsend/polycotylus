@@ -65,6 +65,8 @@ jobs:
         with:
           name: coverage-${{ strategy.job-index }}
           path: .coverage-*
+          include-hidden-files: true
+          if-no-files-found: error
 
   coverage:
     runs-on: ubuntu-latest
