@@ -22,7 +22,7 @@ Other versions can be targeted using:
 * ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
 * ``polycotylus ubuntu:23.10`` for Mantic Minotaur (interim release)
 * ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default)
-* ``polycotylus ubuntu:24.10`` for Oracular Oriole (pre-release)
+* ``polycotylus ubuntu:24.10`` for Oracular Oriole (interim release)
 
 No earlier versions of Ubuntu are supported.
 
