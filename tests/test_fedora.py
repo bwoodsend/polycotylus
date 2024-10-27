@@ -6,13 +6,14 @@ import platform
 import tarfile
 import io
 import contextlib
+import time
 
 import toml
 import pytest
 
 from polycotylus import _docker, _exceptions, _misc
 from polycotylus._project import Project
-from polycotylus._fedora import Fedora, Fedora37, Fedora42
+from polycotylus._fedora import Fedora, Fedora37, Fedora40, Fedora41, Fedora42
 from polycotylus.__main__ import cli
 import shared
 
@@ -28,6 +29,24 @@ def _check_values_align(spec):
         assert len(line[2]) >= 2
 
 
+@pytest.mark.parametrize("Fedora", [Fedora37, Fedora40, Fedora41, Fedora42])
+def test_dnf_cache(Fedora):
+    mounts = Fedora._mounted_caches
+    before = time.time()
+    _docker.run(Fedora.base_image, f"""
+        find /var/cache -name 'libretls*.rpm' -exec rm {{}} \\;
+        {Fedora.dnf_config_install}
+        dnf install --refresh -y libretls
+    """, volumes=mounts)
+    changed_files = []
+    for (source, _) in mounts:
+        changed_files += [i.name for i in source.rglob("*") if i.stat().st_mtime > before]
+    assert changed_files
+    assert [i for i in changed_files if i.endswith(".xml.zck")]
+    assert [i for i in changed_files if i.endswith(".rpm")]
+    time.sleep(3)
+
+
 def test_pretty_spec():
     self = Fedora(Project.from_root(shared.dumb_text_viewer))
     spec = self.spec()
@@ -41,7 +60,7 @@ def test_python_extras():
             {Fedora.dnf_config_install}
             dnf install -y {shlex.join(packages)} python3
             python3 -c 'import {", ".join(imports)}'
-        """, volumes=Fedora._mounted_caches.fget(Fedora))
+        """, volumes=Fedora._mounted_caches)
 
 
 def test_python_package():
@@ -50,8 +69,8 @@ def test_python_package():
         if i != "zope.deferredimport"]
     script = Fedora.dnf_config_install + "\ndnf install --assumeno " + shlex.join(packages)
     container = _docker.run(Fedora.base_image, script, check=False,
-                            volumes=Fedora._mounted_caches.fget(Fedora))
-    assert "Operation aborted." in container.output
+                            volumes=Fedora._mounted_caches)
+    assert "Operation aborted" in container.output
 
 
 def test_ubrotli():
@@ -130,10 +149,10 @@ def test_kitchen_sink(monkeypatch):
   },
   {
     "distribution": "fedora",
-    "tag": "40",
+    "tag": "41",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc40.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc41.noarch.rpm",
     "signature_path": null
   }
 ]"""

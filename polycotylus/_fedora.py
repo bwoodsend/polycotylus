@@ -23,7 +23,7 @@ from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 
 class Fedora(GPGBased, BaseDistribution):
     name = "fedora"
-    version = "40"
+    version = "41"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
@@ -73,8 +73,9 @@ class Fedora(GPGBased, BaseDistribution):
     @classmethod
     @lru_cache()
     def python_version(cls):
-        command = ["python3", "-c", "import sys; print('{}.{}.{}'.format(*sys.version_info))"]
-        return _docker.run(cls.base_image, command, tty=True).output.strip()
+        command = ["dnf", "info", "python3"]
+        output = _docker.run(cls.base_image, command, volumes=cls._mounted_caches, verbosity=0).output
+        return re.search(r"Version\s*:\s*(.+)", output)[1]
 
     @classmethod
     def python_package(cls, requirement, _=None):
@@ -256,9 +257,9 @@ class Fedora(GPGBased, BaseDistribution):
             path.unlink()
         _misc.unix_write(self.distro_root / f"{self.package_name}.spec", self.spec())
 
-    @property
-    def _mounted_caches(self):
-        if int(self.version) >= 42:
+    @_misc.classproperty
+    def _mounted_caches(_, cls):
+        if int(cls.version) >= 41:
             dnf_cache = cache_root / f"fedora-libdnf5-{_docker.docker.variant}"
             dnf_cache.mkdir(parents=True, exist_ok=True)
             return [(dnf_cache, "/var/cache/libdnf5")]
@@ -343,11 +344,11 @@ class Fedora39(Fedora):
     version = "39"
 
 
-Fedora40 = Fedora
+class Fedora40(Fedora):
+    version = "40"
 
 
-class Fedora41(Fedora):
-    version = "41"
+Fedora41 = Fedora
 
 
 class Fedora42(Fedora):
