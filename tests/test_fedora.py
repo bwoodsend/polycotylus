@@ -51,7 +51,7 @@ def test_python_package():
     script = Fedora.dnf_config_install + "\ndnf install --assumeno " + shlex.join(packages)
     container = _docker.run(Fedora.base_image, script, check=False,
                             volumes=Fedora._mounted_caches.fget(Fedora))
-    assert "Operation aborted." in container.output
+    assert "Operation aborted" in container.output
 
 
 def test_ubrotli():
@@ -130,10 +130,10 @@ def test_kitchen_sink(monkeypatch):
   },
   {
     "distribution": "fedora",
-    "tag": "40",
+    "tag": "41",
     "architecture": "noarch",
     "variant": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc40.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc41.noarch.rpm",
     "signature_path": null
   }
 ]"""
