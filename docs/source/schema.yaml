@@ -107,9 +107,12 @@ source_url:
   # and project called ``bar``::
   #
   #   https://bitbucket.org/foo/bar/downloads/bar-{version}.tar.xz
-  #   https://downloads.sourceforge.net/foo/bar-{version}.tar.gz
+  #   https://codeberg.org/foo/bar/archive/{version}.tar.gz
+  #   https://gitea.com/foo/bar/archive/{version}.tar.gz
   #   https://github.com/foo/bar/archive/{version}.tar.gz
   #   https://gitlab.com/foo/bar/-/archive/v{version}/bar-v{version}.tar.gz
+  #   https://downloads.sourceforge.net/foo/bar-{version}.tar.gz
+  #   https://git.sr.ht/~foo/bar/archive/{version}.tar.gz
   #
   # .. note:: This option will has no meaningful effect unless you submit your
   #           package to official package repositories.
