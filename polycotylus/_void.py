@@ -269,15 +269,18 @@ class Void(BaseDistribution):
         from https://build.voidlinux.org/builders/aarch64-musl_builder
         (replacing aarch64 with the current architecture and deleting -musl if
         building for glibc)."""
-        url = f"https://build.voidlinux.org/json/builders/{self.architecture}{self.libc_tag}_builder/builds?"
-        for j in range(-1, -10, -3):  # pragma: no branch
-            _url = url + "&".join(f"select={i}" for i in range(j, j - 3, -1))
-            with urlopen(_url) as response:
-                builds = json.loads(response.read())
-            for j in map(str, range(j, j - 3, -1)):  # pragma: no branch
-                if not builds[j].get("currentStep"):  # pragma: no branch
-                    return builds[j]["sourceStamps"][0]["revision"]
-        raise StopIteration  # pragma: no cover
+        url = f"https://build.voidlinux.org/api/v2/builders/{self.architecture}{self.libc_tag}/builds"
+        with urlopen(url) as response:
+            builds = json.loads(response.read())["builds"]
+        build_id = max(
+            (x for x in builds if x["complete"] and x["state_string"] == "build successful"),
+            key=lambda x: x["started_at"])["buildid"]
+
+        with urlopen(f"https://build.voidlinux.org/api/v2/builds/{build_id}/properties") as response:
+            build = json.loads(response.read())
+        revision = build["properties"][0]["revision"][0]
+        assert re.fullmatch("[a-f0-9]{40}", revision)
+        return revision
 
     def void_packages_repo(self):
         """Clone/cache Void Linux's package build recipes repo."""
