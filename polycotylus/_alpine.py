@@ -40,6 +40,7 @@ class Alpine(BaseDistribution):
         "svg-conversion": ["imagemagick", "librsvg"],
         "xvfb-run": "xvfb-run",
         "font": "ttf-dejavu",
+        "sdk": "alpine-sdk",
     }
 
     @_misc.classproperty
@@ -55,7 +56,7 @@ class Alpine(BaseDistribution):
                 apk update
                 apk search -q > /packages
                 apk info -q > /base-packages
-                apk add --simulate alpine-sdk > /sdk-packages
+                apk add --simulate {cls._packages["sdk"]} > /sdk-packages
                 apk search -x python3 > /python-version
             """, tty=True)
         _read = lambda path: container.file(path).decode()
@@ -88,6 +89,11 @@ class Alpine(BaseDistribution):
         with open(path, "wb") as f:
             f.write(self.project.tar())
 
+    @classmethod
+    def _splits_pyc_files(cls):
+        from packaging.version import Version
+        return cls.version == "edge" or Version(cls.version) >= Version("v3.18")
+
     def apkbuild(self):
         out = f"# Maintainer: {self.project.maintainer_slug}\n"
         if self.project.architecture == "none":
@@ -117,9 +123,8 @@ class Alpine(BaseDistribution):
             builddir='"$srcdir/_build"',
         )
         subpackages = []
-        from packaging.version import Version
         if self.project.contains_py_files:
-            if self.version == "edge" or Version(self.version) >= Version("v3.18"):
+            if self._splits_pyc_files():
                 subpackages.append("$pkgname-pyc")
         if "custom" in license_names:
             subpackages.append("$pkgname-doc")
@@ -176,7 +181,7 @@ class Alpine(BaseDistribution):
             FROM {self.base_image} AS base
 
             RUN {self.mirror.install_command}
-            RUN echo -e {repr(public.read_text("utf8"))} > "/etc/apk/keys/{public.name}"
+            RUN printf '%s{repr(public.read_text("utf8"))[1:]} > "/etc/apk/keys/{public.name}"
 
             RUN apk add shadow sudo
             {self._install_user("abuild")}
@@ -185,7 +190,7 @@ class Alpine(BaseDistribution):
             WORKDIR /io
 
             FROM base AS build
-            RUN apk add alpine-sdk
+            RUN apk add {self._packages["sdk"]}
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/abuild.conf
             RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
 
@@ -205,7 +210,7 @@ class Alpine(BaseDistribution):
             # container which otherwise leads to exec stalling.
             RUN echo -e '#!/usr/bin/env sh\\n"$@"' >> /bin/intermediate
             RUN chmod +x /bin/intermediate
-            ENTRYPOINT ["/bin/intermediate"]
+            #ENTRYPOINT ["/bin/intermediate"]
             CMD ["ash"]
         """)
 
@@ -278,9 +283,10 @@ class Alpine(BaseDistribution):
         for path in self.project.test_files:
             volumes.append((self.project.root / path, f"/io/{path}"))
         with self.mirror:
+            test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
             return _docker.run(base, f"""
                 sudo apk add /pkg/{package.path.name}
-                {self.project.test_command}
+                {test_command}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
 

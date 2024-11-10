@@ -211,12 +211,13 @@ class BaseDistribution(abc.ABC):
         for package in dependencies.get("pip", []):
             out.append(self.python_package(package, self.dependency_name_map))
         out += dependencies.get(self.name, [])
-        return list(filter(None, out))
+        return out
 
     @property
     def dependencies(self):
         out = [self._packages["python"] + self.project.supported_python]
         out += self._dependencies(self.project.dependencies)
+        out = [i for i in out if i]
         return _deduplicate(out)
 
     @property
@@ -233,7 +234,7 @@ class BaseDistribution(abc.ABC):
             if any(source.endswith(".svg") for (source, _) in self.icons):
                 out += self._packages["svg-conversion"]
         disallowed = self.build_base_packages()
-        out = [i for i in out if i not in disallowed]
+        out = [i for i in out if i and i not in disallowed]
         return _deduplicate(out)
 
     @property
@@ -241,6 +242,7 @@ class BaseDistribution(abc.ABC):
         out = self._dependencies(self.project.test_dependencies)
         if self.project.gui:
             out += [*self._packages["xvfb-run"].split(), self._packages["font"]]
+        out = [i for i in out if i]
         return _deduplicate(out)
 
     def install_icons(self, indentation, sysroot):

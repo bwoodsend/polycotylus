@@ -5,6 +5,7 @@ dependencies:
     python: tkinter
   test:
     pip: -r test-requirements.txt
+    alpine: xvfb
 
 frontend: true
 
@@ -33,3 +34,6 @@ desktop_entry_points:
         Name: Pink Mode
         Exec: dumb_text_viewer --pink-mode %u
         icon: pink-mode.svg
+
+gui: false
+test_command: "DISPLAY=:22 sh -c 'Xvfb $DISPLAY & sleep 1 && pytest'"

@@ -476,6 +476,12 @@ mirrors["ubuntu2404"] = mirrors["ubuntu2304"].with_(
 mirrors["ubuntu2410"] = mirrors["ubuntu2404"].with_(
     base_dir=cache_root / "ubuntu2410",
 )
+mirrors["adelie"] = mirrors["alpine"].with_(
+    base_url="https://distfiles.adelielinux.org/",
+    base_dir=cache_root / "adelie",
+    port=8907,
+    install_command=r"sed -i 's|https://distfiles.adelielinux.org/|http://localhost:8907/|g' /etc/apk/repositories",
+)
 
 
 if __name__ == "__main__":
