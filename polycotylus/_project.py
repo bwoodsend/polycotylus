@@ -349,7 +349,14 @@ class Project:
                     "Not a git repository. Polycotylus must be ran from inside a git project.")
             assert p.returncode == 0, p.stderr
             outputs.append(re.findall("[^\x00]+", p.stdout))
-        files = [i for i in outputs[0] if i not in outputs[1]]
+        include, deleted = outputs
+        files = [i for i in include if i not in deleted]
+
+        sizes = [(self.root / file).stat().st_size for file in files]
+        if sum(sizes) > 15_000_000:
+            print(sorted(zip(files, sizes), key=lambda x: x[1])[-5:])
+            assert 0
+
         buffer = io.BytesIO()
 
         def _strip_mtime(tar_info):
