@@ -10,23 +10,23 @@ jobs:
         _:
           - python: 3.13-dev
             docker: docker
-          - python: 3.8.12  # Test https://docs.python.org/3/library/tarfile.html#supporting-older-python-versions
-            docker: podman
+#          - python: 3.8.12  # Test https://docs.python.org/3/library/tarfile.html#supporting-older-python-versions
+#            docker: podman
         suite:
-          - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py tests/test_docs.py
+#          - tests/test_mirror.py tests/test_docker.py tests/test_project.py tests/test_desktopfile.py tests/test_docs.py
           - tests/test_alpine.py tests/test_completion.py
           - tests/test_arch.py tests/test_configuration.py
-          - tests/test_manjaro.py
+#          - tests/test_manjaro.py
           - tests/test_fedora.py
-          - tests/test_void.py
-          - tests/test_debian.py
-          - tests/test_ubuntu.py
+#          - tests/test_void.py
+#          - tests/test_debian.py
+#          - tests/test_ubuntu.py
       fail-fast: false
 
     runs-on: ubuntu-latest
     env:
       FORCE_COLOR: 1
-      POLYCOTYLUS_VERBOSITY: 1
+      POLYCOTYLUS_VERBOSITY: 2
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

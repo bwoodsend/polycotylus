@@ -65,6 +65,7 @@ class run:
                  interactive=False, tty=False, root=True, post_mortem=False,
                  architecture=machine(), verbosity=None):
         tty = tty and sys.stdin.isatty()
+        github_actions = os.environ.get("GITHUB_ACTIONS")
         if interactive:
             verbosity = 2
         if verbosity is None:
@@ -96,6 +97,8 @@ class run:
             arguments += command
         human_friendly = f"$ {docker} run --rm " + shlex.join(arguments)
         if verbosity >= 1:
+            if verbosity >= 2 and github_actions:
+                print("::group::", end="")
             print(termcolor.colored(human_friendly, "blue"), flush=True)
 
         p = _run([docker, "create"] + arguments, stdout=PIPE, stderr=PIPE)
@@ -105,8 +108,12 @@ class run:
         p = _run([docker, "container", "start", "-ia" if interactive else "-a", self.id],
                  stdout=None if verbosity >= 2 else DEVNULL,
                  stderr=STDOUT if verbosity >= 2 else PIPE)
+
+        if verbosity >= 2 and github_actions:
+            print("::endgroup::", end="")
         if verbosity >= 2 and self.output:
             print(flush=True)
+
         self.returncode = p.returncode
         if check and self.returncode:
             if post_mortem and globals()["post_mortem"]:
@@ -195,13 +202,18 @@ def build(dockerfile, root, *flags, target=None, architecture=machine(), verbosi
     command = [docker, "build", "-f", str(dockerfile), "--network=host", "."]
     if verbosity is None:
         verbosity = _verbosity()
+    github_actions = os.environ.get("GITHUB_ACTIONS")
     if target:
         command += ["--target", target]
     command += ["--pull", "--platform=linux/" + architecture, *flags]
     if verbosity >= 1:
+        if verbosity >= 2 and github_actions:
+            print("::group::", end="")
         print(termcolor.colored("$ " + shlex.join(command), "blue"))
     returncode, output = _tee_run(command, verbosity, cwd=root,
                                   env={"DOCKER_SCAN_SUGGEST": "false", **os.environ})
+    if verbosity >= 2 and github_actions:
+        print("::endgroup::", flush=True)
     if returncode:
         raise Error("$ " + shlex.join(command), output)
     return _audit_image(_parse_build_output(output))
