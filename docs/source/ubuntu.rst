@@ -8,9 +8,9 @@ Basic usage::
 
 * Supported architectures: ``amd64 arm64 armhf ppc64el s390x``
 
-* Ubuntu packages will be compatible with the following distributions **only**
-  when they migrate to a Ubuntu >= 23.04 base: `Linux Mint
-  <https://linuxmint.com/>`_, `Pop!_OS <https://pop.system76.com/>`_, `Zorin OS
+* Ubuntu packages are compatible with `Linux Mint <https://linuxmint.com/>`_ and
+  will be compatible with the following distributions **only** when they migrate
+  to a Ubuntu >= 23.04 base: `Pop!_OS <https://pop.system76.com/>`_, `Zorin OS
   <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_
 
 * Ubuntu packages are not compatible with Debian or any of its other
@@ -21,7 +21,7 @@ Other versions can be targeted using:
 
 * ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
 * ``polycotylus ubuntu:23.10`` for Mantic Minotaur (interim release)
-* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default)
+* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default) or Linux Mint 22
 * ``polycotylus ubuntu:24.10`` for Oracular Oriole (interim release)
 * ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim pre-release)
 
