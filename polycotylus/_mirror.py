@@ -214,6 +214,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         """An open response from the original repository archive."""
         if self._upstream:
             return self._upstream
+        print(self.upstream_url)
         headers = {}
         for header in ("Accept-Encoding",):
             if header in self.headers:
@@ -398,6 +399,18 @@ def _manjaro_preferred_mirror():
             return url
 
 
+def _alma_preferred_mirror(*urls):
+    mirror_groups = []
+    for url in urls:
+        with urlopen(url) as response:
+            group = []
+            for mirror in response.read().decode().splitlines():
+                group.append(mirror.rsplit("/", maxsplit=5)[0])
+            print(group)
+            mirror_groups.append(group)
+    return next(mirror for mirror in mirror_groups[0] if all(mirror in group for group in mirror_groups[1:]))
+
+
 class UbuntuRequestHandler(RequestHandler):
     # Ubuntu's package repositories are split across multiple subnets. e.g.
     # http://archive.ubuntu.com/ubuntu/ vs http://ports.ubuntu.com/ubuntu-ports/
@@ -476,7 +489,20 @@ mirrors["ubuntu2404"] = mirrors["ubuntu2304"].with_(
 mirrors["ubuntu2410"] = mirrors["ubuntu2404"].with_(
     base_dir=cache_root / "ubuntu2410",
 )
-
+mirrors["alma10"] = CachedMirror(
+    lambda: _alma_preferred_mirror(
+        "https://kitten.mirrors.almalinux.org/mirrorlist/10-kitten/appstream",
+        "https://kitten.mirrors.almalinux.org/mirrorlist/10-kitten/baseos",
+        "https://kitten.mirrors.almalinux.org/mirrorlist/10-kitten/extras-common",
+    ),
+    cache_root / "alma10",
+    ["repomd.xml", "*.xml.gz"],
+    [],
+    8907,
+    r"sed -i -E 's|#? ?baseurl=https://.*almalinux.org/|baseurl=http://localhost:8907/|g' /etc/yum.repos.d/*.repo && sed -i -E 's|mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/*.repo && echo install_weak_deps=False >> /etc/dnf/dnf.conf",
+    (_use_last_modified_header,),
+    r"(.+-)(?:\d+꞉)?([^-]+-\d+)(-[^-]+)",
+)
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
