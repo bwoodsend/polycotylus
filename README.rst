@@ -73,7 +73,7 @@ Debian_        13 (pre-release)
 Fedora_        37-41, 42 (rawhide)
 Manjaro_       rolling
 O̶p̶e̶n̶S̶U̶S̶E       Redacted due to too many upstream issues
-Ubuntu_        23.04-24.10
+Ubuntu_        23.04-24.10, 25.04 (rerelease)
 Void_          rolling
 =============  ===========================================
 

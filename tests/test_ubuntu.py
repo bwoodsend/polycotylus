@@ -54,7 +54,7 @@ def test_ubrotli():
     for self in [
         polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="amd64"),
         polycotylus.Ubuntu2404(Project.from_root(shared.ubrotli), architecture="arm64"),
-        polycotylus.Ubuntu2410(Project.from_root(shared.ubrotli), architecture="amd64"),
+        polycotylus.Ubuntu2504(Project.from_root(shared.ubrotli), architecture="amd64"),
     ]:
         self.generate()
         artifacts = self.build()
@@ -80,10 +80,10 @@ def test_ubrotli():
         },
         {
             "distribution": "ubuntu",
-            "tag": "24.10",
+            "tag": "25.04",
             "architecture": "amd64",
             "variant": "main",
-            "path": ".polycotylus/ubuntu/24.10/python3-ubrotli_0.1.0-1_amd64.deb",
+            "path": ".polycotylus/ubuntu/25.04/python3-ubrotli_0.1.0-1_amd64.deb",
             "signature_path": None,
         }
     ]
