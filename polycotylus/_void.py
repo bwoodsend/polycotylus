@@ -249,7 +249,7 @@ class Void(BaseDistribution):
         with self.mirror:
             container = _docker.run(base, f"""
                 {"yes | " if self.private_key else ""} sudo xbps-install -ySu -R /pkg/ xbps {self.package_name}
-                {self.project.test_command}
+                {self.project.test_command.evaluate()}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
         if self.private_key:

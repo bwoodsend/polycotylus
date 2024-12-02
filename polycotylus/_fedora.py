@@ -17,6 +17,7 @@ from pathlib import Path
 from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker, _exceptions
+from polycotylus._project import TestCommandLexer
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 
@@ -172,22 +173,25 @@ class Fedora(GPGBased, BaseDistribution):
             """.format(self.project.source_top_level.format(version="%{version}")))
 
         out += "\n\n%check\n"
-        if self.project.test_command != "pytest":
-            parts = []
-            for part in self.project.test_command.split(" "):
-                if part in ("python", "python3"):
-                    parts.append("%{python3}")
-                elif part == "pytest":
-                    parts.append("%{python3} -m pytest")
-                elif part == "xvfb-run":
-                    parts.append("/usr/bin/xvfb-run")
-                else:
-                    parts.append(part)
-            out += f"%global __pytest {' '.join(parts)}\n"
-        out += self._formatter(f"""
-            %pytest
-
-
+        # '%' is a special character to RPM specs and needs to be escaped.
+        escaped = TestCommandLexer(self.project.test_command.template.replace("%", "%%"))
+        # Fedora expects you to use a hellish mess of macros.
+        #  * %pytest expands to SOME=random ENVIRONMENT=variables /usr/bin/pytest
+        #  * %python3 (usually written as %{python3}) expands to /usr/bin/python3
+        #  * %tox expands to MORE=variables /usr/bin/python3 -m tox --current-env -q --recreate -e py313
+        #    (although a package test using tox is a complete waste of time)
+        # Due to the prepended inline environment variables, %pytest can only be
+        # safely used if there's nothing before it (xvfb-run %pytest)
+        allow_pytest_macro = escaped.template.strip().find("+pytest+") == 0
+        test_command = escaped.evaluate(lambda x: {
+            "python": "%{python3}",
+            "pytest": "%pytest" if allow_pytest_macro else "%{python3} -m pytest",
+        }.get(x, x))
+        # Double blank lines signify the end of the tests block so mustn't be
+        # present in the test command.
+        test_command = re.sub("([\t ]*\n){3,}", "\n\n", test_command)
+        out += self._formatter(test_command)
+        out += "\n\n" + self._formatter(f"""
             %files -n {self.package_name} -f %{{pyproject_files}}
         """)
         licenses = shlex.join(self.project.licenses).replace("'", '"')
@@ -323,7 +327,8 @@ class Fedora(GPGBased, BaseDistribution):
         test_dependencies = []
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(self.python_package(package))
-        test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
+        test_command = self.project.test_command.evaluate(
+            lambda x: "python3" if x == "python" else x)
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.path.name}

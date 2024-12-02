@@ -18,13 +18,23 @@ dependencies:
   test:
     arch manjaro fedora void alpine opensuse debian ubuntu: nano
     python: sqlite3 tkinter
-    pip: pytest[feet]
+    pip: pytest[feet] pyflakes
 
 dependency_name_map:
   tzlocal:
     arch manjaro: gnu-netcat
+  pyflakes:
+    debian ubuntu: pyflakes3
 
-test_command: TEST_VARIABLE=helló pytest -k 'not unrunable' && python -c 'print("hello 🦄")'
+test_command: |
+
+  TEST_VARIABLE=helló +pytest+ -k 'not unrunable' && +python+ -c 'print("hello 🦄")'
+
+  +python+ -c 'assert "python" == "++%python%++"[2:-2] == bytes([112, 121, 116, 104, 111, 110]).decode()'
+  echo '
+    indented
+  '
+  +pyflakes+ --version || +pyflakes3+ --version
 
 test_files:
   - the_test_suíte

@@ -3,5 +3,5 @@ dependencies:
     pip: pytest
 
 test_command: |
-  pytest
+  +pytest+
   stat polycotylus.yaml || print_hello

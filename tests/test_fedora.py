@@ -163,23 +163,32 @@ def test_test_command(polycotylus_yaml):
 
     polycotylus_yaml(dependencies)
     spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
-    assert "%global __pytest" not in spec
+    assert "%check\n%pytest\n\n" in spec
     spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
-    assert "%global __pytest /usr/bin/xvfb-run %{python3} -m pytest" in spec
+    assert "%check\nxvfb-run %{python3} -m pytest\n\n" in spec
 
-    polycotylus_yaml(dependencies + "test_command: python3 -c 'print(10)'")
+    polycotylus_yaml(dependencies + "test_command: +python+ -c 'print(10)'")
     spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
-    assert "%global __pytest %{python3} -c 'print(10)'" in spec
+    assert "%check\n%{python3} -c 'print(10)'\n\n" in spec
     with pytest.raises(_exceptions.PolycotylusUsageError, match="implicit"):
         spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
 
-    polycotylus_yaml(dependencies + "test_command: python3 -c 'print(10)'\ngui: true")
+    polycotylus_yaml(dependencies + "test_command: +python+ -c 'print(10)'\ngui: true")
     with pytest.raises(_exceptions.PolycotylusUsageError, match="specified"):
         spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
 
-    polycotylus_yaml(dependencies + "test_command: xvfb-run python3 -c 'print(10)'")
+    polycotylus_yaml(dependencies + "test_command: pytest")
+    with pytest.raises(_exceptions.PolycotylusUsageError) as capture:
+        spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
+    assert str(capture.value).endswith(shared.error_messages["no-test-command-placeholder"])
+
+    polycotylus_yaml(dependencies + "test_command: xvfb-run +python+ -c 'print(10)'")
     spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
-    assert "%global __pytest /usr/bin/xvfb-run %{python3} -c 'print(10)'" in spec
+    assert "%check\nxvfb-run %{python3} -c 'print(10)'\n\n" in spec
+
+    polycotylus_yaml(dependencies + "test_command: |\n  +python+\n    \t\n\n  foo\n\n  bar")
+    spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
+    assert "%check\n%{python3}\n\nfoo\n\nbar\n\n" in spec
 
 
 def test_cli_signing(monkeypatch, capsys, force_color):

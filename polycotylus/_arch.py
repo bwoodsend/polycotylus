@@ -125,10 +125,17 @@ class Arch(GPGBased, BaseDistribution):
         out += self._formatter(f"""
             check() {{
                 cd "{top_level}"
-                PYTHONPATH="$(echo _build/usr/lib/python*/site-packages/)"
-                PYTHONPATH="$PYTHONPATH" {self.project.test_command}
-            }}
+                local _site_packages="$(python -c "import site; print(site.getsitepackages()[0])")"
         """)
+        test_command = self.project.test_command.evaluate()
+        if self.project.test_command.multistatement:
+            out += self._formatter("""export PYTHONPATH="$PWD/_build/$_site_packages" """, 1)
+            out += self._formatter(test_command, 1)
+        else:
+            out += self._formatter(f"""
+                PYTHONPATH="$PWD/_build/$_site_packages" {test_command.strip()}
+            """, 1)
+        out += self._formatter("}")
         return out
 
     patch_gpg_locale = ""
@@ -200,7 +207,7 @@ class Arch(GPGBased, BaseDistribution):
             return _docker.run(base, f"""
                 sudo pacman -Syu --noconfirm
                 sudo pacman -U --noconfirm /pkg/{package.path.name}
-                {self.project.test_command}
+                {self.project.test_command.evaluate()}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
 
