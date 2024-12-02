@@ -22,8 +22,10 @@ class Formatter:
 
     def __call__(self, text, level=0):
         text = textwrap.dedent(text).strip()
-        text = re.sub("^ +", lambda m: len(m[0]) // 4 * self.indentation, text, flags=re.M)
-        return textwrap.indent(text, self.indentation * level) + "\n"
+        levels = sorted({i for i in re.findall("^[\t ]*", text, flags=re.M)})
+        map = dict(zip(levels, (self.indentation * (i + level) for i in range(len(levels)))))
+        text = re.sub("^[\t ]*", lambda m: map[m[0]], text, flags=re.M)
+        return text + "\n"
 
 
 class classproperty:

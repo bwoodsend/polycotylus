@@ -17,6 +17,24 @@ import toml
 from polycotylus import _exceptions, _yaml_schema, _misc
 
 
+class TestCommandLexer:
+    _pattern = re.compile(r"\+([^+\n]*)\+")
+
+    def __init__(self, source):
+        self.template = source
+
+    @property
+    def placeholders(self):
+        return [m[1] for m in self._pattern.finditer(self.template) if m[1]]
+
+    def evaluate(self, replace=lambda x: x):
+        return self._pattern.sub(lambda m: replace(m[1]) if m[1] else "+", self.template)
+
+    @property
+    def multistatement(self):
+        return re.search("[\n;&|]", self.template.strip()) is not None
+
+
 @dataclass
 class Project:
     root: Path
@@ -31,7 +49,7 @@ class Project:
     build_dependencies: dict
     test_dependencies: dict
     dependency_name_map: dict
-    test_command: str
+    test_command: TestCommandLexer
     test_files: list
     license_names: list
     licenses: list
@@ -268,9 +286,21 @@ class Project:
                     """)
                     _yaml_schema.revalidation_error(
                         polycotylus_yaml["test_command"], message)
-            test_command = polycotylus_options.get("test_command", "xvfb-run pytest")
+            test_command = polycotylus_options.get("test_command", "xvfb-run +pytest+")
         else:
-            test_command = polycotylus_options.get("test_command", "pytest")
+            test_command = polycotylus_options.get("test_command", "+pytest+")
+        test_command = TestCommandLexer(test_command)
+        if test_command.template.strip() and not test_command.placeholders:
+            _yaml_schema.revalidation_error(
+                polycotylus_yaml["test_command"], _exceptions._unravel(f"""
+                    The {key("test_command")} contains no Python command
+                    placeholders. Polycotylus requires executables from Python
+                    environments to be marked as such by wrapping them in plus
+                    signs. E.g. replace {string("python")} with
+                    {string("+python+")} or {string("pytest")} with
+                    {string("+pytest+")}. Wrapper scripts or tools like tox can
+                    not be used
+            """))
 
         if "architecture" in polycotylus_options:
             architecture = polycotylus_options["architecture"]

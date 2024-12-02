@@ -59,6 +59,28 @@ def test_abuild_lint():
         """, volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
 
 
+def test_test_command(polycotylus_yaml):
+    dependencies = "dependencies:\n  test:\n    pip: pytest\n"
+
+    polycotylus_yaml(dependencies)
+    apkbuild = Alpine(Project.from_root(shared.bare_minimum)).apkbuild()
+    assert re.search("\tPYTHONPATH=.*pytest", apkbuild)
+
+    polycotylus_yaml(dependencies + "test_command: |\n  +foo+\n    bar\n")
+    apkbuild = Alpine(Project.from_root(shared.bare_minimum)).apkbuild()
+    assert "\texport PYTHONPATH" in apkbuild
+    assert "\tfoo\n\t\tbar\n" in apkbuild
+
+    polycotylus_yaml(dependencies + "test_command: +foo+ && bar")
+    apkbuild = Alpine(Project.from_root(shared.bare_minimum)).apkbuild()
+    assert "\texport PYTHONPATH" in apkbuild
+    assert "\tfoo && bar\n" in apkbuild
+
+    polycotylus_yaml(dependencies + "test_command:\n")
+    apkbuild = Alpine(Project.from_root(shared.bare_minimum)).apkbuild()
+    assert "\tpytest" not in apkbuild
+
+
 def test_dumb_text_viewer():
     extraneous_desktop_file = shared.dumb_text_viewer / ".polycotylus" / "delete-me.desktop"
     extraneous_desktop_file.write_bytes(b"")

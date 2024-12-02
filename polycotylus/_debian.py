@@ -247,11 +247,13 @@ class Debian(BaseDistribution):
 
         test_script = debian_root / "tests/test"
         test_script.parent.mkdir(parents=True, exist_ok=True)
+        test_command = self.project.test_command.evaluate(
+            lambda x: "python3" if x == "python" else x)
         _misc.unix_write(test_script, self._formatter(f"""
             #!/usr/bin/env sh
             set -e
             export PYTHONPATH=".pybuild/cpython3_$(python3 -c 'import sys; print("{{0}}.{{1}}".format(*sys.version_info))')_{self.project.name}/build/"
-        """) + re.sub(r"\bpython\b", "python3", self.project.test_command))
+        """) + test_command)
         test_script.chmod(0o700)
         (debian_root / "source").mkdir(exist_ok=True)
         _misc.unix_write(debian_root / "source" / "format", "3.0 (quilt)\n")
@@ -269,7 +271,8 @@ class Debian(BaseDistribution):
         return packages
 
     def test(self, package):
-        test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
+        test_command = self.project.test_command.evaluate(
+            lambda x: "python3" if x == "python" else x)
         with self.mirror:
             return _docker.run(self.build_builder_image(), f"""
                 sudo apt-get update

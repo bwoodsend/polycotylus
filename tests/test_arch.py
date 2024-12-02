@@ -143,7 +143,7 @@ def test_post_mortem(polycotylus_yaml):
     script = textwrap.dedent("""
         import polycotylus.__main__
         polycotylus._yaml_schema._read_text = lambda x: \"""
-            test_command: cat polycotylus.yaml
+            test_command: +python+ -c 'import os; os.stat("polycotylus.yaml")'
             dependencies:
                 test:
                     pip: pytest
@@ -167,7 +167,7 @@ def test_post_mortem(polycotylus_yaml):
         if "Entering post-mortem debug shell." in lines[-1]:
             assert "pacman" in p.stdout.readline()
             assert ".zst" in p.stdout.readline()
-            assert "cat polycotylus.yaml" in p.stdout.readline()
+            assert 'stat("polycotylus.yaml")' in p.stdout.readline()
             assert p.stdout.readline().isspace()
             break
     p.stdin.write(post_mortem_script)
