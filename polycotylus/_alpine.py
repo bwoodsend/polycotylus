@@ -150,17 +150,26 @@ class Alpine(BaseDistribution):
         out += self.install_icons(1, "$builddir")
         out += "}\n\n"
 
+        _set_pythonpath = 'PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages"'
+        test_command = self.project.test_command.evaluate()
+        out += self._formatter(f"""
+            check() {{
+                cd "$srcdir/{top_level}"
+        """)
+        if self.project.test_command.multistatement:
+            out += self._formatter(f"export {_set_pythonpath}", 1)
+            out += self._formatter(test_command, 1)
+        else:
+            out += self._formatter(f"{_set_pythonpath} {test_command.strip()}", 1)
+
         out += self._formatter("""
-            check() {
-                cd "$srcdir/%s"
-                PYTHONPATH="$builddir/usr/lib/python$(_py3ver)/site-packages" %s
             }
 
             package() {
                 mkdir -p "$(dirname "$pkgdir")"
                 cp -r "$builddir" "$pkgdir"
             }
-        """ % (top_level, self.project.test_command))
+        """)
         out += "\n"
         out += self._formatter("""
             sha512sums="
@@ -280,7 +289,7 @@ class Alpine(BaseDistribution):
         with self.mirror:
             return _docker.run(base, f"""
                 sudo apk add /pkg/{package.path.name}
-                {self.project.test_command}
+                {self.project.test_command.evaluate()}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
 

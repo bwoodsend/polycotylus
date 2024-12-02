@@ -168,18 +168,24 @@ maintainer: Your Name <your.email@address.com>
   # non-ambiguous, `polycotylus` will default to the ``project.maintainer``
   # field in the ``pyproject.toml``.
 
-test_command: pytest -k 'not unrunable_test'
-  # The verification command, defaulting to ``pytest``. This command will be
+test_command: +pytest+ -k 'not unrunable_test'
+  # A verification command, defaulting to ``+pytest+``. This command will be
   # invoked using ``sh`` from the root of a copy of your project but note that
   # only the files listed in `test_files` will be available when `polycotylus`
-  # runs its end to end test. If you want to invoke Python, use ``python`` and
-  # not ``python3`` or ``/usr/bin/python`` so that `polycotylus` can replace
-  # ``python`` with whatever s̶i̶l̶l̶y̶ ̶m̶a̶c̶r̶o̶ *abstraction* each RPM based
-  # distribution insists on using. Note that ``python -m unittest`` is supported
-  # but strongly discouraged in favour of `pytest's unittest support`_ due to
-  # its rather dangerous behaviour of not failing if no tests are found.
+  # runs its end to end test. To accommodate distributions that like to
+  # perpetuate `xkcd 1987`_, annotate commands coming from Python environments
+  # by wrapping then in plus signs. i.e. Use ``+python+`` instead
+  # ``python``/``python3`` or ``+pytest+`` instead of ``pytest`` so that
+  # `polycotylus` can substitute them for whatever s̶i̶l̶l̶y̶ ̶m̶a̶c̶r̶o̶ *"abstraction"*
+  # each RPM based distribution uses. Note that ``+python+ -m unittest`` is
+  # supported but strongly discouraged in favour of `pytest's unittest support`_
+  # due to its rather dangerous behaviour of not failing if no tests are found.
+  # Testing can be disabled by setting `test_command` to an empty string
+  # although, in the absence of a proper test suite, even a dumb ``+python+ -c
+  # 'import my_package'`` is a lot better than nothing.
   #
   # .. _`pytest's unittest support`: https://docs.pytest.org/en/7.3.x/how-to/unittest.html
+  # .. _`xkcd 1987`: https://xkcd.com/1987/
 
 test_files:
   - tests

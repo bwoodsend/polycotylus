@@ -143,7 +143,7 @@ def test_post_mortem(polycotylus_yaml):
     script = textwrap.dedent("""
         import polycotylus.__main__
         polycotylus._yaml_schema._read_text = lambda x: \"""
-            test_command: cat polycotylus.yaml
+            test_command: +python+ -c 'import os; os.stat("polycotylus.yaml")'
             dependencies:
                 test:
                     pip: pytest

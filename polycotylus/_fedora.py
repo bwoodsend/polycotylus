@@ -17,6 +17,7 @@ from pathlib import Path
 from packaging.requirements import Requirement
 
 from polycotylus import _misc, _docker, _exceptions
+from polycotylus._project import TestCommandLexer
 from polycotylus._mirror import cache_root
 from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 
@@ -172,22 +173,14 @@ class Fedora(GPGBased, BaseDistribution):
             """.format(self.project.source_top_level.format(version="%{version}")))
 
         out += "\n\n%check\n"
-        if self.project.test_command != "pytest":
-            parts = []
-            for part in self.project.test_command.split(" "):
-                if part in ("python", "python3"):
-                    parts.append("%{python3}")
-                elif part == "pytest":
-                    parts.append("%{python3} -m pytest")
-                elif part == "xvfb-run":
-                    parts.append("/usr/bin/xvfb-run")
-                else:
-                    parts.append(part)
-            out += f"%global __pytest {' '.join(parts)}\n"
-        out += self._formatter(f"""
-            %pytest
-
-
+        escaped_template = self.project.test_command.template.replace("%", "%%")
+        test_command = TestCommandLexer(escaped_template).evaluate(lambda x: {
+            "python": "%{python3}",
+            "pytest": "%pytest",
+        }.get(x, "/usr/bin/" + x))
+        test_command = re.sub("([\t ]*\n)+", "\n", test_command)
+        out += self._formatter(test_command)
+        out += "\n\n" + self._formatter(f"""
             %files -n {self.package_name} -f %{{pyproject_files}}
         """)
         licenses = shlex.join(self.project.licenses).replace("'", '"')
@@ -323,7 +316,8 @@ class Fedora(GPGBased, BaseDistribution):
         test_dependencies = []
         for package in self.project.test_dependencies["pip"]:
             test_dependencies.append(self.python_package(package))
-        test_command = re.sub(r"\bpython\b", "python3", self.project.test_command)
+        test_command = self.project.test_command.evaluate(
+            lambda x: "python3" if x == "python" else x)
         with self.mirror:
             return _docker.run(self.build_test_image(), f"""
                 sudo dnf install -y /pkg/{rpm.path.name}

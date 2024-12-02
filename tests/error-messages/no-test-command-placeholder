@@ -1,0 +1,1 @@
+The [36mtest_command[0m contains no Python command placeholders. Polycotylus requires executables from Python environments to be marked as such by wrapping them in plus signs. E.g. replace [32mpython[0m with [32m+python+[0m or [32mpytest[0m with [32m+pytest+[0m. Wrapper scripts or tools like tox can not be used.
