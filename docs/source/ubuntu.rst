@@ -19,8 +19,6 @@ Basic usage::
 The default target Ubuntu version is the latest long term support release.
 Other versions can be targeted using:
 
-* ``polycotylus ubuntu:23.04`` for Lunar Lobster (interim release)
-* ``polycotylus ubuntu:23.10`` for Mantic Minotaur (interim release)
 * ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default) or Linux Mint 22
 * ``polycotylus ubuntu:24.10`` for Oracular Oriole (interim release)
 * ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim pre-release)

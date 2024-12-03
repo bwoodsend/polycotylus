@@ -52,7 +52,6 @@ def test_ubrotli():
     # Ubuntu's repository layout is different for non amd64 architectures which
     # unfortunately makes it necessary to do an extremely slow qemu platform test.
     for self in [
-        polycotylus.Ubuntu2304(Project.from_root(shared.ubrotli), architecture="amd64"),
         polycotylus.Ubuntu2404(Project.from_root(shared.ubrotli), architecture="arm64"),
         polycotylus.Ubuntu2504(Project.from_root(shared.ubrotli), architecture="amd64"),
     ]:
@@ -62,14 +61,6 @@ def test_ubrotli():
         self.update_artifacts_json(artifacts)
 
     assert json.loads((shared.ubrotli / ".polycotylus/artifacts.json").read_bytes()) == [
-        {
-            "distribution": "ubuntu",
-            "tag": "23.04",
-            "architecture": "amd64",
-            "variant": "main",
-            "path": ".polycotylus/ubuntu/23.04/python3-ubrotli_0.1.0-1_amd64.deb",
-            "signature_path": None,
-        },
         {
             "distribution": "ubuntu",
             "tag": "24.04",
