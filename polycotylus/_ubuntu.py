@@ -22,18 +22,6 @@ class Ubuntu(Debian):
         return "RUN userdel ubuntu\n" + super()._install_user()
 
 
-class Ubuntu2304(Ubuntu):
-    base_image = "ubuntu:23.04"
-    tag = "23.04"
-    mirror = _mirror.mirrors["ubuntu2304"]
-
-
-class Ubuntu2310(Ubuntu):
-    base_image = "ubuntu:23.10"
-    tag = "23.10"
-    mirror = _mirror.mirrors["ubuntu2310"]
-
-
 Ubuntu2404 = Ubuntu
 
 
