@@ -351,24 +351,24 @@ def test_kitchen_sink(monkeypatch):
             "signature_path": None
         }, {
             "distribution": "alpine",
-            "tag": "3.20",
+            "tag": "3.21",
             "architecture": "x86_64",
             "variant": "doc",
-            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
+            "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
-            "tag": "3.20",
+            "tag": "3.21",
             "architecture": "x86_64",
             "variant": "main",
-            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
+            "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
-            "tag": "3.20",
+            "tag": "3.21",
             "architecture": "x86_64",
             "variant": "pyc",
-            "path": ".polycotylus/alpine/3.20/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
+            "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",

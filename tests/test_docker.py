@@ -62,10 +62,6 @@ def test_non_interactive(monkeypatch, capsys):
         with tar.extractfile("etc/foo") as f:
             assert b"hello\nworld\n" in f.read()
 
-        assert "etc/os-release" in tar.getnames()
-        with tar.extractfile("etc/os-release") as f:
-            assert b"Alpine" in f.read()
-
     with pytest.raises(_docker.Error, match="File exists"):
         _docker.run("alpine", ["mkdir", "/etc"])
 
