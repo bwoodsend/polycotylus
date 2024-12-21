@@ -110,11 +110,11 @@ class Void(BaseDistribution):
             RUN mkdir /io && chown user /io
             WORKDIR /io
 
-            FROM base as build
+            FROM base AS build
             ARG base_packages
             RUN mkdir -p /io/srcpkgs/{self.package_name} /io/hostdir/binpkgs /io/hostdir/sources && chown -R user /io
-            ENV GIT_DISCOVERY_ACROSS_FILESYSTEM 1
-            ENV SOURCE_EPOCH 0
+            ENV GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+            ENV SOURCE_EPOCH=0
             RUN xbps-install -ySu xbps git bash util-linux ${{base_packages}} {shlex.join(dependencies)}
 
             FROM base AS test
