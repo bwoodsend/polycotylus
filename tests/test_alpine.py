@@ -270,19 +270,19 @@ def test_kitchen_sink(monkeypatch):
             "distribution": "fedora",
             "tag": "38",
             "architecture": "noarch",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm"
         }, {
             "distribution": "alpine",
             "tag": "3.17",
             "architecture": Alpine.preferred_architecture,
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk"
         }, {
             "distribution": "fedora",
             "tag": "39",
             "architecture": "noarch",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc39.noarch.rpm"
         },
     ]))
@@ -319,105 +319,105 @@ def test_kitchen_sink(monkeypatch):
             "distribution": "alpine",
             "tag": "3.17",
             "architecture": "x86_64",
-            "variant": "doc",
+            "package_type": "doc",
             "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.17",
             "architecture": "x86_64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/3.17/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
-            "variant": "doc",
+            "package_type": "doc",
             "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.18",
             "architecture": "x86_64",
-            "variant": "pyc",
+            "package_type": "pyc",
             "path": ".polycotylus/alpine/3.18/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
-            "variant": "doc",
+            "package_type": "doc",
             "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.19",
             "architecture": "x86_64",
-            "variant": "pyc",
+            "package_type": "pyc",
             "path": ".polycotylus/alpine/3.19/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.21",
             "architecture": "x86_64",
-            "variant": "doc",
+            "package_type": "doc",
             "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.21",
             "architecture": "x86_64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "3.21",
             "architecture": "x86_64",
-            "variant": "pyc",
+            "package_type": "pyc",
             "path": ".polycotylus/alpine/3.21/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
-            "variant": "doc",
+            "package_type": "doc",
             "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-doc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "alpine",
             "tag": "edge",
             "architecture": "x86_64",
-            "variant": "pyc",
+            "package_type": "pyc",
             "path": ".polycotylus/alpine/edge/x86_64/py3-99---s1lly---name---packag3--x--y--z-pyc-1.2.3-r1.apk",
             "signature_path": None
         }, {
             "distribution": "fedora",
             "tag": "38",
             "architecture": "noarch",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc38.noarch.rpm",
             "signature_path": None
         }

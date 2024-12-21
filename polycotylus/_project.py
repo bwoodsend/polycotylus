@@ -561,13 +561,13 @@ class Artifact:
     distribution: str
     tag: str
     architecture: str
-    variant: str
+    package_type: str
     path: Path
     signature_path: str = None
 
     @property
     def _identifier(self):
-        return self.distribution, self.tag, self.architecture, self.variant, self.path.name
+        return self.distribution, self.tag, self.architecture, self.package_type, self.path.name
 
     def to_dict(self, root):
         return {i: j.relative_to(root).as_posix() if isinstance(j, Path) else j

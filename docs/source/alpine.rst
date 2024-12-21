@@ -37,7 +37,7 @@ Target Alpine version
 .....................
 
 Alpine has a long term support release model. Releases are neither forwards nor
-backwards compatible; i.e. to support each variant, you need to build separate
+backwards compatible; i.e. to support each release, you need to build separate
 packages for each one. `polycotylus` supports building for Alpine ``>=3.17``.
 Specify the target version using one of the lines below. No version specifier
 implies the latest released version. ::

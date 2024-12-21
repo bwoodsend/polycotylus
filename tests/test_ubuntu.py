@@ -65,7 +65,7 @@ def test_ubrotli():
             "distribution": "ubuntu",
             "tag": "24.04",
             "architecture": "arm64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/ubuntu/24.04/python3-ubrotli_0.1.0-1_arm64.deb",
             "signature_path": None,
         },
@@ -73,7 +73,7 @@ def test_ubrotli():
             "distribution": "ubuntu",
             "tag": "25.04",
             "architecture": "amd64",
-            "variant": "main",
+            "package_type": "main",
             "path": ".polycotylus/ubuntu/25.04/python3-ubrotli_0.1.0-1_amd64.deb",
             "signature_path": None,
         }

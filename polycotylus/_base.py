@@ -314,8 +314,8 @@ class BaseDistribution(abc.ABC):
     def test(self, package):
         pass
 
-    def _make_artifact(self, path, variant, signature_path=None):
-        return Artifact(self.name, self.tag, self.architecture, variant, path, signature_path)
+    def _make_artifact(self, path, package_type, signature_path=None):
+        return Artifact(self.name, self.tag, self.architecture, package_type, path, signature_path)
 
     def update_artifacts_json(self, packages):
         with self.project.artifacts_database() as database:

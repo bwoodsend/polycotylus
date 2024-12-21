@@ -107,8 +107,8 @@ def cli(argv=None):
     except polycotylus.PolycotylusUsageError as ex:
         raise SystemExit(termcolor.colored("Error", "red") + ": " + str(ex))
     print(termcolor.colored(f"Built {len({i.path for i in artifacts.values()})} artifact{'s' if len(artifacts) != 1 else ''}:", "green"))
-    for (variant, package) in artifacts.items():
-        print(f"{variant}: {package.path}")
+    for (type_, package) in artifacts.items():
+        print(f"{type_}: {package.path}")
     print()
     return artifacts
 

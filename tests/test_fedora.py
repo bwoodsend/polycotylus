@@ -143,7 +143,7 @@ def test_kitchen_sink(monkeypatch):
     "distribution": "fedora",
     "tag": "37",
     "architecture": "noarch",
-    "variant": "main",
+    "package_type": "main",
     "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc37.noarch.rpm",
     "signature_path": null
   },
@@ -151,7 +151,7 @@ def test_kitchen_sink(monkeypatch):
     "distribution": "fedora",
     "tag": "41",
     "architecture": "noarch",
-    "variant": "main",
+    "package_type": "main",
     "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc41.noarch.rpm",
     "signature_path": null
   }
