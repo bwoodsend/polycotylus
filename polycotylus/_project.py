@@ -542,7 +542,7 @@ class Project:
             for artifact in artifacts:
                 artifact["path"] = self.root / artifact["path"]
                 if artifact.get("signature_path"):
-                    artifact["signature_path"] = self.root / artifact["path"]
+                    artifact["signature_path"] = self.root / artifact["signature_path"]
             artifacts = [Artifact(**i) for i in artifacts]
             artifacts = [i for i in artifacts if (self.root / i.path).exists()]
             try:
