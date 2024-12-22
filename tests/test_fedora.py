@@ -199,7 +199,7 @@ def test_cli_signing(monkeypatch, capsys, force_color):
 
     monkeypatch.chdir(shared.ubrotli)
     monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
-    artifacts = cli(["fedora", "--gpg-signing-id=ED7C694736BC74B3"])
+    artifacts = cli(["fedora:", "--gpg-signing-id=ED7C694736BC74B3"])
     capture = capsys.readouterr()
     assert "Built 3 artifacts" in capture.out
 
@@ -208,9 +208,25 @@ def test_cli_signing(monkeypatch, capsys, force_color):
                            volumes=[(artifacts["main"].path.parent, "/io")]).output
     assert rpm_info.count("ED7C694736BC74B3".lower()) == 3
 
+
+def test_cli_invalid(monkeypatch, force_color):
+    monkeypatch.chdir(shared.ubrotli)
+
     with pytest.raises(SystemExit) as capture:
         cli(["fedora", "--architecture=ppc64le"])
     assert str(capture.value) == shared.error_messages["invalid-architecture"]
+
+    with pytest.raises(SystemExit) as capture:
+        cli(["fedora:bog"])
+    assert str(capture.value) == shared.error_messages["invalid-tag"]
+
+    with pytest.raises(SystemExit) as capture:
+        cli(["fluff"])
+    assert str(capture.value) == shared.error_messages["invalid-distribution"]
+
+    with pytest.raises(SystemExit) as capture:
+        cli(["fluff:bog"])
+    assert str(capture.value) == shared.error_messages["invalid-distribution"]
 
 
 def test_poetry(tmp_path):

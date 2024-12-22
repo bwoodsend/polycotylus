@@ -182,3 +182,11 @@ def test_poetry():
     self = Arch(Project.from_root(shared.poetry_based))
     self.generate()
     self.test(self.build()["main"])
+
+
+def test_cli_with_tags(monkeypatch, force_color):
+    from polycotylus.__main__ import cli
+    monkeypatch.chdir(shared.dumb_text_viewer)
+    with pytest.raises(SystemExit) as capture:
+        cli(["arch:frogs"])
+    assert str(capture.value) == shared.error_messages["invalid-no-tags"]

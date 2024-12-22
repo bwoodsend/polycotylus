@@ -16,6 +16,8 @@ from ._debian import Debian, Debian13
 from ._ubuntu import Ubuntu, Ubuntu2404, Ubuntu2410, Ubuntu2504
 
 distributions = {i.name: i for i in (Alpine, Arch, Debian, Fedora, Manjaro, Ubuntu, Void)}
+distribution_tags = {i: [] for i in distributions}
+
 distributions["alpine:3.17"] = Alpine317
 distributions["alpine:3.18"] = Alpine318
 distributions["alpine:3.19"] = Alpine319
@@ -34,3 +36,5 @@ distributions["ubuntu:24.10"] = Ubuntu2410
 distributions["ubuntu:25.04"] = Ubuntu2504
 distributions["void:glibc"] = VoidGlibc
 distributions["void:musl"] = VoidMusl
+
+[distribution_tags[i].append(j) for (i, j) in (i.split(":") for i in distributions if ":" in i)]

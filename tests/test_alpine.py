@@ -429,7 +429,7 @@ test_multiarch = shared.qemu(Alpine)
 
 def test_architecture_errors(monkeypatch, no_color):
     with pytest.raises(_exceptions.PolycotylusUsageError,
-                       match="Architecture 'donkey' is not available on Alpine Linux."):
+                       match="Unknown architecture 'donkey' for Alpine Linux"):
         Alpine(Project.from_root(shared.ubrotli), "donkey")
 
     monkeypatch.setattr(shutil, "which", lambda x: None)

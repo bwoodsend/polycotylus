@@ -7,6 +7,7 @@ import sys
 import termcolor
 
 import polycotylus
+from polycotylus._exceptions import string
 
 
 class CompletionAction(argparse.Action):
@@ -59,11 +60,15 @@ class PresubmitCheckAction(argparse.Action):
         parser.exit(self.presubmit())
 
 
+distribution_description = "Supported distribution tags are:"
+for (distribution, tags) in sorted(polycotylus.distribution_tags.items()):
+    distribution_description += f"\n  * {distribution:9}" + " ".join(tags)
+
 parser = argparse.ArgumentParser(
-    "polycotylus",
-    description="Convert Python packages to Linux ones.",
+    "polycotylus", allow_abbrev=False,
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("distribution", choices=sorted(polycotylus.distributions))
+parser.add_argument("distribution", help=distribution_description,
+                    metavar="distribution[:tag]")
 parser.add_argument("--quiet", "-q", action="count", default=-2)
 parser.add_argument("--completion", action=CompletionAction,
                     choices=sorted(CompletionAction.files))
@@ -85,14 +90,35 @@ parser.add_argument("--presubmit-check", action=PresubmitCheckAction, nargs=0,
                     help="Run checks specific to submitting a package to official repositories")
 
 
+def _parse_distribution(input):
+    """Convert "distribution:tag" to the right polycotylus class"""
+    distribution, tag = re.fullmatch("([^:]+):?(.*)", input).groups()
+    if distribution not in polycotylus.distributions:
+        choices = " ".join(polycotylus.distribution_tags)
+        raise polycotylus.PolycotylusUsageError(
+            f"Unknown distribution {string(repr(distribution))} (choose from {string(choices)})")
+    if tag:
+        try:
+            return polycotylus.distributions[input]
+        except KeyError:
+            tags = polycotylus.distribution_tags[distribution]
+            message = f"Unknown distribution tag {string(repr(input))} "
+            if tags:
+                message += f"(choose from {string(' '.join(tags))})"
+            else:
+                message += f"({distribution.title()} Linux has no tags)"
+            raise polycotylus.PolycotylusUsageError(message)
+    else:
+        return polycotylus.distributions[distribution]
+
+
 def cli(argv=None):
     try:
         assert isinstance(argv, list) or argv is None
         options = parser.parse_args(argv)
         os.environ["POLYCOTYLUS_VERBOSITY"] = str(max(-options.quiet, 0))
         polycotylus._docker.post_mortem = options.post_mortem
-
-        cls = polycotylus.distributions[options.distribution]
+        cls = _parse_distribution(options.distribution)
         signing_id = None
         if issubclass(cls, polycotylus._base.GPGBased):
             signing_id = options.gpg_signing_id
@@ -105,8 +131,9 @@ def cli(argv=None):
         self.test(artifacts["main"])
         self.update_artifacts_json(artifacts)
     except polycotylus.PolycotylusUsageError as ex:
-        raise SystemExit(termcolor.colored("Error", "red") + ": " + str(ex))
-    print(termcolor.colored(f"Built {len({i.path for i in artifacts.values()})} artifact{'s' if len(artifacts) != 1 else ''}:", "green"))
+        raise SystemExit(termcolor.colored("error", "red") + ": " + str(ex))
+    _count = len({i.path for i in artifacts.values()})
+    print(termcolor.colored(f"Built {_count} artifact{'s' if _count != 1 else ''}:", "green"))
     for (type_, package) in artifacts.items():
         print(f"{type_}: {package.path}")
     print()

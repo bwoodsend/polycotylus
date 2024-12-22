@@ -28,9 +28,9 @@ class BaseDistribution(abc.ABC):
         self.architecture = architecture or self.preferred_architecture
         if self.architecture not in self.supported_architectures:
             raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                Architecture {_exceptions.string(repr(self.architecture))} is not
-                available on {type(self).__name__} Linux. Valid architectures are
-                {_exceptions.highlight_toml(str(sorted(self.supported_architectures)))}.
+                Unknown architecture {_exceptions.string(repr(self.architecture))}
+                for {type(self).__name__} Linux (choose from
+                {_exceptions.string(" ".join(sorted(self.supported_architectures)))})
             """))
         self.docker_architecture = self.supported_architectures[self.architecture]
         # Check that the appropriate Qemu emulators are installed to virtualise
