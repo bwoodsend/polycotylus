@@ -21,7 +21,7 @@ Other versions can be targeted using:
 
 * ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default) or Linux Mint 22
 * ``polycotylus ubuntu:24.10`` for Oracular Oriole (interim release)
-* ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim pre-release)
+* ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim prerelease)
 
 No earlier versions of Ubuntu are supported.
 
