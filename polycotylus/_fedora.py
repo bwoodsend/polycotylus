@@ -358,3 +358,7 @@ Fedora41 = Fedora
 
 class Fedora42(Fedora):
     version = "42"
+
+
+class Fedora43(Fedora):
+    version = "43"
