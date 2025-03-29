@@ -151,12 +151,12 @@ class Debian(BaseDistribution):
             RUN {self.mirror.install_command}
             ENV LANG=C.UTF-8 LC_ALL=C LANGUAGE=C DEBIAN_FRONTEND=noninteractive
 
-            RUN apt-get update && apt-get install -y --no-install-recommends sudo
+            RUN apt-get update && apt-get install -y --no-install-recommends sudo | grep Get
             RUN groupadd wheel
             {self._install_user()}
 
             ENV DEBEMAIL="{self.project.email}" DEBFULLNAME="{self.project.maintainer}"
-            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts python3-all-dev:any pybuild-plugin-pyproject {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)}
+            RUN apt-get update && apt-get install -y --no-install-recommends build-essential dh-python python3-all dh-make debmake devscripts python3-all-dev:any pybuild-plugin-pyproject {shlex.join(re.split("[<>=@]", i)[0] for i in self.build_dependencies + self.dependencies + self.test_dependencies)} | grep Get
 
             RUN mkdir -p /io/build && chown -R user /io
             WORKDIR /io/build
