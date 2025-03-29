@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import contextlib
 
-import appdirs
+import platformdirs
 
 from polycotylus import _misc, _exceptions
 
@@ -11,9 +11,9 @@ options = {"docker"}
 
 def config_paths():
     return list(map(Path, [
-        appdirs.user_config_dir("polycotylus", appauthor=False),
-        *appdirs.site_config_dir("polycotylus", appauthor=False,
-                                 multipath=True).split(os.pathsep),
+        platformdirs.user_config_dir("polycotylus", appauthor=False),
+        *platformdirs.site_config_dir("polycotylus", appauthor=False,
+                                      multipath=True).split(os.pathsep),
     ]))
 
 
@@ -28,7 +28,7 @@ def write(key, value):
         raise _exceptions.PolycotylusUsageError(
             f"Unknown configuration option {_exceptions.key(repr(key))}. "
             f"Supported options are {_exceptions.highlight_toml(str(options))}")
-    path = Path(appdirs.user_config_dir("polycotylus", appauthor=False), key)
+    path = Path(platformdirs.user_config_dir("polycotylus", appauthor=False), key)
     path.parent.mkdir(parents=True, exist_ok=True)
     _misc.unix_write(path, value)
 

@@ -3,7 +3,7 @@ import tkinter
 
 import tabulate
 import certifi
-import appdirs
+import platformdirs
 
 a = "𝜸"
 assert shutil.which("jq")

@@ -14,11 +14,11 @@ import contextlib
 from functools import lru_cache
 
 import termcolor
-import appdirs
+import platformdirs
 
 from polycotylus import machine, _configuration
 
-cache_root = Path(appdirs.user_cache_dir("polycotylus"))
+cache_root = Path(platformdirs.user_cache_dir("polycotylus"))
 cache_root.mkdir(parents=True, exist_ok=True)
 
 

@@ -12,9 +12,9 @@ def test_docker_configure(tmp_path, force_color):
     user_config = tmp_path / "user-config"
     root_config = tmp_path / "root-config"
     common = dedent(f"""
-        import appdirs
-        appdirs.site_config_dir = lambda *_, **__: {repr(str(root_config))}
-        appdirs.user_config_dir = lambda *_, **__: {repr(str(user_config))}
+        import platformdirs
+        platformdirs.site_config_dir = lambda *_, **__: {repr(str(root_config))}
+        platformdirs.user_config_dir = lambda *_, **__: {repr(str(user_config))}
         import polycotylus.__main__
     """)
 

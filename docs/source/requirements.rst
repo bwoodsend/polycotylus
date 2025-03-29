@@ -64,7 +64,7 @@ but the first two.
       # This is better.
       settings = Path.home() / ".config" / "my-application" / "settings.json"
       # This is best since it will respect $XDG_CONFIG_HOME.
-      settings = Path(appdirs.user_config_dir("my-application"), "settings.json")
+      settings = Path(platformdirs.user_config_dir("my-application"), "settings.json")
 
 
 Doing a trial run
