@@ -36,10 +36,6 @@ Caveats
   An explanation and fix can be found in `here
   <https://stackoverflow.com/a/77354286>`_.
 
-* On Debian/Ubuntu, the latest version of Podman_ available is too old for
-  `polycotylus`. Use the `Podman PPA
-  <https://podman.io/docs/installation#debian>`_ to get a usable version.
-
 * Build times are roughly double what they are with Docker_.
 
 * Expect a degree of sourness from me if you ever need to report a
