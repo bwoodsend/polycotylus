@@ -47,4 +47,4 @@ def test_docker_configure(tmp_path, force_color):
 
     with pytest.raises(SystemExit) as capture:
         polycotylus.__main__.cli(["--configure", "cake=socks"])
-    assert str(capture.value) == shared.error_messages["unknown-configuration"]
+    shared.snapshot_test(str(capture.value), "unknown-configuration")

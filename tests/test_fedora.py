@@ -181,7 +181,8 @@ def test_test_command(polycotylus_yaml):
     polycotylus_yaml(dependencies + "test_command: pytest")
     with pytest.raises(_exceptions.PolycotylusUsageError) as capture:
         spec = Fedora(Project.from_root(shared.bare_minimum)).spec()
-    assert str(capture.value).endswith(shared.error_messages["no-test-command-placeholder"])
+    message = str(capture.value)[str(capture.value).rfind("The"):]
+    shared.snapshot_test(message, "no-test-command-placeholder")
 
     polycotylus_yaml(dependencies + "test_command: xvfb-run +python+ -c 'print(10)'")
     spec = Fedora(Project.from_root(shared.dumb_text_viewer)).spec()
@@ -215,19 +216,19 @@ def test_cli_invalid(monkeypatch, force_color):
 
     with pytest.raises(SystemExit) as capture:
         cli(["fedora", "--architecture=ppc64le"])
-    assert str(capture.value) == shared.error_messages["invalid-architecture"]
+    shared.snapshot_test(str(capture.value), "invalid-architecture")
 
     with pytest.raises(SystemExit) as capture:
         cli(["fedora:bog"])
-    assert str(capture.value) == shared.error_messages["invalid-tag"]
+    shared.snapshot_test(str(capture.value), "invalid-tag")
 
     with pytest.raises(SystemExit) as capture:
         cli(["fluff"])
-    assert str(capture.value) == shared.error_messages["invalid-distribution"]
+    shared.snapshot_test(str(capture.value), "invalid-distribution")
 
     with pytest.raises(SystemExit) as capture:
         cli(["fluff:bog"])
-    assert str(capture.value) == shared.error_messages["invalid-distribution"]
+    shared.snapshot_test(str(capture.value), "invalid-distribution")
 
 
 def test_poetry(tmp_path):

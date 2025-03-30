@@ -186,7 +186,7 @@ def test_unknown_package(polycotylus_yaml, force_color):
     self = Alpine(Project.from_root(shared.dumb_text_viewer))
     with pytest.raises(_exceptions.PolycotylusUsageError) as capture:
         self.apkbuild()
-    assert str(capture.value) == shared.error_messages["unavailable-package"]
+    shared.snapshot_test(str(capture.value), "unavailable-package")
     polycotylus_yaml("""
         dependencies:
             test:

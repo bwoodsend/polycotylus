@@ -1,4 +1,5 @@
 import shlex
+import os
 import collections
 from fnmatch import fnmatch
 from pathlib import Path
@@ -132,4 +133,10 @@ def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
     assert container.file("/usr/bin/dumb_text_viewer").startswith(shebang)
 
 
-error_messages = {i.name: i.read_text("utf8") for i in Path(__file__).with_name("error-messages").glob("*")}
+def snapshot_test(actual, key):
+    path = Path(__file__).with_name("error-messages") / key
+    if os.environ.get("WRITE_SNAPSHOTS"):
+        path.write_bytes(actual.encode())
+    else:
+        snapshot = path.read_text("utf-8")
+        assert actual == snapshot

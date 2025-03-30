@@ -189,4 +189,4 @@ def test_cli_with_tags(monkeypatch, force_color):
     monkeypatch.chdir(shared.dumb_text_viewer)
     with pytest.raises(SystemExit) as capture:
         cli(["arch:frogs"])
-    assert str(capture.value) == shared.error_messages["invalid-no-tags"]
+    shared.snapshot_test(str(capture.value), "invalid-no-tags")

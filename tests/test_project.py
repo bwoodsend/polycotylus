@@ -138,13 +138,13 @@ def test_license_handling(polycotylus_yaml, pyproject_toml, force_color):
     _write_trove("License :: DFSG approved")
     with pytest.raises(NoLicenseSpecifierError) as capture:
         Project.from_root(shared.bare_minimum)
-    assert str(capture.value) == shared.error_messages["no-license-specifier"]
+    shared.snapshot_test(str(capture.value), "no-license-specifier")
 
     # Ambiguous license identifier.
     _write_trove("License :: OSI Approved :: Apache Software License")
     with pytest.raises(AmbiguousLicenseError) as capture:
         Project.from_root(shared.bare_minimum)
-    assert str(capture.value) == shared.error_messages["ambiguous-trove"]
+    shared.snapshot_test(str(capture.value), "ambiguous-trove")
 
     polycotylus_yaml("spdx:\n  kittens:\n")
     self = Project.from_root(shared.bare_minimum)
@@ -175,7 +175,7 @@ def test_missing_pyproject_metadata(tmp_path, force_color):
     """)
     with pytest.raises(PolycotylusUsageError) as error:
         Project.from_root(tmp_path)
-    assert str(error.value) == shared.error_messages["missing-pyproject-metadata"]
+    shared.snapshot_test(str(error.value), "missing-pyproject-metadata")
 
 
 def test_missing_config_files(tmp_path):
@@ -192,7 +192,7 @@ def test_missing_poetry_metadata(pyproject_toml, force_color):
     pyproject_toml(pyproject)
     with pytest.raises(PolycotylusUsageError) as capture:
         Project.from_root(shared.poetry_based)
-    assert str(capture.value) == shared.error_messages["poetry-missing-metadata"]
+    shared.snapshot_test(str(capture.value), "poetry-missing-metadata")
 
 
 def test_overcomplicated_versioning(pyproject_toml, no_color):
@@ -235,14 +235,14 @@ def test_maintainer(pyproject_toml, polycotylus_yaml, force_color):
     pyproject_toml(options)
     with pytest.raises(PolycotylusUsageError) as capture:
         self = Project.from_root(shared.bare_minimum)
-    assert str(capture.value) == shared.error_messages["missing-maintainer"]
+    shared.snapshot_test(str(capture.value), "missing-maintainer")
 
     options["project"]["authors"] = [dict(name="bob", email="bob@mail.com"),
                                      dict(name="foo", email="foo@mail.com")]
     pyproject_toml(options)
     with pytest.raises(PolycotylusUsageError) as capture:
         self = Project.from_root(shared.bare_minimum)
-    assert str(capture.value) == shared.error_messages["multiple-maintainers"]
+    shared.snapshot_test(str(capture.value), "multiple-maintainers")
 
     options["project"]["maintainer"] = [dict(name="Bob and his friends",
                                              email="some@mailing-list.com")]
@@ -301,7 +301,7 @@ def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml, force_color)
     subprocess.run(["git", "tag", "v10.2.3.post3"], cwd=str(tmp_path), check=True)
     with pytest.raises(PolycotylusUsageError) as capture:
         Project.from_root(tmp_path)
-    assert str(capture.value) == shared.error_messages["poetry-invalid-version"]
+    shared.snapshot_test(str(capture.value), "poetry-invalid-version")
 
 
 def test_presubmit_lint(capsys, monkeypatch, polycotylus_yaml, no_color):
@@ -341,7 +341,7 @@ build-backend = "setuptools.build_meta"
     with pytest.raises(SystemExit) as ex:
         cli(["--presubmit-check"])
     assert ex.value.code == 14
-    assert capsys.readouterr().out == shared.error_messages["presubmit"]
+    shared.snapshot_test(capsys.readouterr().out, "presubmit")
 
     polycotylus_yaml("maintainer: The maintainers <foo@mail.com>")
     self = Project.from_root(".")
