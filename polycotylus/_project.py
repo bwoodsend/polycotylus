@@ -498,17 +498,17 @@ class Project:
         prohibited = []
         for package in self.test_dependencies["pip"]:
             _package = re.sub("[._-]+", "-", package)
-            if re.fullmatch(
+            if re.fullmatch("""
                 # Linters
-                ".*flake8.*|pylint|pyflakes|bandit|beniget|mccabe|pep8"
-                "|pep8-naming|pycodestyle|pydocstyle|pytest-flake[s8]|ruff"
-                "|safety|codespell|mypy(-extensions)?"
+                .*flake8.* | pylint | pyflakes | bandit | beniget | mccabe |
+                pep8 | pep8-naming | pycodestyle | pydocstyle | ruff |
+                pytest-flake[s8] | safety | codespell | mypy(-extensions)? |
                 # Formatters
-                "|autopep8|autoflake|black|yapf|isort|blue"
+                autopep8 | autoflake | black | yapf | isort | blue |
                 # Coverage
-                "|coverage(py)?|pytest-cov|coverage-.*-plugin|codecov"
-                "|covdefaults|coveralls",
-                    _package):
+                coverage(py)? | pytest-cov | coverage-.*-plugin | codecov
+                covdefaults | coveralls
+            """, _package, flags=re.VERBOSE):
                 prohibited.append(package)
         if prohibited:
             raise _exceptions.NonFunctionalTestDependenciesError(prohibited)
