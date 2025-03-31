@@ -91,38 +91,17 @@ dependencies:
       # Test dependencies normally installed with ``pip``. If defined in a
       # requirements.txt or as an optional dependency group, use the usual ``-r
       # requirements.txt`` or ``.[group-name]`` syntaxes respectively. You'll
-      # find that some of your favourite pytest plugins aren't available on all
-      # Linux distributions, in which case, you will either have to submit those
-      # plugins yourself or make do without them. Be aware that Linux
-      # distributions (particularly Fedora) dislike non-functional test
-      # dependencies such as linters, formatters or coverage tools. If you use
-      # these, you're recommended to split them out into a separate extras group
-      # or requirements file and only have `polycotylus` use the lesser group.
-
-source_url:
-  # A URL where the project's source code can be downloaded from. The default is
-  # to download an sdist from PyPI. If your project puts only wheels on PyPI or
-  # isn't on PyPI, you won't be able to use this default. Some examples are
-  # listed below for common git hosts. Assuming an organisation called ``foo``
-  # and project called ``bar``::
-  #
-  #   https://bitbucket.org/foo/bar/downloads/bar-{version}.tar.xz
-  #   https://codeberg.org/foo/bar/archive/{version}.tar.gz
-  #   https://gitea.com/foo/bar/archive/{version}.tar.gz
-  #   https://github.com/foo/bar/archive/{version}.tar.gz
-  #   https://gitlab.com/foo/bar/-/archive/v{version}/bar-v{version}.tar.gz
-  #   https://downloads.sourceforge.net/foo/bar-{version}.tar.gz
-  #   https://git.sr.ht/~foo/bar/archive/{version}.tar.gz
-  #
-  # .. note:: This option will has no meaningful effect unless you submit your
-  #           package to official package repositories.
+      # likely discover that some of your favourite pytest plugins aren't
+      # available on all Linux distributions, in which case, you may request
+      # that distributions add them or more likely make do without them. Be
+      # aware that Linux distributions (particularly Fedora) dislike
+      # non-functional test dependencies such as linters, formatters or coverage
+      # tools. If you use these, split them out into a separate extras group or
+      # requirements file and only have `polycotylus` use the lesser group.
 
 source_top_level: foo-{version}
   # The path inside a tarball downloaded from `source_url` to the directory
   # containing the ``pyproject.toml``.
-  #
-  # .. note:: This option will has no meaningful effect unless you submit your
-  #           package to official package repositories.
 
 spdx:
   MIT:
@@ -163,9 +142,7 @@ contains_py_files: false
 
 maintainer: Your Name <your.email@address.com>
   # Contact details for whoever's job it will be to fix it if there are issues.
-  # If you plan to submit your package to official repositories then this must
-  # be a real human being – not a support channel or mailing list. If
-  # non-ambiguous, `polycotylus` will default to the ``project.maintainer``
+  # If non-ambiguous, `polycotylus` will default to the ``project.maintainer``
   # field in the ``pyproject.toml``.
 
 test_command: +pytest+ -k 'not unrunable_test'

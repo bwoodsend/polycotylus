@@ -87,7 +87,7 @@ parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
 parser.add_argument("--presubmit-check", action=PresubmitCheckAction, nargs=0,
-                    help="Run checks specific to submitting a package to official repositories")
+                    help=argparse.SUPPRESS)
 
 
 def _parse_distribution(input):

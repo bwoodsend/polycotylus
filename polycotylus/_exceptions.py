@@ -91,12 +91,12 @@ class PackageUnavailableError(PolycotylusUsageError):
     def __str__(self):
         return _unravel(f"""
             Dependency {string(repr(self.package))} appears to be unavailable on
-            {self.distribution.title()} Linux. You will need to submit
-            {string(repr(self.package))} to
-            {self.distribution.title()} Linux's package repositories before you
-            can build your own project. It's also possible that it is already
-            there but is named something weird, in which case, supply its name
-            to the {key("dependency_name_map")} option in the polycotylus.yaml:
+            {self.distribution.title()} Linux. Polycotylus does not yet have any
+            way of depending on packages which are not already available on
+            Linux distribtions. You may be able to request it. It also might
+            already be there but named something weird, in which case, supply
+            its real name to the {key("dependency_name_map")} option in the
+            polycotylus.yaml:
         """) + textwrap.dedent(f"""
 
             {comment("# polycoylus.yaml")}

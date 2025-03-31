@@ -53,11 +53,9 @@ implies the latest released version. ::
 Package Signing
 ...............
 
-Alpine makes signing a mandatory step in building and distributing packages. If
-you intend to distribute binary packages (as opposed to submitting
-``.polycotylus/alpine/APKBUILD`` to Alpine's official package repositories), you
-need to make the public key from the key pair used to do the signing available
-to downloaders of your package.
+Distributing Alpine packages requires signing. The signing itself is automatic
+but end users will require the public key from the key pair used to do the
+signing.
 
 `polycotylus` generates a set of signing keys on the fly the first time you run
 ``polycotylus alpine``. These keys are stored in the (currently

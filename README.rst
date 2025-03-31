@@ -15,11 +15,8 @@ D̶o̶c̶u̶m̶e̶n̶t̶a̶t̶i̶o̶n
 
 Polycotylus converts Python packages into native Linux distribution packages
 such as RPMs or APKs. It builds on each target Linux distribution (thus dodging
-the usual Linux nightmare that is ABI compatibility) and uses each
-distribution's packaging tool. In the process, it produces a build script which,
-if your project is open source, can be submitted upstream so that your package
-will become available on official package repositories (although please don't do
-this yet – I want to get some review from the distribution maintainers first).
+the usual Linux nightmare that is ABI compatibility) using each distribution's
+native packaging system.
 
 Polycotylus uses Docker to virtualize each Linux distribution and Qemu to
 virtualize almost any architecture meaning that you can build for any supported
@@ -114,10 +111,6 @@ In terms of feature completeness:
   for packages can depend on other packages in the personal repository.
 
 Other, less significant but more achievable things I'd like to do:
-
-* Formalise the process for submitting to official package repositories. In
-  practice, this should be more about documentation and talking to repository
-  maintainers than writing code.
 
 * Custom MIME Type support (i.e. declaring a new made-up file suffix and its
   association with an application).
