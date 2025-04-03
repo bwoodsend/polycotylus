@@ -14,34 +14,33 @@ D̶o̶c̶u̶m̶e̶n̶t̶a̶t̶i̶o̶n
 `Bug reports <https://github.com/bwoodsend/polycotylus/issues>`_
 
 Polycotylus converts Python packages into native Linux distribution packages
-such as RPMs or APKs. It builds on each target Linux distribution (thus dodging
-the usual Linux nightmare that is ABI compatibility) using each distribution's
-native packaging system.
+such as RPMs, DEBs or APKs.
 
-Polycotylus uses Docker to virtualize each Linux distribution and Qemu to
+Polycotylus builds on each target Linux distribution, dodging the usual Linux
+nightmare that is ABI compatibility, using each distribution's native packaging
+system. It uses Docker to virtualize each Linux distribution and Qemu to
 virtualize almost any architecture meaning that you can build for any supported
 distribution or architecture from a single machine. You can even build on
-Windows or macOS. And you can build apps for Linux phones: running ``polycotylus
+Windows or macOS. You can build apps for Linux phones: running ``polycotylus
 manjaro --architecture aarch64`` will build an app installable on a phone
 running Manjaro or ``polycotylus alpine --architecture aarch64`` will build a
 `postmarketOS <https://postmarketos.org/>`_ compatible app.
 
 Unlike PyInstaller, Flatpaks or Snaps, polycotylus does not bundle dependencies
-into your packages – rather dependencies (including Python itself) are declared
-as such in the package's metadata where the end user's system package manager
-will see and act upon them. This makes the packages tiny, updates modular and
-propagation of security patches for vulnerabilities in your dependencies no
-longer your problem. Complex system dependencies such as GStreamer or GTK can be
-declared in addition to PyPI packages turning them from packaging nightmares
-into *just another dependency*. This approach also solves the standard UNIX
-question of *should I include libXYZ in my package* to which the answers *yes*
-and *no* are often simultaneously wrong.
+into one fat package – instead, dependencies (including Python itself) are
+declared as such in the package's metadata where the end user's system package
+manager will see and act upon them. This makes the packages tiny, updates
+modular and propagation of security patches for vulnerabilities in your
+dependencies no longer your problem. Complex system dependencies such as
+GStreamer or GTK can be declared in addition to PyPI packages turning them from
+packaging nightmares into *just another dependency*. This approach also solves
+the standard UNIX question of *should I include libXYZ in my package* to which
+the answers *yes* and *no* are often simultaneously wrong.
 
-Polycotylus doesn't just dump your code into an archive and hope for the best –
-it verifies it too! It installs your package into a clean, minimal Docker
-container and runs your test suite inside of it. Given even a modest test suite,
-it should be almost impossible to forget a dependency or miss a data file
-without polycotylus letting you know.
+Polycotylus doesn't just dump code into an archive and hope for the best – it
+verifies it as well. Packages are installed into a clean, minimal Docker
+container in which it then runs your test suite. It should be almost impossible
+to forget a dependency or miss a data file without polycotylus letting you know.
 
 For GUI applications, using a system package manager also allows you to add
 *desktop integration*. You can register your application so that launch menus
@@ -58,8 +57,6 @@ official package repositories. This unfortunately rules out almost all of the
 *stable*/long term support distributions (which also happen to be the most
 popular) currently including all stable branches of Debian, Ubuntu <23.04, SLES,
 OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
-This leaves rolling build distributions and fast releasing distributions with
-low latency package repositories.
 
 =============  ===========================================
 Distributions  Supported versions
@@ -69,7 +66,7 @@ Arch_          rolling
 Debian_        13 (prerelease)
 Fedora_        37-41, 42 (prerelease), 43 (rawhide)
 Manjaro_       rolling
-O̶p̶e̶n̶S̶U̶S̶E       Redacted due to too many upstream issues
+O̶p̶e̶n̶S̶U̶S̶E       Redacted
 Ubuntu_        24.04-25.04
 Void_          rolling
 =============  ===========================================
@@ -86,15 +83,16 @@ Void_          rolling
 Development status
 ..................
 
-This project is not complete. It is not available on PyPI. To use this project
-as it is right now, install ``polycotylus`` from version control (instructions
-below). It does have documentation but that documentation is not on readthedocs
-– you'll need to build that from source too:
+This project is missing some key functionality that I'd consider it needs before
+going on PyPI. To use this project as it is right now, install ``polycotylus``
+from version control (instructions below). It does have (what I like to think of
+as comprehensive) documentation but it needs to be built from source too:
 
 .. code-block:: bash
 
     git clone git@github.com:bwoodsend/polycotylus
     cd polycotylus
+    # Maybe create and activate a virtual environment
     pip install -e .
     pip install -r docs/requirements.txt
     cd docs
@@ -103,12 +101,14 @@ below). It does have documentation but that documentation is not on readthedocs
 
 In terms of feature completeness:
 
-* The biggest gaping feature gap is polycotylus's requirement that all your
+* The biggest gaping feature gap is polycotylus's requirement that all
   dependencies are already available on each target distribution's repositories.
   If your application is made up of multiple custom packages or depends on an
-  unavailable 3rd party package then polycotylus is useless to you. For this,
-  the plan is to facilitate making personal package repositories, where builds
-  for packages can depend on other packages in the personal repository.
+  unavailable 3rd party package then polycotylus is useless to you. The plan is
+  to facilitate making personal package repositories, where builds for packages
+  can depend on other packages in the personal repository. Or possibly it's just
+  to create a ``polycotylus --inlcude-project=../other-project`` flag – I'm not
+  sure I like either option...
 
 Other, less significant but more achievable things I'd like to do:
 

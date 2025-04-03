@@ -27,9 +27,9 @@ reset it to an empty file so that we can explore how each line was derived. ::
 Building for one distribution (Alpine)
 .......................................
 
-Let's try our first build. You can start with any Linux distribution but Alpine
-is by far the quickest and has the best diagnostics so I always recommend doing
-your first build with Alpine. From the root of the project, run::
+Let's try a first build. You may start with any Linux distribution but Alpine is
+by far the quickest and has the best diagnostics so I always the first build
+with Alpine. From the root of the project, run::
 
     polycotylus alpine
 
@@ -48,13 +48,13 @@ Uh oh, false start! It errored out immediately.
 
 `polycotylus` is complaining that the license identifier given in the
 ``pyproject.toml`` is too vague to map to an SPDX_ license identifier.
-`polycotylus` has many of these little startup checks. They are designed to be
-extremely self explanatory so raise an issue if you find fixing one non-trivial.
-In this *too vague license* case, we can manually check the contents of
-``ubrotli``\ 's ``LICENSE`` file and see that it's specifically an Apache
-version 2.0 license and since there is no *Apache version 2.0* trove classifier
-on `pypi.org/classifiers <https://pypi.org/classifiers/>`_, we'll have to set
-the `spdx` key in the `polycotylus.yaml` like the error suggests.
+`polycotylus` has many of these little startup checks. They *should* explain
+themselves and be trivially resolvable. In this *too vague license* case, we
+can check the contents of ``ubrotli``\ 's ``LICENSE`` file and see that it's
+specifically an Apache version 2.0 license and since there is no *Apache version
+2.0* trove classifier on `pypi.org/classifiers
+<https://pypi.org/classifiers/>`_, we'll have to set the `spdx` key in the
+`polycotylus.yaml` like the error suggests.
 
 .. code-block:: yaml
 
@@ -62,9 +62,9 @@ the `spdx` key in the `polycotylus.yaml` like the error suggests.
     spdx:
       Apache-2.0:
 
-Let's run ``polycotylus alpine`` again and see where we get land next. After
-installing some packages and producing some noise, you should find it errors out
-when pip is trying to compile C extension whilst building the package.
+Run ``polycotylus alpine`` again and see where we get to next. After some noisy
+package installs, you should find it errors out when pip is trying to compile C
+extension whilst building the package.
 
 .. code-block:: bash
 
@@ -112,9 +112,15 @@ when pip is trying to compile C extension whilst building the package.
     ERROR: Could not build wheels for ubrotli, which is required to install pyproject.toml-based projects
     >>> ERROR: py3-ubrotli: build failed
 
+Unfortunately, the tall process tree (in this case it's `polycotylus` ->
+``docker`` -> ``abuild`` -> random shell code -> ``pip`` -> ``setuptools`` ->
+``gcc``) makes finding the real error amongst the distracting *error, something
+else failed* messages can take some squinting. In this example ``wrapper.c:2:10:
+fatal error: brotli/decode.h: No such file or directory`` is the relevant line.
+
 The file it's trying to compile (``wrapper.c``) uses the ``brotli/decode.h`` and
 ``brotli/encode.h`` development headers which our minimal build environment does
-not have. Our next step is to figure out which Alpine system package provides
+not have. The next step is to figure out which Alpine system package provides
 those header files and declare them as build time dependencies. First, let's get
 inside an Alpine container by running in *post mortem* mode (``polycotylus
 alpine --post-mortem``). This will run the build again, but this time when it
@@ -133,16 +139,14 @@ can use ``apk-file`` to locate a file provider. ::
     /usr/include/brotli/decode.h   brotli-dev          edge                main                x86_64
     ...
 
-The package we're looking for is called ``brotli-dev``. If you're familiar with
-Linux package managers, you probably already knew of the convention for putting
-headers for C libraries in a package called ``${library}-dev`` or
-``${library}-devel``. Now that we know the package, we need to declare it as the
-correct kind of dependency. ``brotli-dev`` is only required at build time and
-it's an Alpine system package so the correct category is
-`dependencies.build.$distribution`. Add that to the `polycotylus.yaml` and
-rebuild. I'm going to spoil the surprise and tell you that the next build error
-will be the same but for ``Python.h`` whose package is ``python3-dev`` so that
-needs to go in too:
+The package we're looking for is called ``brotli-dev`` (which you might have
+guessed if you're familiar with UNIX packaging conventions). Now that we know
+the package, we need to declare it as the correct kind of dependency.
+``brotli-dev`` is only required at build time and it's an Alpine system package
+so the correct category is `dependencies.build.$distribution`. Add that to the
+`polycotylus.yaml` and rebuild. I'm going to spoil the surprise and tell you
+that the next build error will be the same but for ``Python.h`` whose package is
+``python3-dev`` so that needs to go in too:
 
 .. code-block:: yaml
 
@@ -212,9 +216,9 @@ it all into an installer. This particular error is an unclear one::
 
 ``abuild`` is trying to separate out the bytecode (``.pyc``) files from the rest
 but because this package is pure C, there are no ``.py`` files meaning that
-there are no ``.pyc`` files! We need to tell `polycotylus` this so that it can
-tell ``abuild`` to skip the bytecode collection stage. This is done via the
-`contains_py_files` option:
+there are no ``.pyc`` files! `polycotylus` needs to know to tell ``abuild`` to
+skip the bytecode collection stage. This is done via the `contains_py_files`
+option:
 
 .. code-block:: yaml
 
@@ -237,18 +241,18 @@ The next rebuild should carry you all the way to the end where you should get a 
     Built 1 artifact:
     main: .polycotylus/alpine/3.21/x86_64/py3-ubrotli-0.1.0-r1.apk
 
-That's the location of your package! Notice that it's got that ``3.21`` version
-number and the architecture ``x86_64`` in its path. That's because the package
-we built is only compatible with Alpine v3.21.x and is compiled for ``x86_64``.
-Use the following syntaxes to target other versions and architectures::
+That's the location of your package! Notice that the path has a ``3.21`` version
+number and the architecture ``x86_64`` in it. That's because it's only
+compatible with Alpine v3.21.x on ``x86_64``. Use the following syntaxes to
+target other versions and architectures::
 
     polycotylus alpine --architecture=aarch64
     polycotylus alpine:3.17
     polycotylus alpine:3.18 --architecture=ppc64le
 
-fish_ users should find the shell completion very supportive when exploring what
-versions and architectures are available. Non fish users can consult the top of
-:ref:`each distribution's "building for" page <building for>`.
+Polycotylus's fish shell completion can be used to explore what versions and
+architectures are available for each distribution. There is also a list at the
+top of :ref:`each distribution's "building for" page <building for>`.
 
 
 Building for the second distribution (Fedora)
@@ -266,8 +270,8 @@ container when those build dependencies aren't met.
 
 .. note::
 
-    Windows users will have to sit this one out since building for Fedora isn't
-    supported on Windows.
+    Building for Fedora isn't supported on Windows. It's also unreliable when
+    using Podman.
 
 ::
 
@@ -311,9 +315,9 @@ build dependencies such as ``gcc`` and ``make``. Alpine has an ``alpine-sdk``
 package which is assumed to be installed when running ``abuild`` which is why we
 got away with not adding ``gcc`` to Alpine's build dependencies.
 
-Some rather less clear ``yum`` queries tells us what packages we need to get
-``gcc``, the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again
-see :ref:`the package manager cheat sheet <package_manager_cheat_sheet>`).
+Some rather less clear ``yum`` queries tell us which packages provide ``gcc``,
+the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again see
+:ref:`the package manager cheat sheet <package_manager_cheat_sheet>`).
 
 .. code-block:: console
 
@@ -374,8 +378,8 @@ The next ``polycotylus fedora`` run takes us to the end. ::
     main: .polycotylus/fedora/x86_64/python3-ubrotli-0.1.0-1.fc41.x86_64.rpm
 
 You'll notice that this time, there are three packages produced. The one
-labelled ``main`` is the one you'd distribute. See :ref:`building for Fedora
-<fedora_quirks>` for information about the other two.
+labelled ``main`` is the one you'd distribute. The other two are Fedora-specific
+(see :ref:`building for Fedora <fedora_quirks>` for more information on those).
 
 .. note::
 
@@ -390,7 +394,7 @@ The next distribution and beyond
 ................................
 
 Building for the rest of the Linux distributions should follow more or less the
-same steps before. We've been skipping it in this tutorial but each time you try
-a new distribution, it's a good idea to check :ref:`each distribution's quirks
-page <building for>`. In particular, check for a *Caveats* section that may warn
-you if what you're about to do is not going to work.
+same steps before. When trying a new distribution, take a glance first at
+:ref:`each distribution's quirks page <building for>`. In particular, check for
+a *Caveats* section that may warn you if what you're about to do is not going to
+work.

@@ -166,7 +166,8 @@ applications menu. For example, in XFCE's Whisker menu, it looks like this:
 .. note::
 
     If your native Linux distribution is **not** supported by `polycotylus`, you
-    can somewhat approximate a desktop file installation by running::
+    can somewhat approximate a desktop file installation by building for Arch
+    then copying parts of its build directory into ``~/.local/share``::
 
         polycotylus arch
         mkdir -p ~/.local/share/
@@ -301,8 +302,8 @@ The display text fields (`Name`, ``Comment``, ``GenericName`` and ``Keywords``)
 can all be specified in multiple languages. The desktop will automatically
 select the right one based on the configured system locale. To do this, replace
 the string you pass to one of these fields in the `polycotylus.yaml` with a map
-of locale names to translations. (Disclaimer: translations below are from Google
-Translate and may be garbled!)
+of locale names to translations. (Disclaimer: translations below are machine
+generated)
 
 .. code-block:: yaml
 

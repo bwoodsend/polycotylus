@@ -9,17 +9,15 @@ Projects using setuptools_scm
 information from git tags. Provided that the constraints listed below are
 satisfied, the process should by automatic enough to be invisible.
 
-Some things to be aware of:
-
 * Only `setuptools_scm configuration via the pyproject.toml
   <https://github.com/pypa/setuptools_scm/#pyprojecttoml-usage>`_ is supported.
 
-* You will need to install ``setuptools_scm`` into the same environment that
+* ``setuptools_scm`` must be installed into the same environment that
   `polycotylus` is installed in.
 
 * Linux distributions only ubiquitously support simple numerical versions
-  meaning that `polycotylus` will have to strip the elaborate development
-  suffixes that ``setuptools_scm`` provides. i.e. Instead of
+  meaning that `polycotylus` will strip the elaborate development suffixes that
+  ``setuptools_scm`` provides. i.e. Instead of
   ``5.7.1.post2.dev11+g2fe4237.d20230818.zipadeedoo`` you will just get
   ``5.7.1``.
 

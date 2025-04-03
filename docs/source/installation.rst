@@ -2,8 +2,8 @@
 Installation
 ============
 
-1.  `polycotylus` is currently not yet on PyPI. To install directly from git use
-    **one** of the following::
+1.  `polycotylus` is not yet on PyPI. To install directly from git use **one**
+    of the following::
 
         pip install 'polycotylus @ git+ssh://git@github.com/bwoodsend/polycotylus.git@main'
         pip install 'polycotylus @ git+https://github.com/bwoodsend/polycotylus.git@main'

@@ -4,14 +4,14 @@
 Dependency locking/Reproducible builds
 ======================================
 
-It's a common practice in Python, and even more so in other languages such as
-Java, to do at least one of the following:
+It's a common practice to do at least one of the following:
 
 1.  Pin all dependencies to known working versions to avoid breaking changes or
     regressions in dependencies.
 
 2.  Pin all dependencies so that builds are bit-for-bit reproducible. An
-    artifact on one machine can be rebuilt identically on another.
+    artifact on one machine can be rebuilt identically on another at another
+    time.
 
 3.  Add upper bound version constraints (e.g. ``package<3.0`` or
     ``package~=2.2``) to block usage with potentially breaking unreleased

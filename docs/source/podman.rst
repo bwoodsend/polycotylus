@@ -11,7 +11,7 @@ given build tools requiring multi-user setups. Please don't use Podman with
 Linux distributions where Podman is favoured so strongly that Docker is removed
 from the official package repositories.
 
-To switch between Docker_ and Podman_, use the following commands::
+To switch between Docker_ and Podman_, use ``polycotylus --configure``::
 
     # Instruct polycotylus to use podman as its docker implementation
     polycotylus --configure docker=podman

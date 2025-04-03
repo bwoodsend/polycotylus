@@ -2,12 +2,12 @@
 The build process
 =================
 
-The work that `polycotylus` does can be summarised as three steps. Whilst you're
-not expected to absorb everything on this page, it's important to at least be
-aware of these top level *generate*, *build* and *test* steps and that steps
-*build* and *test* happen inside Docker containers.
+The work that `polycotylus` does can be summarised as three steps. If you don't
+want to read this whole page, the important takeaway is that these top level
+steps are called *generate*, *build* and *test* and that steps *build* and
+*test* each happen inside their own Docker containers.
 
-1.  Generate some files:
+1.  Generate:
 
     * A distribution specific build script (e.g. ``APKBUILD`` on Alpine,
       ``*.spec`` on Fedora) containing package metadata and build instructions
@@ -19,7 +19,7 @@ aware of these top level *generate*, *build* and *test* steps and that steps
 
     * ``.desktop`` files (GUIs only)
 
-2.  Build the package, using each distribution's package building tool (e.g.
+2.  Build the package, using each distribution's package building system (e.g.
     `abuild <https://wiki.alpinelinux.org/wiki/Abuild_and_Helpers>`_ for Alpine,
     `fedpkg
     <https://docs.fedoraproject.org/en-US/package-maintainers/Package_Maintenance_Guide/>`_
@@ -43,28 +43,26 @@ aware of these top level *generate*, *build* and *test* steps and that steps
 
     * Maybe sign the package
 
-    This step runs inside a *build* Docker container with all your dependencies
-    (:mod:`~dependencies.build`, :mod:`~dependencies.run` and
-    :mod:`~dependencies.test`) preinstalled.
+    This step runs inside a *build* Docker container with
+    :mod:`~dependencies.build`, :mod:`~dependencies.run` and
+    :mod:`~dependencies.test` dependencies preinstalled.
 
 3.  Test the package:
 
     * Install the package built in step 2
 
     * Run the test suite again. This is a highly realistic end to end test which
-      should, provided your test suite is comprehensive, remove the need to do
-      any more testing with your package
+      aims to remove the need to do any more testing with the package before
+      publishing it
 
-    This step runs in a *test* Docker container with your test dependencies only
-    preinstalled. The process of installing your package will install all your
-    runtime dependencies.
+    This step runs in a *test* Docker container with only
+    :mod:`~dependencies.test` dependencies preinstalled. The process of
+    installing your package will also install all its runtime dependencies.
 
 Some key things to clarify:
 
 * The *source archive* contains uncommitted changes in your local repository. It
   is equivalent to the archive that you would get if you ran ``git add .; git
-  commit; git archive HEAD | gzip``. This intentionally goes against how Linux
-  packagers normally work so that you can verify changes without pushing commits
-  and creating releases.
+  commit; git archive HEAD | gzip``.
 
 * Your test suite runs twice.
