@@ -36,6 +36,13 @@ Caveats
   An explanation and fix can be found in `here
   <https://stackoverflow.com/a/77354286>`_.
 
+* When building for Fedora, you may run into errors in rootless mode like::
+
+      sudo: PAM account management error: Authentication service cannot retrieve authentication info
+      sudo: a password is required
+
+  I have no idea what prompts these or how to fix them.
+
 * Build times are roughly double what they are with Docker_.
 
 * Expect a degree of sourness from me if you ever need to report a
