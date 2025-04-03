@@ -17,10 +17,15 @@ jobs:
           - tests/test_alpine.py tests/test_completion.py
           - tests/test_arch.py tests/test_configuration.py
           - tests/test_manjaro.py
-          - tests/test_fedora.py
           - tests/test_void.py
           - tests/test_debian.py
           - tests/test_ubuntu.py
+        include:
+          # Podman and Fedora have mystery sudo issues
+          - _:
+              python: 3.13-dev
+              docker: docker
+            suite: tests/test_fedora.py
       fail-fast: false
 
     runs-on: ubuntu-latest
