@@ -1,0 +1,8 @@
+--prefer-binary
+pytest
+pytest-ordered
+coverage
+pytest-cov
+pillow
+pyzstd
+setuptools-scm
