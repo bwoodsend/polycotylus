@@ -14,34 +14,33 @@ D̶o̶c̶u̶m̶e̶n̶t̶a̶t̶i̶o̶n
 `Bug reports <https://github.com/bwoodsend/polycotylus/issues>`_
 
 Polycotylus converts Python packages into native Linux distribution packages
-such as RPMs or APKs. It builds on each target Linux distribution (thus dodging
-the usual Linux nightmare that is ABI compatibility) using each distribution's
-native packaging system.
+such as RPMs or APKs.
 
-Polycotylus uses Docker to virtualize each Linux distribution and Qemu to
-virtualize almost any architecture meaning that you can build for any supported
-distribution or architecture from a single machine. You can even build on
-Windows or macOS. And you can build apps for Linux phones: running ``polycotylus
+Polycotylus builds on each target Linux distribution (thus dodging the usual
+Linux nightmare that is ABI compatibility) using each distribution's native
+packaging system. It uses Docker to virtualize each Linux distribution and Qemu
+to virtualize almost any architecture meaning that you can build for any
+supported distribution or architecture from a single machine. You can even build
+on Windows or macOS. You can build apps for Linux phones: running ``polycotylus
 manjaro --architecture aarch64`` will build an app installable on a phone
 running Manjaro or ``polycotylus alpine --architecture aarch64`` will build a
 `postmarketOS <https://postmarketos.org/>`_ compatible app.
 
 Unlike PyInstaller, Flatpaks or Snaps, polycotylus does not bundle dependencies
-into your packages – rather dependencies (including Python itself) are declared
-as such in the package's metadata where the end user's system package manager
-will see and act upon them. This makes the packages tiny, updates modular and
-propagation of security patches for vulnerabilities in your dependencies no
-longer your problem. Complex system dependencies such as GStreamer or GTK can be
-declared in addition to PyPI packages turning them from packaging nightmares
-into *just another dependency*. This approach also solves the standard UNIX
-question of *should I include libXYZ in my package* to which the answers *yes*
-and *no* are often simultaneously wrong.
+into one fat package – rather dependencies (including Python itself) are
+declared as such in the package's metadata where the end user's system package
+manager will see and act upon them. This makes the packages tiny, updates
+modular and propagation of security patches for vulnerabilities in your
+dependencies no longer your problem. Complex system dependencies such as
+GStreamer or GTK can be declared in addition to PyPI packages turning them from
+packaging nightmares into *just another dependency*. This approach also solves
+the standard UNIX question of *should I include libXYZ in my package* to which
+the answers *yes* and *no* are often simultaneously wrong.
 
-Polycotylus doesn't just dump your code into an archive and hope for the best –
-it verifies it too! It installs your package into a clean, minimal Docker
-container and runs your test suite inside of it. Given even a modest test suite,
-it should be almost impossible to forget a dependency or miss a data file
-without polycotylus letting you know.
+Polycotylus doesn't just dump code into an archive and hope for the best – it
+verifies it as well. Packages are installed into a clean, minimal Docker
+container in which it then runs your test suite. It should be almost impossible
+to forget a dependency or miss a data file without polycotylus letting you know.
 
 For GUI applications, using a system package manager also allows you to add
 *desktop integration*. You can register your application so that launch menus
