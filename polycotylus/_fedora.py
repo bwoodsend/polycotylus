@@ -24,7 +24,7 @@ from polycotylus._base import BaseDistribution, _deduplicate, GPGBased
 
 class Fedora(GPGBased, BaseDistribution):
     name = "fedora"
-    version = "41"
+    version = "42"
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
@@ -353,11 +353,11 @@ class Fedora40(Fedora):
     version = "40"
 
 
-Fedora41 = Fedora
+class Fedora41(Fedora):
+    version = "41"
 
 
-class Fedora42(Fedora):
-    version = "42"
+Fedora42 = Fedora
 
 
 class Fedora43(Fedora):

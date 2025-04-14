@@ -328,22 +328,22 @@ the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again see
     ...
     [user@manjaro-2212 io]$ sudo yum whatprovides '*/Python.h'
     ...
-    python3-devel-3.11.2-1.fc41.x86_64 : Libraries and header files needed for
+    python3-devel-3.13.3-1.fc42.x86_64 : Libraries and header files needed for
                                        : Python development
     Repo        : fedora
     Matched from:
-    Filename    : /usr/include/python3.11/Python.h
+    Filename    : /usr/include/python3.13/Python.h
     ...
     [user@manjaro-2212 io]$ sudo yum whatprovides '*/brotli/decode.h'
     ...
-    brotli-devel-1.0.9-11.fc41.x86_64 : Lossless compression algorithm
+    brotli-devel-1.1.0-6.fc42.x86_64 : Lossless compression algorithm
                                       : (development files)
     Repo        : fedora
     Matched from:
     Filename    : /usr/include/brotli/decode.h
     [user@manjaro-2212 io]$ sudo yum whatprovides '*/libbrotlienc*'
     ...
-    libbrotli-1.0.9-11.fc41.x86_64 : Library for brotli lossless compression algorithm
+    libbrotli-1.1.0-6.fc42.x86_64 : Library for brotli lossless compression algorithm
     Repo        : fedora
     Matched from:
     Filename    : /usr/lib64/libbrotlienc.so.1
@@ -373,9 +373,9 @@ These are ``gcc``, ``libbrotli``, ``brotli-devel`` and ``python3-devel``.
 The next ``polycotylus fedora`` run takes us to the end. ::
 
     Built 3 artifacts:
-    debuginfo: .polycotylus/fedora/x86_64/python3-ubrotli-debuginfo-0.1.0-1.fc41.x86_64.rpm
-    debugsource: .polycotylus/fedora/x86_64/python3-ubrotli-debugsource-0.1.0-1.fc41.x86_64.rpm
-    main: .polycotylus/fedora/x86_64/python3-ubrotli-0.1.0-1.fc41.x86_64.rpm
+    debuginfo: .polycotylus/fedora/x86_64/python3-ubrotli-debuginfo-0.1.0-1.fc42.x86_64.rpm
+    debugsource: .polycotylus/fedora/x86_64/python3-ubrotli-debugsource-0.1.0-1.fc42.x86_64.rpm
+    main: .polycotylus/fedora/x86_64/python3-ubrotli-0.1.0-1.fc42.x86_64.rpm
 
 You'll notice that this time, there are three packages produced. The one
 labelled ``main`` is the one you'd distribute. The other two are Fedora-specific
