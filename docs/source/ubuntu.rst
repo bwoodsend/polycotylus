@@ -27,7 +27,6 @@ Other versions can be targeted using:
 No earlier versions of Ubuntu are supported.
 
 ..
-
     For Ubuntu code names:
 
     * https://cdimage.ubuntu.com/daily-live/current/
