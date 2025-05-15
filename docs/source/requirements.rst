@@ -4,7 +4,7 @@ Package Prerequisites
 
 `polycotylus` is picky about what it builds. It's requirements are listed below.
 There are builtin checks for most of these so feel free to skip/skim-read all
-but the first two.
+but the first three.
 
 #.  Your source code must be in a git repository.
 
@@ -13,6 +13,15 @@ but the first two.
     and a ``requirements.txt``! If you're new to creating such packages then see
     the `Python packaging tutorial
     <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`_.
+
+#.  Your project should be compatible with a wide range of versions of its
+    dependencies (including build and test dependencies). This means avoiding
+    using very new features in a dependency and being conservative when adopting
+    new packaging fields/practices (e.g. using the new SPDX-based `license
+    expression
+    <https://packaging.python.org/en/latest/specifications/pyproject-toml/#license>`_
+    ``pyproject.toml`` field will either be ignored (``hatchling``) or break the
+    build (``setuptools``) for Ubuntu).
 
 #.  All your dependencies, including build and test dependencies must already be
     available on each Linux distribution's package repositories. Few Linux

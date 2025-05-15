@@ -103,19 +103,18 @@ source_top_level: foo-{version}
   # The path inside a tarball downloaded from `source_url` to the directory
   # containing the ``pyproject.toml``.
 
-spdx:
-  MIT:
-  CPL-1.0 WITH LZMA-exception:
-  # The license(s) the project is released under, declared via SPDX_
-  # identifiers. Dual licensed software should use multiple keys. SPDX
-  # exceptions_ can by appended after a ``WITH`` separator. This option does not
-  # need to be set if `polycotylus` can detect license `trove classifiers`_ and
-  # is able to map them to SPDX codes without ambiguity. Use ``nonfree:`` for
-  # closed source software or ``custom:`` if your open source license doesn't
-  # have an SPDX identifier.
+license: GPL-3.0-or-later WITH GPL-3.0-linking-exception
+  # The license(s) identifier the project is released under, declared via SPDX_
+  # identifiers. This option is essentially a forward port of the new `license
+  # expressions`_ field and does not need to be set if `polycotylus` can detect
+  # the license without ambiguity (e.g. via `trove classifiers`_). See the
+  # `license expressions`_ spec for classifying custom or non open source
+  # licenses. Note that using the new field in the ``pyproject.toml`` is not
+  # recommended since most Linux distributions will not have new enough versions
+  # of setuptools/hatching/etc to support it.
   #
   # .. _SPDX: https://spdx.org/licenses/
-  # .. _exceptions: https://spdx.org/licenses/exceptions-index.html
+  # .. _`license expressions`: https://packaging.python.org/en/latest/specifications/license-expression/
   # .. _`trove classifiers`: https://pypi.org/classifiers/
 
 architecture: aarch64 armhf armv7 ppc64le x86 x86_64

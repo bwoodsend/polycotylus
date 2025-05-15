@@ -90,3 +90,10 @@ def test_poetry():
     self.generate()
     packages = self.build()
     self.test(packages["main"])
+
+
+def test_hatchling():
+    self = polycotylus.Debian(Project.from_root(shared.hatchling_based))
+    self.generate()
+    packages = self.build()
+    self.test(packages["main"])

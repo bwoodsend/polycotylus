@@ -10,6 +10,7 @@ import itertools
 import textwrap
 import os
 from fnmatch import fnmatch
+import glob
 import contextlib
 
 import toml
@@ -51,7 +52,7 @@ class Project:
     dependency_name_map: dict
     test_command: TestCommandLexer
     test_files: list
-    license_names: list
+    license_spdx: str
     licenses: list
     contains_py_files: bool
     scripts: dict
@@ -154,17 +155,6 @@ class Project:
             project["urls"]["homepage"] = project["urls"]["Homepage"]
         if not project.get("urls", {}).get("homepage"):
             missing_fields["urls"] = {"homepage": "https://your.project.site"}
-        if project.get("license", {}).get("file"):
-            licenses = [project["license"]["file"]]
-        else:
-            licenses = []
-            for file in os.listdir(root):
-                for pattern in ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']:
-                    if fnmatch(file, pattern):
-                        licenses.append(file)
-                        break
-            if not licenses:
-                missing_fields["license"] = {"file": "LICENSE.txt"}
         if missing_fields:
             raise _exceptions.PolycotylusUsageError(
                 f"Missing pyproject.toml fields {highlight_toml(str(sorted(missing_fields)))}. "
@@ -210,22 +200,8 @@ class Project:
                 """))
             maintainer, = maintainers
 
-        if polycotylus_options.get("spdx"):
-            license_names = list(polycotylus_options["spdx"])
-        elif poetry_spdx:
-            license_names = [poetry_spdx]
-        else:
-            license_names = []
-            for classifier in project.get("classifiers", []):
-                if spdx := trove_to_spdx.get(classifier):
-                    if spdx == "ignore":
-                        continue
-                    if isinstance(spdx, list):
-                        raise _exceptions.AmbiguousLicenseError(
-                            classifier, spdx)
-                    license_names.append(spdx)
-            if not license_names:
-                raise _exceptions.NoLicenseSpecifierError()
+        license_spdx, licenses = parse_licenses(
+            polycotylus_options, project, poetry_spdx, root)
 
         dependencies = polycotylus_options.get("dependencies", {})
         # Collect test dependencies on PyPI packages.
@@ -349,7 +325,7 @@ class Project:
             dependency_name_map=polycotylus_options.get("dependency_name_map", {}),
             test_files=test_files,
             url=project["urls"]["homepage"],
-            license_names=license_names,
+            license_spdx=license_spdx,
             licenses=licenses,
             contains_py_files=polycotylus_options["contains_py_files"],
             scripts={**project.get("scripts", {}), **project.get("gui-scripts", {})},
@@ -556,6 +532,74 @@ class Project:
                 _misc.unix_write(json_path, json.dumps(artifacts, indent="  "))
 
 
+def parse_licenses(polycotylus_options, project, poetry_spdx, root):
+    """Sources of license name (in order of preference):
+
+    # polycotylus.yaml
+    license: MIT and BSD-3-Clause
+
+    # pyproject.toml
+    license = "MIT and BSD-3-Clause"
+    license = { text="MIT" }  # or  license = { text="some nonsense" }
+    classifiers = [
+        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache License",
+    ]  # Ambiguous if more than one
+
+    """
+    spdx = polycotylus_options.get("license") or poetry_spdx
+    if not spdx and isinstance(project.get("license"), str):
+        spdx = project["license"]
+    if not spdx:
+        license_names = []
+        for classifier in project.get("classifiers", []):
+            if _spdx := trove_to_spdx.get(classifier):
+                if _spdx == "ignore":
+                    continue
+                if isinstance(_spdx, list):
+                    raise _exceptions.AmbiguousLicenseError(classifier, _spdx)
+                license_names.append(_spdx)
+        if len(license_names) > 1:
+            raise _exceptions.MultipleLicenseClassifiersError(license_names)
+        if license_names:
+            spdx = license_names[0]
+    if not spdx and isinstance(project.get("license"), dict):
+        if (_spdx := project["license"].get("text")) in spdx_osi_approved:
+            spdx = _spdx
+    if not spdx:
+        raise _exceptions.NoLicenseSpecifierError()
+
+    """Sources of license files:
+
+    # pyproject.toml
+    license-files = ["LICEN[CS]E*", "AUTHORS*"]
+    license = { file="LICENSE" }
+
+    Implicitly glob for ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+
+    """
+    if project.get("license-files"):
+        licenses = []
+        for pattern in project["license-files"]:
+            for path in glob.glob(str(root / pattern)):
+                licenses.append(Path(path).relative_to(root).as_posix())
+    elif isinstance(project.get("license"), dict) and project["license"].get("file"):
+        licenses = [project["license"]["file"]]
+    else:
+        licenses = []
+        for file in os.listdir(root):
+            for pattern in ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']:
+                if fnmatch(file, pattern):
+                    licenses.append(file)
+        if not licenses:
+            raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                No license file found. Create a file called LICENSE next to the
+                pyproject.toml containing the terms under which this package
+                can be distributed.
+            """))
+    return spdx, licenses
+
+
 @dataclass
 class Artifact:
     distribution: str
@@ -625,6 +669,7 @@ def check_maintainer(name):
 
 trove_to_spdx = json.loads(_misc.read_resource("trove-spdx-licenses.json"))
 spdx_osi_approved = set(re.findall("[^\n]+", _misc.read_resource("spdx-osi-approved.txt").decode()))
+spdx_exceptions = set(re.findall("[^\n]+", _misc.read_resource("spdx-exceptions.txt").decode()))
 
 if __name__ == "__main__":
     self = Project.from_root(".")

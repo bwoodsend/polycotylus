@@ -18,6 +18,7 @@ bare_minimum = dumb_text_viewer.with_name("bare-minimum")
 kitchen_sink = Path(__file__, "../mock-packages/kitchen-sink").resolve()
 fussy_arch = kitchen_sink.with_name("fussy_arch")
 poetry_based = kitchen_sink.with_name("poetry-based")
+hatchling_based = kitchen_sink.with_name("hatchling-based")
 
 gpg_home = Path(__file__).with_name("gpg-home").resolve()
 

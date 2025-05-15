@@ -1,7 +1,7 @@
 import re
 import json
 
-from strictyaml import Any, Seq, Map, MapCombined, MapPattern, Str, EmptyDict, \
+from strictyaml import Any, Seq, Map, MapCombined, MapPattern, Str, \
     Optional, OrValidator, Regex, Bool, load, ScalarValidator, \
     StrictYAMLError, YAMLValidationError
 
@@ -118,7 +118,7 @@ polycotylus_yaml = Map({
     }),
     Optional("maintainer"): Maintainer(),
     Optional("gui"): Bool(),
-    Optional("spdx"): MapPattern(Str(), EmptyDict()),
+    Optional("license"): Str(),
     Optional("contains_py_files", default=True): Bool(),
     Optional("frontend", default=False): Bool(),
     Optional("desktop_entry_points"): MapPattern(desktop_file_id, desktop_file),

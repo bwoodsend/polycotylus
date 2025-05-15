@@ -53,8 +53,28 @@ class AmbiguousLicenseError(PolycotylusUsageError):
             set it in your polycotylus.yaml:
         """) + "\n" + textwrap.dedent(f"""
             {comment("# polycotylus.yaml")}
-            {key("spdx")}:
-              {key(self.possibilities[-1])}:
+            {key("license")}: {self.possibilities[-1]}
+        """)
+
+
+class MultipleLicenseClassifiersError(PolycotylusUsageError):
+    def __init__(self, names):
+        self.names = names
+
+    def __str__(self):
+        return _unravel(f"""
+            Multiple license classifiers found in the pyproject.toml. It is
+            ambiguous whether this means that the project has multiple parts
+            with differing licenses or if the whole project is dual licensed.
+            Set the {key("license")} field in the polycotylus.yaml to
+            disambiguate.
+        """) + textwrap.dedent(f"""
+
+                {comment("# polycotylus.yaml")}
+                {comment("# For dual license use:")}
+                {key("license")}: {" OR ".join(self.names)}
+                # {comment("Or for mixed license use:")}
+                {key("license")}: {" AND ".join(self.names)}
         """)
 
 
@@ -78,8 +98,7 @@ class NoLicenseSpecifierError(PolycotylusUsageError):
         """) + textwrap.dedent(f"""
 
             {comment("# polycotylus.yaml")}
-            {key("spdx")}:
-              {key("MIT")}:
+            {key("license")}: MIT
         """)
 
 

@@ -104,7 +104,7 @@ class Fedora(GPGBased, BaseDistribution):
             Version:        {self.project.version}
             Release:        1%{{?dist}}
             Summary:        {self.project.description}
-            License:        {" AND ".join(self.project.license_names)}
+            License:        {self.project.license_spdx}
             URL:            {self.project.url}
             Source0:        {self.project.source_url.format(version="%{version}")}
         """)

@@ -1,7 +1,6 @@
 source_top_level: something-unrelated-{version}
 
-spdx:
-  custom:
+license: LicenseRef-blimblam OR MIT
 
 dependencies:
   build:

@@ -94,8 +94,9 @@ def test_dumb_text_viewer():
     _docker.run(Alpine.base_image, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
     apks = self.build()
-    assert len(apks) == 2
+    assert len(apks) == 3
     assert "pyc" in apks
+    assert "doc" in apks
     apk = apks["main"]
 
     with tarfile.open(apk.path) as tar:
@@ -197,6 +198,31 @@ def test_unknown_package(polycotylus_yaml, force_color):
         self.apkbuild()
 
 
+def test_license_info():
+    self = Alpine(Project.from_root(shared.bare_minimum))
+
+    self.project.license_spdx = "MIT"
+    assert self._license_info() == (True, False)
+    assert "license=MIT" in self.apkbuild()
+    assert "pkgdir-doc/usr/share/licenses" in self.apkbuild()
+    assert 'subpackages="$pkgname-pyc $pkgname-doc"' in self.apkbuild()
+
+    self.project.license_spdx = "(0BSD OR GPL-3.0+) AND Jam WITH SHL-2.1"
+    assert self._license_info() == (True, True)
+    assert "license='(0BSD OR GPL-3.0+) AND Jam WITH SHL-2.1'" in self.apkbuild()
+    assert "pkgdir-doc" not in self.apkbuild()
+    assert "pkgname-doc" not in self.apkbuild()
+
+    self.project.license_spdx = "0BSD OR bagpuss AND Jam"
+    assert self._license_info() == (False, False)
+    assert "license=custom" in self.apkbuild()
+    assert "pkgdir-doc/usr/share/licenses" in self.apkbuild()
+    assert 'subpackages="$pkgname-pyc $pkgname-doc"' in self.apkbuild()
+
+    self.project.license_spdx = "Jam with bagpuss"
+    assert self._license_info() == (False, False)
+
+
 def test_license_handling(tmp_path):
     subprocess.run(["git", "-C", tmp_path, "init"])
     (tmp_path / "tests").mkdir()
@@ -214,7 +240,7 @@ def test_license_handling(tmp_path):
         pyproject_toml.write_text(toml.dumps(options), "utf-8")
 
     # An SPDX recognised, OSI approved license.
-    _write_trove("License :: OSI Approved :: MIT License")
+    _write_trove("License :: OSI Approved :: MirOS License (MirOS)")
     self = Alpine(Project.from_root(tmp_path))
     self.generate()
     apks = self.build()
@@ -223,7 +249,7 @@ def test_license_handling(tmp_path):
         for file in tar.getnames():
             assert not re.search("usr/share/.*/LICENSE", file)
         with tar.extractfile(".PKGINFO") as f:
-            assert "license = MIT" in f.read().decode()
+            assert "license = MirOS" in f.read().decode()
 
     # An SPDX recognised, but not OSI approved license.
     _write_trove("License :: Aladdin Free Public License (AFPL)")
@@ -246,7 +272,7 @@ def test_license_handling(tmp_path):
     (tmp_path / "LICENSE").write_text(
         "You may use this software as long as you are nice to kittens.")
     yaml = tmp_path / "polycotylus.yaml"
-    yaml.write_text(yaml.read_text("utf-8") + "spdx:\n  kittens:\n")
+    yaml.write_text(yaml.read_text("utf-8") + "license: kittens\n")
     self = Alpine(Project.from_root(tmp_path))
     self.generate()
     apks = self.build()
@@ -448,3 +474,13 @@ def test_poetry():
     self = Alpine(Project.from_root(shared.poetry_based))
     self.generate()
     self.test(self.build()["main"])
+
+
+def test_hatchling():
+    self = Alpine(Project.from_root(shared.hatchling_based))
+    self.generate()
+    apks = self.build()
+    self.test(apks["main"])
+    assert "doc" not in apks
+    with tarfile.open(apks["main"].path) as tar:
+        assert b"BlueOak-1.0.0" in tar.extractfile(".PKGINFO").read()

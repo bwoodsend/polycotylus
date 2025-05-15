@@ -1,0 +1,7 @@
+Multiple license classifiers found in the pyproject.toml. It is ambiguous whether this means that the project has multiple parts with differing licenses or if the whole project is dual licensed. Set the [36mlicense[0m field in the polycotylus.yaml to disambiguate.
+
+[30m# polycotylus.yaml[0m
+[30m# For dual license use:[0m
+[36mlicense[0m: Unlicense OR QPL-1.0
+# [30mOr for mixed license use:[0m
+[36mlicense[0m: Unlicense AND QPL-1.0

@@ -53,6 +53,16 @@ class Arch(GPGBased, BaseDistribution):
         sdk = re.findall(r".*/(.+?)(?:-[^-]+){3}\.pkg\.tar\.zst", _read("/sdk-packages"))
         cls._build_base_packages = set(preinstalled + sdk)
         cls._python_version = re.search("Version +: ([^ -]+)", _read("/python-version"))[1]
+        with container["/usr/share/licenses/spdx"] as tar:
+            cls._devendorable_licenses = []
+            cls._devendorable_license_exceptions = []
+            for path in tar.getnames():
+                if m := re.fullmatch("spdx/([^/]+).txt", path):
+                    cls._devendorable_licenses.append(m[1])
+                elif m := re.fullmatch("spdx/exceptions/([^/]+).txt", path):
+                    cls._devendorable_license_exceptions.append(m[1])
+            assert cls._devendorable_licenses
+            assert cls._devendorable_license_exceptions
 
     @staticmethod
     def fix_package_name(name):
@@ -61,6 +71,16 @@ class Arch(GPGBased, BaseDistribution):
     @staticmethod
     def python_package_convention(pypi_name):
         return "python-" + pypi_name
+
+    @classmethod
+    def devendorable_licenses(cls):
+        cls._package_manager_queries()
+        return cls._devendorable_licenses
+
+    @classmethod
+    def devendorable_license_exceptions(cls):
+        cls._package_manager_queries()
+        return cls._devendorable_license_exceptions
 
     def pkgbuild(self):
         out = f"# Maintainer: {self.project.maintainer_slug}\n"
@@ -72,13 +92,8 @@ class Arch(GPGBased, BaseDistribution):
                 _metadata_dir="$(find "$pkgdir" -name '*.dist-info')"
                 rm -f "$_metadata_dir/direct_url.json"
         """ % top_level)
-        shareable = True
-        for spdx in self.project.license_names:
-            if spdx.startswith(("MIT", "BSD", "ZLIB")):
-                shareable = False
-            elif spdx not in self.available_licenses():
-                shareable = False
-        if not shareable:
+        license_array, shareable_license = self._license_info()
+        if not shareable_license:
             for license in self.project.licenses:
                 package += self._formatter(
                     f'install -Dm644 {shlex.quote(license)} '
@@ -103,7 +118,7 @@ class Arch(GPGBased, BaseDistribution):
             pkgdesc=shlex.quote(self.project.description),
             arch=architecture,
             url=self.project.url,
-            license=self.project.license_names,
+            license=license_array,
             depends=self.dependencies,
             makedepends=self.build_dependencies,
             checkdepends=self.test_dependencies,
@@ -164,6 +179,33 @@ class Arch(GPGBased, BaseDistribution):
             """)
         return out
 
+    def _license_info(self):
+        # A package should use license=custom for licenses/exceptions not found
+        # in /usr/share/licenses/spdx. It should copy its license into
+        # /usr/share/licenses if custom or one of MIT or BSD. License
+        # expressions should be split up into an array of identifier.
+        # https://wiki.archlinux.org/title/PKGBUILD#license
+        devendorable = True
+        terms_in = iter(re.findall("[^() ]+", self.project.license_spdx))
+        terms_out = []
+        for term in terms_in:
+            if term.upper() in ("AND", "OR"):
+                continue
+            elif term.startswith(("MIT", "BSD", "0BSD", "Python", "ZLIB")):
+                devendorable = False
+            elif term.upper() == "WITH":
+                term = next(terms_in)
+                if term not in self.devendorable_license_exceptions():
+                    devendorable = False
+                    term = "custom:" + term
+            elif term not in self.devendorable_licenses():
+                if term.replace("+", "-or-later") not in self.devendorable_licenses():
+                    devendorable = False
+                    if not term.startswith("LicenseRef-"):
+                        term = "custom:" + term
+            terms_out.append(term)
+        return (terms_out, devendorable)
+
     def generate(self):
         with contextlib.suppress(FileNotFoundError):
             (self.distro_root / "pkg").chmod(0o755)
@@ -208,16 +250,3 @@ class Arch(GPGBased, BaseDistribution):
                 {self.project.test_command.evaluate()}
             """, volumes=volumes, tty=True, root=False, post_mortem=True,
                 architecture=self.docker_architecture)
-
-    @classmethod
-    @lru_cache()
-    def available_licenses(cls):
-        out = []
-        container = _docker.run(cls.base_image, verbosity=0,
-                                architecture=cls.preferred_architecture)
-        with container["/usr/share/licenses/spdx"] as tar:
-            for member in tar.getmembers():
-                m = re.fullmatch("spdx/([^/]+).txt", member.name)
-                if m:
-                    out.append(m[1])
-        return out

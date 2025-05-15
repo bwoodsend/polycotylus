@@ -25,7 +25,7 @@ Alpine will produce up to three packages in one build:
 * ``main``: Created unconditionally.
 
 * ``doc``: Contains the license file(s). Created only if the license is
-  considered *non-standard* (which `polycotylus` infers from the `spdx` option).
+  considered *non-standard*.
 
 * ``pyc``: Contains pre-compiled Python bytecode (a.k.a. the
   ``__pycache__/*.pyc`` files). Created for Alpine ``>=3.18`` if

@@ -258,3 +258,10 @@ def test_unittest():
     self = Fedora(Project.from_root(shared.bare_minimum))
     self.generate()
     self.test(self.build()["main"])
+
+
+def test_hatchling():
+    self = Fedora(Project.from_root(shared.hatchling_based))
+    self.generate()
+    packages = self.build()
+    self.test(packages["main"])

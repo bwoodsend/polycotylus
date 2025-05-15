@@ -1,4 +1,4 @@
-Missing pyproject.toml fields [[32m'description'[0m, [32m'license'[0m, [32m'name'[0m, [32m'urls'[0m, [32m'version'[0m]. Add or migrate them to the pyproject.toml.
+Missing pyproject.toml fields [[32m'description'[0m, [32m'name'[0m, [32m'urls'[0m, [32m'version'[0m]. Add or migrate them to the pyproject.toml.
 
 [30m# pyproject.toml[0m
 [[36mproject[0m]
@@ -8,6 +8,3 @@ Missing pyproject.toml fields [[32m'description'[0m, [32m'license'[0m, [32m
 
 [[36mproject.urls[0m]
 [36mhomepage[0m = [32m"https://your.project.site"[0m
-
-[[36mproject.license[0m]
-[36mfile[0m = [32m"LICENSE.txt"[0m

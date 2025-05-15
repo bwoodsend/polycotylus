@@ -13,7 +13,7 @@ import contextlib
 import platform
 
 from polycotylus import _misc, _docker
-from polycotylus._project import spdx_osi_approved
+from polycotylus._project import spdx_osi_approved, spdx_exceptions
 from polycotylus._base import BaseDistribution
 
 
@@ -98,18 +98,14 @@ class Alpine(BaseDistribution):
         else:
             architecture = " ".join(self.project.architecture)
         top_level = self.project.source_top_level.format(version="$pkgver")
-
-        license_names = [
-            i if i in spdx_osi_approved else "custom"
-            for i in self.project.license_names
-        ]
+        license_osi_approved, license_devendorable = self._license_info()
         out += _misc.variables(
             pkgname=shlex.quote(self.package_name),
             pkgver=self.project.version,
             pkgrel=1,
             pkgdesc=shlex.quote(self.project.description),
             arch=shlex.quote(architecture),
-            license=shlex.quote(" ".join(license_names)),
+            license=shlex.quote(self.project.license_spdx) if license_osi_approved else "custom",
             url=self.project.url,
             depends=shlex.quote(" ".join(self.dependencies)),
             makedepends=shlex.quote(" ".join(self.build_dependencies)),
@@ -122,7 +118,7 @@ class Alpine(BaseDistribution):
         if self.project.contains_py_files:
             if self.version == "edge" or Version(self.version) >= Version("v3.18"):
                 subpackages.append("$pkgname-pyc")
-        if "custom" in license_names:
+        if not license_devendorable:
             subpackages.append("$pkgname-doc")
         if subpackages:
             out += 'subpackages="{}"\n'.format(" ".join(subpackages))
@@ -140,7 +136,7 @@ class Alpine(BaseDistribution):
             _metadata_dir="$builddir/usr/lib/python$(_py3ver)/site-packages/{dist_info_name}-$pkgver.dist-info"
             rm -f "$_metadata_dir/direct_url.json"
         """, 1)
-        if "custom" in license_names:
+        if not license_devendorable:
             for license in self.project.licenses:
                 out += self._formatter(f"""
                     install -Dm644 {shlex.quote(license)} -t "$pkgdir-doc/usr/share/licenses/{self.package_name}"
@@ -177,6 +173,27 @@ class Alpine(BaseDistribution):
         """ % (hashlib.sha512(self.project.tar()).hexdigest(),
                self.package_name, self.project.version))
         return out
+
+    def _license_info(self):
+        # A package should use license=custom for non OSI approved license. It
+        # should copy its license into /usr/share and ship it in a separate
+        # $name-doc subpackage if its either non OSI approved or one of MIT or
+        # ISC.
+        # https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package#license
+        devendorable = True
+        terms = iter(re.findall("[^() ]+", self.project.license_spdx))
+        for term in terms:
+            if term.upper() in ("AND", "OR"):
+                continue
+            elif term in ("MIT", "ISC"):
+                devendorable = False
+            elif term.upper() == "WITH":
+                term = next(terms)
+                if term not in spdx_exceptions:
+                    return (False, False)
+            elif term not in spdx_osi_approved:
+                return (False, False)
+        return (True, devendorable)
 
     def dockerfile(self):
         public, private = self.abuild_keys()

@@ -134,7 +134,7 @@ class Void(BaseDistribution):
             checkdepends=quote(" ".join(self.test_dependencies)),
             short_desc=quote(self.project.description),
             maintainer=quote(self.project.maintainer_slug),
-            license=quote(", ".join(self.project.license_names)),
+            license=quote(self.project.license_spdx),
             homepage=quote(self.project.url),
             distfiles=quote(self.project.source_url.format(version="${version}").replace("https://pypi.io/packages/source/", "${PYPI_SITE}/")),
             checksum=hashlib.sha256(self.project.tar()).hexdigest(),

@@ -9,5 +9,4 @@ No license classifier specified in the pyproject.toml. Choose a Trove license cl
 Or select the appropriate SPDX identifier from https://spdx.org/licenses/ and set it in your polycotylus.yaml:
 
 [30m# polycotylus.yaml[0m
-[36mspdx[0m:
-  [36mMIT[0m:
+[36mlicense[0m: MIT

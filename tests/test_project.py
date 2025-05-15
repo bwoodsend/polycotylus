@@ -3,16 +3,17 @@ from pathlib import Path
 import shutil
 import sys
 import re
+import os
 import subprocess
 
 import toml
 import pytest
 
-
 from polycotylus._project import Project, expand_pip_requirements, \
     check_maintainer
 from polycotylus._exceptions import PolycotylusUsageError, PresubmitCheckError, \
-    AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusYAMLParseError
+    AmbiguousLicenseError, NoLicenseSpecifierError, PolycotylusYAMLParseError, \
+    MultipleLicenseClassifiersError
 from polycotylus import _misc
 import shared
 
@@ -124,31 +125,63 @@ def test_comments_in_polycotylus_yaml(polycotylus_yaml):
     assert "Categories=Text editor;thing;\n" in self._desktop_file("bagpuss", self.desktop_entry_points["bagpuss"])
 
 
-def test_license_handling(polycotylus_yaml, pyproject_toml, force_color):
+def test_license_handling(polycotylus_yaml, pyproject_toml, force_color, monkeypatch):
     options = toml.load(shared.bare_minimum / "pyproject.toml")
 
-    def _write_trove(trove):
-        options["project"]["classifiers"] = [trove]
+    def _write_trove(*troves):
+        options["project"]["classifiers"] = [*troves]
         pyproject_toml(options)
 
     self = Project.from_root(shared.bare_minimum)
-    assert self.license_names == ["MIT"]
+    assert self.license_spdx == "MIT"
+    assert self.licenses == ["LICENSE"]
 
-    # No meaningful license identifier.
+    options["project"]["license"] = {"file": "pyproject.toml"}
+    pyproject_toml(options)
+    assert Project.from_root(shared.bare_minimum).licenses == ["pyproject.toml"]
+
+    # No meaningful license identifier
+    options["project"]["license"] = {"text": "Copyright bagpuss"}
     _write_trove("License :: DFSG approved")
     with pytest.raises(NoLicenseSpecifierError) as capture:
         Project.from_root(shared.bare_minimum)
     shared.snapshot_test(str(capture.value), "no-license-specifier")
 
-    # Ambiguous license identifier.
+    # Valid SPDX provided via legacy license field
+    options["project"]["license"] = {"text": "GPL-2.0-only"}
+    pyproject_toml(options)
+    assert Project.from_root(shared.bare_minimum).license_spdx == "GPL-2.0-only"
+
+    # Ambiguous license trove
     _write_trove("License :: OSI Approved :: Apache Software License")
     with pytest.raises(AmbiguousLicenseError) as capture:
         Project.from_root(shared.bare_minimum)
     shared.snapshot_test(str(capture.value), "ambiguous-trove")
 
-    polycotylus_yaml("spdx:\n  kittens:\n")
+    # Multiple license troves
+    _write_trove("License :: OSI Approved :: The Unlicense (Unlicense)",
+                 "License :: OSI Approved :: Qt Public License (QPL)")
+    with pytest.raises(MultipleLicenseClassifiersError) as capture:
+        Project.from_root(shared.bare_minimum)
+    shared.snapshot_test(str(capture.value), "multiple-trove")
+
+    # New-style license expression
+    options["project"]["license"] = "MIT OR OSL-1.0"
+    options["project"]["license-files"] = ["tests/*.py", "*.toml"]
+    pyproject_toml(options)
     self = Project.from_root(shared.bare_minimum)
-    assert self.license_names == ["kittens"]
+    assert self.license_spdx == "MIT OR OSL-1.0"
+    assert self.licenses == ["tests/test_bare_minimum.py", "pyproject.toml"]
+
+    polycotylus_yaml("license: kittens\n")
+    self = Project.from_root(shared.bare_minimum)
+    assert self.license_spdx == "kittens"
+
+    # No license file
+    monkeypatch.setattr(os, "listdir", lambda *args: [])
+    del options["project"]["license-files"]
+    with pytest.raises(PolycotylusUsageError, match="No license file"):
+        Project.from_root(shared.bare_minimum)
 
 
 def test_check_maintainer():

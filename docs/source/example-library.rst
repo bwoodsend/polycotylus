@@ -43,8 +43,9 @@ Uh oh, false start! It errored out immediately.
     choose a more specific classifier from https://pypi.org/classifiers/ if such
     a classifier exists or choose the appropriate SPDX identifier from
     https://spdx.org/licenses/ and set it in your polycotylus.yaml as:
-        spdx:
-          Apache-2.0:
+
+    # polycotylus.yaml
+    license: Apache-2.0
 
 `polycotylus` is complaining that the license identifier given in the
 ``pyproject.toml`` is too vague to map to an SPDX_ license identifier.
@@ -53,14 +54,21 @@ themselves and be trivially resolvable. In this *too vague license* case, we
 can check the contents of ``ubrotli``\ 's ``LICENSE`` file and see that it's
 specifically an Apache version 2.0 license and since there is no *Apache version
 2.0* trove classifier on `pypi.org/classifiers
-<https://pypi.org/classifiers/>`_, we'll have to set the `spdx` key in the
+<https://pypi.org/classifiers/>`_, we'll have to set the `license` key in the
 `polycotylus.yaml` like the error suggests.
 
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
+
+.. note::
+
+    Whilst `polycotylus` itself recognises a license specified via the new
+    `license expressions
+    <https://packaging.python.org/en/latest/specifications/pyproject-toml/#license>`_,
+    the older versions of setuptools used by all but the most bleeding edge
+    Linux distributions don't, so the field is best avoided.
 
 Run ``polycotylus alpine`` again and see where we get to next. After some noisy
 package installs, you should find it errors out when pip is trying to compile C
@@ -151,8 +159,7 @@ that the next build error will be the same but for ``Python.h`` whose package is
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
 
     dependencies:
       build:
@@ -168,8 +175,7 @@ this is a runtime dependency, it goes in `dependencies.run.$distribution`:
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
 
     dependencies:
       build:
@@ -191,8 +197,7 @@ normally install via ``pip`` so the category is `dependencies.test.pip`.
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
 
     dependencies:
       build:
@@ -223,8 +228,7 @@ option:
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
 
     dependencies:
       build:
@@ -355,8 +359,7 @@ These are ``gcc``, ``libbrotli``, ``brotli-devel`` and ``python3-devel``.
 .. code-block:: yaml
 
     # polycotylus.yaml
-    spdx:
-      Apache-2.0:
+    license: Apache-2.0
 
     dependencies:
       build:

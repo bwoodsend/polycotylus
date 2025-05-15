@@ -94,6 +94,32 @@ def test_ubrotli():
     self.test(package)
 
 
+def test_license_info():
+    self = Arch(Project.from_root(shared.bare_minimum))
+
+    self.project.license_spdx = "MIT"
+    assert self._license_info() == (["MIT"], False)
+    assert "license=(MIT)" in self.pkgbuild()
+    assert "$pkgdir/usr/share/licenses" in self.pkgbuild()
+
+    self.project.license_spdx = "(BSL-1.0 OR GPL-3.0+) AND GPL-2.0-only WITH GPL-3.0-linking-source-exception"
+    assert self._license_info() == (["BSL-1.0", "GPL-3.0+", "GPL-2.0-only", "GPL-3.0-linking-source-exception"], True)
+    assert "license=(BSL-1.0 GPL-3.0+ GPL-2.0-only GPL-3.0-linking-source-exception)" in self.pkgbuild()
+    assert "share/licenses" not in self.pkgbuild()
+
+    self.project.license_spdx = "bagpuss AND Jam"
+    assert self._license_info() == (["custom:bagpuss", "custom:Jam"], False)
+    assert "license=(custom:bagpuss custom:Jam)" in self.pkgbuild()
+    assert "$pkgdir/usr/share/licenses" in self.pkgbuild()
+
+    self.project.license_spdx = "LicenseRef-bagpuss"
+    assert self._license_info() == (["LicenseRef-bagpuss"], False)
+    assert "license=(LicenseRef-bagpuss)" in self.pkgbuild()
+
+    self.project.license_spdx = "GFDL-1.2-only WITH bagpuss-exception"
+    assert self._license_info() == (["GFDL-1.2-only", "custom:bagpuss-exception"], False)
+
+
 def test_kitchen_sink_signing(monkeypatch):
     monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
     monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
