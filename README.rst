@@ -67,7 +67,7 @@ Debian_        13 (prerelease)
 Fedora_        37-42, 43 (rawhide)
 Manjaro_       rolling
 O̶p̶e̶n̶S̶U̶S̶E       Redacted
-Ubuntu_        24.04-25.04
+Ubuntu_        24.04-25.10
 Void_          rolling
 =============  ===========================================
 

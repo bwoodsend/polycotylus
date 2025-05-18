@@ -479,6 +479,9 @@ mirrors["ubuntu2410"] = mirrors["ubuntu2404"].with_(
 mirrors["ubuntu2504"] = mirrors["ubuntu2404"].with_(
     base_dir=cache_root / "ubuntu2504",
 )
+mirrors["ubuntu2510"] = mirrors["ubuntu2404"].with_(
+    base_dir=cache_root / "ubuntu2510",
+)
 
 
 if __name__ == "__main__":
