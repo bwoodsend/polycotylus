@@ -335,9 +335,11 @@ build-backend = "setuptools.build_meta"
 ✅ Non human maintainer
 """
 
+
+def test_presubmit_lint_maintainer(capsys, monkeypatch, polycotylus_yaml, force_color):
+    from polycotylus.__main__ import cli
+
     monkeypatch.chdir(Path(__file__, "../../tests/mock-packages/complex-test-requirements").resolve())
-    monkeypatch.setenv("FORCE_COLOR", "1")
-    monkeypatch.delenv("NO_COLOR")
     with pytest.raises(SystemExit) as ex:
         cli(["--presubmit-check"])
     assert ex.value.code == 14

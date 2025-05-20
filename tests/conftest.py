@@ -1,3 +1,6 @@
+import contextlib
+
+import termcolor
 import pytest
 
 
@@ -32,13 +35,22 @@ def pyproject_toml(monkeypatch):
     return with_pyproject_toml
 
 
+def _reset_termcolor():
+    with contextlib.suppress(AttributeError):
+        termcolor.termcolor._can_do_colour.cache_clear()
+    with contextlib.suppress(AttributeError):
+        termcolor.can_colorize.cache_clear()
+
+
 @pytest.fixture
 def force_color(monkeypatch):
+    _reset_termcolor()
     monkeypatch.setenv("FORCE_COLOR", "1")
     monkeypatch.delenv("NO_COLOR", False)
 
 
 @pytest.fixture
 def no_color(monkeypatch):
+    _reset_termcolor()
     monkeypatch.setenv("NO_COLOR", "1")
     monkeypatch.delenv("FORCE_COLOR", False)
