@@ -279,7 +279,7 @@ class Void(BaseDistribution):
         with urlopen(f"https://build.voidlinux.org/api/v2/builds/{build_id}/properties") as response:
             build = json.loads(response.read())
         revision = build["properties"][0]["revision"][0]
-        assert re.fullmatch("[a-f0-9]{40}", revision)
+        assert re.fullmatch("[a-f0-9]{40}", revision), str(build)
         return revision
 
     def void_packages_repo(self):
