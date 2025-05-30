@@ -317,6 +317,11 @@ class Alpine320(Alpine):
 Alpine321 = Alpine
 
 
+class Alpine322(Alpine):
+    version = "3.22"
+    base_image = "alpine:3.22"
+
+
 class AlpineEdge(Alpine):
     version = "edge"
     base_image = "alpine:edge"
