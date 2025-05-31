@@ -19,8 +19,8 @@ from polycotylus._base import BaseDistribution
 
 class Alpine(BaseDistribution):
     name = "alpine"
-    version = "3.21"
-    base_image = "alpine:3.21"
+    version = "3.22"
+    base_image = "alpine:3.22"
     python_extras = {
         "tkinter": ["python3-tkinter"],
         "dbm.gnu": ["python3-gdbm"],
@@ -314,12 +314,12 @@ class Alpine320(Alpine):
     base_image = "alpine:3.20"
 
 
-Alpine321 = Alpine
+class Alpine321(Alpine):
+    version = "3.21"
+    base_image = "alpine:3.21"
 
 
-class Alpine322(Alpine):
-    version = "3.22"
-    base_image = "alpine:3.22"
+Alpine322 = Alpine
 
 
 class AlpineEdge(Alpine):

@@ -69,9 +69,9 @@ extension whilst building the package.
 .. code-block:: bash
 
     polycotylus._docker.Error: Docker command:
-        $ docker run --rm --network=host --platform=linux/x86_64 -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine:/io:z -v/home/brenainn/.abuild/bwoodsend@gmail.com-63b087db.rsa:/home/user/.abuild/bwoodsend@gmail.com-63b087db.rsa:z -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine/3.21:/home/user/packages:z -t --user=1000 --ulimit nofile=1024:1048576 sha256:d9d05c5db0f32b251e94fa4996f2ab1a8526b6504b04010de9084a3e9118633f sh -ec 'abuild -f'
+        $ docker run --rm --network=host --platform=linux/x86_64 -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine:/io:z -v/home/brenainn/.abuild/bwoodsend@gmail.com-63b087db.rsa:/home/user/.abuild/bwoodsend@gmail.com-63b087db.rsa:z -v/g/notebooks/polycotylus/examples/ubrotli/.polycotylus/alpine/3.22:/home/user/packages:z -t --user=1000 --ulimit nofile=1024:1048576 sha256:d9d05c5db0f32b251e94fa4996f2ab1a8526b6504b04010de9084a3e9118633f sh -ec 'abuild -f'
     returned an error:
-    >>> py3-ubrotli: Building /py3-ubrotli 0.1.0-r1 (using abuild 3.11.1-r0) started Sat, 19 Aug 2023 20:32:51 +0000
+    >>> py3-ubrotli: Building /py3-ubrotli 0.1.0-r1 (3.15.0-r0) started Sat, 19 Aug 2023 20:32:51 +0000
     >>> py3-ubrotli: Checking sanity of /io/APKBUILD...
     >>> py3-ubrotli: Analyzing dependencies...
     >>> py3-ubrotli: Cleaning up srcdir
@@ -90,15 +90,15 @@ extension whilst building the package.
       × Building wheel for ubrotli (pyproject.toml) did not run successfully.
       │ exit code: 1
       ╰─> [14 lines of output]
-          /usr/lib/python3.11/site-packages/setuptools/config/pyprojecttoml.py:66: _BetaConfiguration: Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*.
+          /usr/lib/python3.12/site-packages/setuptools/config/pyprojecttoml.py:66: _BetaConfiguration: Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*.
             config = read_configuration(filepath, True, ignore_option_errors, dist)
           running bdist_wheel
           running build
           running build_ext
           building 'ubrotli' extension
           creating build
-          creating build/temp.linux-x86_64-cpython-311
-          gcc -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Os -Wformat -Werror=format-security -Os -Wformat -Werror=format-security -fPIC -I/usr/include/python3.11 -c wrapper.c -o build/temp.linux-x86_64-cpython-311/wrapper.o
+          creating build/temp.linux-x86_64-cpython-312
+          gcc -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Os -Wformat -Werror=format-security -Os -Wformat -Werror=format-security -fPIC -I/usr/include/python3.12 -c wrapper.c -o build/temp.linux-x86_64-cpython-312/wrapper.o
           wrapper.c:2:10: fatal error: brotli/decode.h: No such file or directory
               2 | #include "brotli/decode.h"
                 |          ^~~~~~~~~~~~~~~~~
@@ -239,11 +239,11 @@ option:
 The next rebuild should carry you all the way to the end where you should get a message which looks like::
 
     Built 1 artifact:
-    main: .polycotylus/alpine/3.21/x86_64/py3-ubrotli-0.1.0-r1.apk
+    main: .polycotylus/alpine/3.22/x86_64/py3-ubrotli-0.1.0-r1.apk
 
-That's the location of your package! Notice that the path has a ``3.21`` version
+That's the location of your package! Notice that the path has a ``3.22`` version
 number and the architecture ``x86_64`` in it. That's because it's only
-compatible with Alpine v3.21.x on ``x86_64``. Use the following syntaxes to
+compatible with Alpine v3.22.x on ``x86_64``. Use the following syntaxes to
 target other versions and architectures::
 
     polycotylus alpine --architecture=aarch64
