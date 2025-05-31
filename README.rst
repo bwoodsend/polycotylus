@@ -61,7 +61,7 @@ OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
 =============  ===========================================
 Distributions  Supported versions
 =============  ===========================================
-Alpine_        3.17-3.21, 3.22 (prerelease), edge
+Alpine_        3.17-3.22, edge
 Arch_          rolling
 Debian_        13 (prerelease)
 Fedora_        37-42, 43 (rawhide)

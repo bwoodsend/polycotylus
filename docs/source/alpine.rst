@@ -46,8 +46,8 @@ implies the latest released version. ::
     polycotylus alpine:3.18
     polycotylus alpine:3.19
     polycotylus alpine:3.20
-    polycotylus alpine:3.21  # Default
-    polycotylus alpine:3.22  # Prerelease
+    polycotylus alpine:3.21
+    polycotylus alpine:3.22  # Default
     polycotylus alpine:edge  # Unstable branch
 
 
