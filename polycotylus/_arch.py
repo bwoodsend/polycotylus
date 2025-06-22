@@ -83,8 +83,6 @@ class Arch(GPGBased, BaseDistribution):
                 package += self._formatter(
                     f'install -Dm644 {shlex.quote(license)} '
                     f'-t "$pkgdir/usr/share/licenses/{self.package_name}"', 1)
-        for license in self.project.licenses:
-            package += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
 
         package += self.install_icons(1, "$pkgdir")
         package += self.install_desktop_files(1, "$pkgdir")

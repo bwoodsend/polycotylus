@@ -105,7 +105,7 @@ def test_dumb_text_viewer():
         assert "arch = noarch" in pkginfo
         assert "license = MIT" in pkginfo
     for file in files:
-        assert "LICENSE" not in file
+        assert not re.search("usr/share/.*/LICENSE", file)
 
     container = self.test(apk)
     shared.check_dumb_text_viewer_installation(container)
@@ -155,7 +155,7 @@ def test_ubrotli():
         for file in tar.getnames():
             assert ".desktop" not in file
             assert ".png" not in file
-            assert "LICENSE" not in file
+            assert not re.search("usr/share/.*/LICENSE", file)
         with tar.extractfile(".PKGINFO") as f:
             pkginfo = f.read().decode()
         assert f"arch = {machine()}" in pkginfo
@@ -221,7 +221,7 @@ def test_license_handling(tmp_path):
     assert "doc" not in apks
     with tarfile.open(apks["main"].path) as tar:
         for file in tar.getnames():
-            assert "LICENSE" not in file
+            assert not re.search("usr/share/.*/LICENSE", file)
         with tar.extractfile(".PKGINFO") as f:
             assert "license = MIT" in f.read().decode()
 
@@ -233,7 +233,7 @@ def test_license_handling(tmp_path):
     apks = self.build()
     with tarfile.open(apks["main"].path) as tar:
         for file in tar.getnames():
-            assert "LICENSE" not in file
+            assert not re.search("usr/share/.*/LICENSE", file)
         with tar.extractfile(".PKGINFO") as f:
             assert re.search("license = (.+)", f.read().decode())[1] == "custom"
     with tarfile.open(apks["doc"].path) as tar:

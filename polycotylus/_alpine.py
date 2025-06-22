@@ -144,8 +144,6 @@ class Alpine(BaseDistribution):
                 out += self._formatter(f"""
                     install -Dm644 {shlex.quote(license)} -t "$pkgdir-doc/usr/share/licenses/{self.package_name}"
                 """, 1)
-        for license in self.project.licenses:
-            out += self._formatter(f'rm -f "$_metadata_dir/{license}"', 1)
         out += self.install_desktop_files(1, dest="$builddir")
         out += self.install_icons(1, "$builddir")
         out += "}\n\n"
