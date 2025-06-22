@@ -30,6 +30,7 @@ class Alpine(BaseDistribution):
         "aarch64": "aarch64",
         "armv7": "arm",
         "ppc64le": "ppc64le",
+        "riscv64": "riscv64",
         # "s390x": "s390x",  sudo has started stalling on this platform
         "x86": "i386",
         "x86_64": "x86_64",
@@ -295,16 +296,22 @@ class Alpine(BaseDistribution):
 class Alpine317(Alpine):
     version = "3.17"
     base_image = "alpine:3.17"
+    supported_architectures = {
+        i: j for (i, j) in Alpine.supported_architectures.items()
+        if i != "riscv64"
+    }
 
 
 class Alpine318(Alpine):
     version = "3.18"
     base_image = "alpine:3.18"
+    supported_architectures = Alpine317.supported_architectures
 
 
 class Alpine319(Alpine):
     version = "3.19"
     base_image = "alpine:3.19"
+    supported_architectures = Alpine317.supported_architectures
 
 
 class Alpine320(Alpine):

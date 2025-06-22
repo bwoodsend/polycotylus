@@ -36,7 +36,10 @@ def test_fish(capsys, monkeypatch):
     assert "aarch64" in _complete("polycotylus manjaro --architecture=")
     assert "ppc64le" not in _complete("polycotylus manjaro --architecture=")
     assert "ppc64le" in _complete("polycotylus alpine:3.20 --architecture=")
-    assert "riscv64" not in _complete("polycotylus alpine:3.20 --architecture=")
+    assert "mips64el" not in _complete("polycotylus alpine:3.20 --architecture=")
+    assert "riscv64" in _complete("polycotylus alpine --architecture=")
+    assert "riscv64" not in _complete("polycotylus alpine:3.19 --architecture=")
+    assert "riscv64" in _complete("polycotylus alpine:3.20 --architecture=")
 
     assert "--void-signing-certificate" in _complete("polycotylus void -")
     assert "--void-signing-certificate" in _complete("polycotylus void:musl -")

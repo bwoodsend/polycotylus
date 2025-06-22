@@ -6,7 +6,8 @@ Basic usage::
 
     polycotylus alpine
 
-* Supported architectures: ``aarch64 armv7 ppc64le x86 x86_64``
+* Supported architectures: ``aarch64 armv7 ppc64le riscv64 x86 x86_64``
+    - ``riscv64`` requires Alpine ``>=3.20``
 
 * Alpine packages are compatible with: `postmarketOS
   <https://postmarketos.org/>`_

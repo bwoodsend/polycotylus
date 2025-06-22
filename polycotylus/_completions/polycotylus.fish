@@ -12,7 +12,8 @@ complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_tags $atomic
 
 # The --architecture flag – if a Linux distribution is already selected, offer only architectures valid on that distribution.
 complete -c polycotylus -x -l architecture -n "not __fish_seen_subcommand_from architecture $all_tags $atomic_flags" -a 'aarch64 amd64 arm64 armel armhf armv7 i386 mips64el ppc64el ppc64le riscv64 s390x x86 x86_64'
-complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from alpine $alpine_tags" -a 'aarch64 armv7 ppc64le x86 x86_64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from $alpine_tags[1..3]" -a 'aarch64 armv7 ppc64le x86 x86_64'
+complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from alpine $alpine_tags[4..]" -a 'aarch64 armv7 ppc64le riscv64 x86 x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from arch" -a 'x86_64'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from debian $debian_tags" -a 'amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x'
 complete -c polycotylus -x -l architecture -n "__fish_seen_subcommand_from fedora $fedora_tags" -a 'x86_64 aarch64'
