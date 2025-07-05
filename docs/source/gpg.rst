@@ -36,4 +36,4 @@ build. There is currently no automation friendly way to pass the password throug
 
 **To consume** your signed package, downstream users should install your public
 key into their package manager's key stores. That process is different for each
-distribution and is documented ender their :ref:`quirks pages <building for>`.
+distribution and is documented under their :ref:`quirks pages <building for>`.

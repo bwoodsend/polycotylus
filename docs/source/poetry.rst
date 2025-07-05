@@ -25,7 +25,7 @@ would be the best you can do). To be compatible with Linux packaging, remove
 upper bound constraints and widen lower bound constraints as much as possible
 without your package breaking.
 
-Since `polycotylus` can't do anything meaningful with them, it cuurently assumes
+Since `polycotylus` can't do anything meaningful with them, it currently assumes
 that all your dependency constraints are not real requirements (found by testing
 or looking at changelogs) and ignores them where it can. This is not possible on
 Fedora. If you get an error like the one below, it means that your version

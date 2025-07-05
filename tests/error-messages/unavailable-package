@@ -1,6 +1,6 @@
-Dependency [32m'Hippos_can_fly'[0m appears to be unavailable on Alpine Linux. Polycotylus does not yet have any way of depending on packages which are not already available on Linux distribtions. You may be able to request it. It also might already be there but named something weird, in which case, supply its real name to the [36mdependency_name_map[0m option in the polycotylus.yaml:
+Dependency [32m'Hippos_can_fly'[0m appears to be unavailable on Alpine Linux. Polycotylus does not yet have any way of depending on packages which are not already available on Linux distributions. You may be able to request it. It also might already be there but named something weird, in which case, supply its real name to the [36mdependency_name_map[0m option in the polycotylus.yaml:
 
-[30m# polycoylus.yaml[0m
+[30m# polycotylus.yaml[0m
 [36mdependency_name_map[0m:
   [36mHippos_can_fly[0m:
     [36malpine[0m: whatever-its-really-called

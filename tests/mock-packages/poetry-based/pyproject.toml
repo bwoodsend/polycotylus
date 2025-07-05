@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "poetry-based"
 version = "0.1.0"
-description = "A test packge which uses non PEP 621 compliant poetry instead of setuptools"
+description = "A test package which uses non PEP 621 compliant poetry instead of setuptools"
 authors = ["Brénainn Woodsend <bwoodsend@gmail.com>"]
 license = "MIT"
 readme = "README.md"

@@ -29,7 +29,7 @@ def _check_values_align(spec):
         assert len(line[2]) >= 2
 
 
-# Cover oldest, latest and both sides of the transation made from 40->41
+# Cover oldest, latest and both sides of the transition made from 40->41
 @pytest.mark.parametrize("Fedora", [Fedora37, Fedora40, Fedora41, Fedora43])
 def test_dnf_cache(Fedora):
     mounts = Fedora._mounted_caches

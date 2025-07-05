@@ -1,7 +1,7 @@
 /* This is mostly borrowed from
  * https://github.com/MrDogeBro/sphinx_rtd_dark_mode/blob/main/sphinx_rtd_dark_mode/static/dark_mode_css/dark.css
  * with some modifications to make it play better with polycotylus's other
- * customizations and to make it automatically respect browers' preferred theme.
+ * customizations and to make it automatically respect browsers' preferred theme.
  */
 
 @media (prefers-color-scheme: dark) {

@@ -93,13 +93,13 @@ class PackageUnavailableError(PolycotylusUsageError):
             Dependency {string(repr(self.package))} appears to be unavailable on
             {self.distribution.title()} Linux. Polycotylus does not yet have any
             way of depending on packages which are not already available on
-            Linux distribtions. You may be able to request it. It also might
+            Linux distributions. You may be able to request it. It also might
             already be there but named something weird, in which case, supply
             its real name to the {key("dependency_name_map")} option in the
             polycotylus.yaml:
         """) + textwrap.dedent(f"""
 
-            {comment("# polycoylus.yaml")}
+            {comment("# polycotylus.yaml")}
             {key("dependency_name_map")}:
               {key(self.package)}:
                 {key(self.distribution)}: whatever-its-really-called
