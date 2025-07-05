@@ -183,13 +183,14 @@ applications menu. For example, in XFCE's Whisker menu, it looks like this:
     Most desktops I have used will respond to new/updated desktop files
     instantly without needing to run some kind of *update-xyz* command although
     don't be surprised if yours doesn't. In particular, expect limited mileage
-    when configuring `MimeType`.
+    when configuring `MimeType <desktop_entry_points.$identifier.MimeType>`.
 
-    To get the `Exec` field working, you will also need your entry-point in
-    **global** ``PATH``. The easiest way to achieve this is to symlink your
-    Python environment's ``${sys.prefix}/bin/$your-script`` into
-    ``~/.local/bin/``. Adding a custom location to ``PATH`` via bashrc will not
-    work because a bashrc is only loaded by terminal environments.
+    To get the `Exec <desktop_entry_points.$identifier.Exec>` field working, you
+    will also need your entry-point in **global** ``PATH``. The easiest way to
+    achieve this is to symlink your Python environment's
+    ``${sys.prefix}/bin/$your-script`` into ``~/.local/bin/``. Adding a custom
+    location to ``PATH`` via bashrc will not work because a bashrc is only
+    loaded by terminal environments.
 
 
 Icon and description
@@ -203,7 +204,7 @@ file. If you want to override it, the corresponding desktop file key is called
 to be in the imperative tense. You'll also notice that a generic placeholder
 icon is displayed – let's give it a proper one! There's a ``icon-source.svg``
 file in the root of this project – we'll use that by passing its path to the
-`icon` parameter.
+`icon <desktop_entry_points.$identifier.icon>` parameter.
 
 .. code-block:: yaml
 
@@ -235,8 +236,9 @@ Now the application menu item looks like this:
     be found in the desktop file's spec's `list of available options
     <https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s06.html>`_.
     The others are `polycotylus` specific options that trigger special
-    processing. e.g. `icon` adds an image conversation, resize and install step
-    to each distribution's build scripts.
+    processing. e.g. `icon <desktop_entry_points.$identifier.icon>` adds an
+    image conversation, resize and install step to each distribution's build
+    scripts.
 
 
 Supported filetypes
@@ -247,7 +249,8 @@ to interact with text files. If you wanted to open a text file with
 ``dumb_text_viewer`` from a graphical file manager then you'd have to go through
 the tedious *right click 🠚 open with 🠚 other application 🠚 rummage through every
 application on you computer* flow. Declare supported *mimetypes* in the
-`MimeType` section – in this case, an assortment of text based file types.
+`MimeType <desktop_entry_points.$identifier.MimeType>` section – in this case,
+an assortment of text based file types.
 
 .. hint::
 
@@ -298,12 +301,12 @@ file type:
 Localizations
 .............
 
-The display text fields (`Name`, ``Comment``, ``GenericName`` and ``Keywords``)
-can all be specified in multiple languages. The desktop will automatically
-select the right one based on the configured system locale. To do this, replace
-the string you pass to one of these fields in the `polycotylus.yaml` with a map
-of locale names to translations. (Disclaimer: translations below are machine
-generated)
+The display text fields (`Name <desktop_entry_points.$identifier.Name>`,
+``Comment``, ``GenericName`` and ``Keywords``) can all be specified in multiple
+languages. The desktop will automatically select the right one based on the
+configured system locale. To do this, replace the string you pass to one of
+these fields in the `polycotylus.yaml` with a map of locale names to
+translations. (Disclaimer: translations below are machine generated)
 
 .. code-block:: yaml
 
@@ -404,7 +407,9 @@ e.g. A web browser having an *incognito* mode. An :any:`action
 command which can typically be accessed by right-clicking on the application in
 an application menu. An action takes a subset of the parameters that
 `desktop_entry_points` takes; namely, another arbitrary sluggified identifier,
-`Name`, `Exec` and optionally an `icon`.
+`Name <desktop_entry_points.$identifier.Name>`, `Exec
+<desktop_entry_points.$identifier.Exec>` and optionally an `icon
+<desktop_entry_points.$identifier.icon>`.
 
 .. code-block:: yaml
 

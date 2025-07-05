@@ -13,7 +13,7 @@ intro = re.sub("^# ?", "", intro, flags=re.M)
 lines = raw.splitlines(keepends=True)
 
 heading = ["""
-.. module:: polycotylus.yaml
+.. config:: polycotylus.yaml
 
 .. _`polycotylus-yaml`:
 
@@ -77,9 +77,9 @@ while i < len(lines):
     paths[indentation] = key
     path = [j for (i, j) in paths.items() if len(i) <= len(indentation)]
     title = ".".join(path)
-    body.append(f"\n\n.. module:: {title}\n\n")
+    body.append(f"\n\n.. config:: {title}\n\n")
     body.append(f"\n\n{'.' * len(title)}\n{title}\n{'.' * len(title)}\n\n")
-    toc.append(indentation * 2 + f"- :mod:`{key} <{'.'.join(path)}>`\n")
+    toc.append(indentation * 2 + f"- :config:`{key} <{'.'.join(path)}>`\n")
     while i < len(lines):
         line = lines[i]
         i += 1

@@ -43,9 +43,9 @@ steps are called *generate*, *build* and *test* and that steps *build* and
 
     * Maybe sign the package
 
-    This step runs inside a *build* Docker container with
-    :mod:`~dependencies.build`, :mod:`~dependencies.run` and
-    :mod:`~dependencies.test` dependencies preinstalled.
+    This step runs inside a *build* Docker container with `build
+    <dependencies.build>`, `run <dependencies.run>` and `test
+    <dependencies.test>` dependencies preinstalled.
 
 3.  Test the package:
 
@@ -55,9 +55,9 @@ steps are called *generate*, *build* and *test* and that steps *build* and
       aims to remove the need to do any more testing with the package before
       publishing it
 
-    This step runs in a *test* Docker container with only
-    :mod:`~dependencies.test` dependencies preinstalled. The process of
-    installing your package will also install all its runtime dependencies.
+    This step runs in a *test* Docker container with only `test
+    <dependencies.test>` dependencies preinstalled. The process of installing
+    your package will also install all its runtime dependencies.
 
 Some key things to clarify:
 
