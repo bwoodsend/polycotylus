@@ -5,11 +5,11 @@ description = "Yet another test package"
 requires-python = ">=3.7"
 license = "BlueOak-1.0.0"
 authors = [{name="Brénainn Woodsend", email="bwoodsend@gmail.com"}]
-dependencies = ["platformdirs"]
+dynamic = ["dependencies"]
 
 [project.urls]
 homepage = "https://example.com"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-requirements-txt"]
 build-backend = "hatchling.build"

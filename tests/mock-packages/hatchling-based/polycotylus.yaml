@@ -1,3 +1,5 @@
 dependencies:
+  run:
+    pip: -r requirements.txt
   test:
     pip: pytest
