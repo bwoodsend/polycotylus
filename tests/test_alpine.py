@@ -476,7 +476,8 @@ def test_poetry():
     self.test(self.build()["main"])
 
 
-def test_hatchling():
+def test_hatchling(monkeypatch):
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "10.20")
     self = Alpine(Project.from_root(shared.hatchling_based))
     self.generate()
     apks = self.build()

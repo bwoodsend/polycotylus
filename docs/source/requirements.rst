@@ -39,8 +39,8 @@ but the first three.
 
     - `version
       <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#version>`_
-      (or a ``[tool.setuptools_scm]`` section for :ref:`setuptools_scm based
-      projects <setuptools_scm_support>`)
+      (although dynamic versions :ref:`are supported
+      <dynamic_versions_support>`)
 
     - `description
       <https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#description>`_

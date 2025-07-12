@@ -139,6 +139,14 @@ contains_py_files: false
   # disable any Python bytecode compilation steps and prevent a ``-pyc``
   # subpackage being generated on Alpine.
 
+dynamic_version: |
+  import re
+  with open("bagpuss/__init__.py") as f:
+      return re.search("__version__ = ['\"](.+)['\"]", f.read())
+  # A snippet of Python code that can retrieve a project version not declared
+  # using the usual ``project.version`` ``pyproject.toml`` field. See
+  # `dynamic_versions_support`.
+
 maintainer: Your Name <your.email@address.com>
   # Contact details for whoever's job it will be to fix it if there are issues.
   # If non-ambiguous, `polycotylus` will default to the ``project.maintainer``

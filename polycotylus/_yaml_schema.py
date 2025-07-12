@@ -129,6 +129,7 @@ polycotylus_yaml = Map({
         WhitespaceDelimited(Regex("!?(" + "|".join(architectures) + ")")),
     ),
     Optional("dependency_name_map"): MapPattern(Str(), MapPattern(Str(), Str())),
+    Optional("dynamic_version"): Str(),
 })
 
 

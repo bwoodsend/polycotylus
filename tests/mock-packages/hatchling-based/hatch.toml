@@ -1,2 +1,5 @@
+[version]
+source = "vcs"
+
 [metadata.hooks.requirements_txt]
 files = ["requirements.txt"]

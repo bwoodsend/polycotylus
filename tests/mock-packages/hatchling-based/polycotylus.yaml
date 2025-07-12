@@ -3,3 +3,7 @@ dependencies:
     pip: -r requirements.txt
   test:
     pip: pytest
+
+dynamic_version: |
+  import setuptools_scm
+  return setuptools_scm.get_version(".")

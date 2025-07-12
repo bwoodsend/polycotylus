@@ -5,6 +5,7 @@ import sys
 import re
 import os
 import subprocess
+import textwrap
 
 import toml
 import pytest
@@ -250,6 +251,102 @@ def test_overcomplicated_versioning(pyproject_toml, no_color):
         Project.from_root(shared.bare_minimum)
 
 
+def strip_full_paths(traceback):
+    return re.sub(r'File "[^"]+/([^"/\\]+)"', r'File "\1"', traceback)
+
+
+def test_dynamic_version(force_color, tmp_path):
+    for file in ["pyproject.toml", "LICENSE"]:
+        shutil.copy(shared.hatchling_based / file, tmp_path)
+
+    def polycotylus_yaml(text):
+        text = textwrap.dedent(text).lstrip()
+        _misc.unix_write(tmp_path / "polycotylus.yaml", text)
+
+    tag = "3.11" if sys.version_info >= (3, 11) else "3.8"
+
+    polycotylus_yaml("dynamic_version: return '3'")
+    assert Project.from_root(tmp_path).version == "3"
+
+    polycotylus_yaml("dynamic_version: '3'")
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(str(capture.value), "dynamic-version-no-return")
+
+    polycotylus_yaml("dynamic_version: return 3")
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(str(capture.value), "dynamic-version-non-string")
+
+    polycotylus_yaml("dynamic_version: return 1 / 0")
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         "dynamic-version-first-line-exception")
+
+    polycotylus_yaml("""
+        dependencies:
+            test:
+                pip: pytest
+        dynamic_version: return 1 / 0
+    """)
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         f"dynamic-version-inline-exception-{tag}")
+
+    polycotylus_yaml("""
+        dynamic_version: |
+            1 + 1
+            1 / 0
+            return 2 + 2
+    """)
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         f"dynamic-version-multiline-exception-{tag}")
+
+    polycotylus_yaml("""
+        dynamic_version: >
+            1 + 1 ;
+            raise TypeError("it went wrong") ;
+            return 2 + 2
+    """)
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         "dynamic-version-multiline-exception-nonliteral")
+
+    polycotylus_yaml("""
+        dynamic_version: |
+            1 + 1
+            raise TypeError)
+            return "v1.2"
+    """)
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         "dynamic-version-multiline-syntax-error")
+
+    polycotylus_yaml("""
+        dynamic_version: |
+            def foo():
+                raise TypeError("hello")
+
+            def bar():
+                try:
+                    foo()
+                except TypeError:
+                    foo()
+
+            return bar()
+    """)
+    with pytest.raises(PolycotylusUsageError) as capture:
+        Project.from_root(tmp_path)
+    shared.snapshot_test(strip_full_paths(str(capture.value)),
+                         "dynamic-version-stack-{}.{}".format(*sys.version_info))
+
+
 def test_maintainer(pyproject_toml, polycotylus_yaml, force_color):
     options = toml.load(shared.bare_minimum / "pyproject.toml")
     self = Project.from_root(shared.bare_minimum)
@@ -295,12 +392,6 @@ def test_maintainer(pyproject_toml, polycotylus_yaml, force_color):
         Project.from_root(shared.bare_minimum)
 
 
-def test_missing_setuptools_scm(monkeypatch):
-    monkeypatch.setitem(sys.modules, "setuptools_scm", None)
-    with pytest.raises(PolycotylusUsageError, match="install setuptools-scm"):
-        Project.from_root(shared.kitchen_sink)
-
-
 def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml, force_color):
     (tmp_path / "LICENSE").write_bytes(b"hello")
     subprocess.run(["sh", "-ec", """
@@ -311,10 +402,11 @@ def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml, force_color)
         git commit -m "Blah blah blah"
         git tag v9.3
     """], check=True, cwd=str(tmp_path))
-    (tmp_path / "LICENSE").write_bytes(b"feet")
-    (tmp_path / "bar").write_bytes(b"")
     polycotylus_yaml("")
     pyproject_toml("""
+        [build-system]
+        requires = ["SETUPTOOLS.SCM"]
+
         [project]
         name = "..."
         description = "..."
@@ -324,15 +416,24 @@ def test_setuptools_scm(tmp_path, polycotylus_yaml, pyproject_toml, force_color)
 
         [project.urls]
         homepage = "..."
-
-        [tool.setuptools_scm]
+    """)
+    with pytest.raises(PolycotylusUsageError, match="dynamic-versions"):
+        Project.from_root(tmp_path)
+    polycotylus_yaml("""
+        dynamic_version: |
+          import setuptools_scm
+          return setuptools_scm.get_version(".")
     """)
     self = Project.from_root(tmp_path)
     assert self.version == "9.3"
+    assert self.setuptools_scm
+    (tmp_path / "LICENSE").write_bytes(b"feet")
+    (tmp_path / "bar").write_bytes(b"")
+    self = Project.from_root(tmp_path)
+    assert self.version == "9.4"
     subprocess.run(["git", "tag", "v10.2.3.post3"], cwd=str(tmp_path), check=True)
-    with pytest.raises(PolycotylusUsageError) as capture:
-        Project.from_root(tmp_path)
-    shared.snapshot_test(str(capture.value), "poetry-invalid-version")
+    self = Project.from_root(tmp_path)
+    assert self.version == "10.2.3"
 
 
 def test_presubmit_lint(capsys, monkeypatch, polycotylus_yaml, no_color):

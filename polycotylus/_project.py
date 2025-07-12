@@ -132,20 +132,26 @@ class Project:
             missing_fields["name"] = "your_package_name"
         _setuptools_scm = False
         if "version" not in project:
-            if "version" in project.get("dynamic", []) and \
-                    "setuptools_scm" in pyproject_options.get("tool", {}):
-                try:
-                    import setuptools_scm
-                    project["version"] = setuptools_scm.get_version(
-                        str(root), version_scheme=lambda v: str(v.tag), local_scheme=lambda x: "")
-                    _setuptools_scm = True
-                except ImportError:
-                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                        setuptools-scm project detected (implied by the
-                        [{key("tool.setuptools_scm")}] section in the
-                        pyproject.toml). polycotylus requires setuptools-scm to
-                        be installed to process setuptools-scm versioned
-                        projects. Please {string("pip install setuptools-scm")}
+            if "version" in project.get("dynamic", []):
+                for dependency in pyproject_options.get("build-system", {}).get("requires", []):
+                    dependency = re.sub("[._-]+", "-", dependency.lower())
+                    if dependency in ["setuptools-scm", "hatch-vcs"]:
+                        _setuptools_scm = True
+                if "dynamic_version" in polycotylus_options:
+                    old_cwd = os.getcwd()
+                    try:
+                        os.chdir(root)
+                        project["version"] = exec_embedded_script(
+                            root / "polycotylus.yaml",
+                            polycotylus_options["dynamic_version"])
+                    finally:
+                        os.chdir(old_cwd)
+                else:
+                    raise _exceptions.PolycotylusUsageError(_exceptions._unravel("""
+                        Unable to determine the project version. The version is
+                        declared as dynamic in the pyproject.toml. polycotylus
+                        needs to know how to calculate this version. See the
+                        docs at /dynamic-versions.html
                     """))
             else:
                 missing_fields["version"] = "1.2.3"
@@ -655,6 +661,48 @@ def expand_pip_requirements(requirement, cwd, source, extras=None):
 
     else:
         yield Dependency(requirement, source)
+
+
+def exec_embedded_script(file, script):
+    content = _yaml_schema._read_text(file)
+    try:
+        pattern = "^(.*?)(" + "\n".join("[ \t]*" + re.escape(i)for i in script.split("\n")) + ")"
+        match, = re.finditer(pattern, content, flags=re.M)
+        if content[:match.start()].count("\n") == 0:
+            raise ValueError
+    except ValueError:
+        _script = "def version():\n" + textwrap.indent(script, "    ")
+        file = "<polycotylus.yaml embedded dynamic_version>"
+    else:
+        _script = (
+            "\n" * (content[:match.start()].count("\n") - 1) +
+            "def version():\n" +
+            textwrap.indent(match[2], len(match[1]) * " ")
+        )
+    namespace = {}
+    try:
+        exec(compile(_script, file, "exec"), namespace)
+        version = namespace["version"]()
+    except Exception as ex:
+        import traceback
+        raise _exceptions.PolycotylusUsageError(
+            f"Failed to execute {_exceptions.string('dynamic_version')} field of the polycotylus.yaml:\n" +
+            "".join(traceback.format_exception(type(ex), ex, ex.__traceback__.tb_next))
+        )
+    if version is None:
+        raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+            Failed to get project version. Code defined in the
+            {_exceptions.string('dynamic_version')} field of the
+            polycotylus.yaml is missing its return statement or returned None.
+        """))
+    if not isinstance(version, str):
+        raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+            Failed to get project version. Code defined in the
+            {_exceptions.string('dynamic_version')} field of the
+            polycotylus.yaml returned {_exceptions.string(repr(version))}
+            instead of a string.
+        """))
+    return version
 
 
 def check_maintainer(name):

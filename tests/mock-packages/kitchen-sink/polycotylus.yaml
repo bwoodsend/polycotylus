@@ -2,6 +2,10 @@ source_top_level: something-unrelated-{version}
 
 license: LicenseRef-blimblam OR MIT
 
+dynamic_version: |
+  import setuptools_scm
+  return setuptools_scm.get_version(".")
+
 dependencies:
   build:
     arch manjaro: p7zip

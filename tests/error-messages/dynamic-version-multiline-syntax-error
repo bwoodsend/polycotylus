@@ -1,0 +1,5 @@
+Failed to execute [32mdynamic_version[0m field of the polycotylus.yaml:
+  File "polycotylus.yaml", line 3
+    raise TypeError)
+                   ^
+SyntaxError: unmatched ')'

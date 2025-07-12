@@ -1,0 +1,6 @@
+Failed to execute [32mdynamic_version[0m field of the polycotylus.yaml:
+Traceback (most recent call last):
+  File "polycotylus.yaml", line 4, in version
+    dynamic_version: return 1 / 0
+                            ~~^~~
+ZeroDivisionError: division by zero

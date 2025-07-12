@@ -34,7 +34,7 @@
     :maxdepth: 1
 
     Poetry <poetry>
-    setuptools_scm <setuptools_scm>
+    Dynamic versions <dynamic-versions>
 
 
 .. toctree::

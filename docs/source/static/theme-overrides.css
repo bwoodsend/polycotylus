@@ -138,3 +138,8 @@ div[id="reference-polycotylus-yaml"] h3 {
 .rst-content .linenodiv pre, .rst-content div[class^="highlight"] pre, .rst-content pre.literal-block {
   font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
 }
+@media (prefers-color-scheme: light) {
+  .rst-content .highlight-yaml span.no {
+    color: #404040;
+  }
+}

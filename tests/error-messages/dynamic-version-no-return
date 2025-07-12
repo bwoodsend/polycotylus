@@ -1,0 +1,1 @@
+Failed to get project version. Code defined in the [32mdynamic_version[0m field of the polycotylus.yaml is missing its return statement or returned None.

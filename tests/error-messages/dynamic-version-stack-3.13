@@ -1,0 +1,20 @@
+Failed to execute [32mdynamic_version[0m field of the polycotylus.yaml:
+Traceback (most recent call last):
+  File "polycotylus.yaml", line 7, in bar
+    foo()
+    ~~~^^
+  File "polycotylus.yaml", line 3, in foo
+    raise TypeError("hello")
+TypeError: hello
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "polycotylus.yaml", line 11, in version
+    return bar()
+  File "polycotylus.yaml", line 9, in bar
+    foo()
+    ~~~^^
+  File "polycotylus.yaml", line 3, in foo
+    raise TypeError("hello")
+TypeError: hello

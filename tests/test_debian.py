@@ -92,7 +92,8 @@ def test_poetry():
     self.test(packages["main"])
 
 
-def test_hatchling():
+def test_hatchling(monkeypatch):
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "10.20")
     self = polycotylus.Debian(Project.from_root(shared.hatchling_based))
     self.generate()
     packages = self.build()
