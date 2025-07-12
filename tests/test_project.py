@@ -239,16 +239,14 @@ def test_overcomplicated_versioning(pyproject_toml, no_color):
     pyproject_toml(pyproject)
     assert Project.from_root(shared.bare_minimum).version == "10.11.12.13"
 
-    pyproject["project"]["version"] = "1.2a1"
+    pyproject["project"]["version"] = "v1.2a1"
     pyproject_toml(pyproject)
-    with pytest.raises(PolycotylusUsageError,
-                       match="version '1.2a1' contains .* characters 'a'."):
-        Project.from_root(shared.bare_minimum)
+    assert Project.from_root(shared.bare_minimum).version == "1.2"
 
-    pyproject["project"]["version"] = "1.2.post1"
+    pyproject["project"]["version"] = "floob"
     pyproject_toml(pyproject)
     with pytest.raises(PolycotylusUsageError,
-                       match="version '1.2.post1' contains .* characters 'post'."):
+                       match="Project has an invalid version .*'floob'.*."):
         Project.from_root(shared.bare_minimum)
 
 

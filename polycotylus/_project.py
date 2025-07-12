@@ -149,6 +149,15 @@ class Project:
                     """))
             else:
                 missing_fields["version"] = "1.2.3"
+        if "version" in project and not re.fullmatch(r"\d+(\.\d+)*", project["version"]):
+            from packaging.version import Version, InvalidVersion
+            try:
+                project["version"] = Version(project["version"]).base_version
+            except InvalidVersion:
+                raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
+                    Project has an invalid version
+                    {string(repr(project["version"]))}.
+                """)) from None
         if "description" not in project:
             missing_fields["description"] = "Give a one-line description of your package here"
         if project.get("urls", {}).get("Homepage"):
@@ -162,13 +171,6 @@ class Project:
                 + highlight_toml("# pyproject.toml\n" +
                                  toml.dumps({"project": missing_fields}))
             )
-        if invalid := re.sub(r"[\d.]", "", project["version"]):
-            raise _exceptions.PolycotylusUsageError(_exceptions._unravel(f"""
-                Your project version {string(repr(project["version"]))} contains
-                the disallowed characters {string(repr(invalid))}. Linux
-                distributions ubiquitously only support versions made up of
-                numbers and periods.
-            """))
         if not (maintainer := polycotylus_options.get("maintainer")):
             maintainers = project.get("maintainers", project.get("authors", []))
             if not maintainers:
