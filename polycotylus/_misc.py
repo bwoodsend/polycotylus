@@ -55,7 +55,7 @@ def tar_extract_all(tar, path):
 
 
 def read_resource(name):
-    if sys.version_info >= (3, 12):
+    if sys.version_info >= (3, 11):
         return (importlib.resources.files("polycotylus") / name).read_bytes()
     else:
         parts = ("polycotylus", *name.split("/"))
