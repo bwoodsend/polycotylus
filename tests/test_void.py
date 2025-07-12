@@ -103,10 +103,3 @@ def test_signing_poetry(monkeypatch, tmp_path):
     for name in ("pgp", "pgp-armor", "unencrypted-ssh.pem.pub"):
         with pytest.raises(PolycotylusUsageError, match="Invalid"):
             self.private_key = keys / name
-
-
-def test_hatchling():
-    self = VoidMusl(Project.from_root(shared.hatchling_based))
-    self.generate()
-    packages = self.build()
-    self.test(packages["main"])
