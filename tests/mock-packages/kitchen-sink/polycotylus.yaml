@@ -27,7 +27,7 @@ dependency_name_map:
 
 test_command: |
 
-  TEST_VARIABLE=helló +pytest+ -k 'not unrunable' && +python+ -c 'print("hello 🦄")'
+  TEST_VARIABLE=helló +pytest+ -k 'not unrunable' && +python+ -c 'print("hello 🦄")' || exit 1
 
   +python+ -c 'assert "python" == "++%python%++"[2:-2] == bytes([112, 121, 116, 104, 111, 110]).decode()'
   echo '
