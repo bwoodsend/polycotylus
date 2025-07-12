@@ -116,7 +116,7 @@ def test_png_source_icon(tmp_path, polycotylus_yaml):
 def test_kitchen_sink(monkeypatch):
     with contextlib.suppress(FileNotFoundError):
         (shared.kitchen_sink / ".polycotylus/artifacts.json").unlink()
-    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3.4")
     self = Fedora(Project.from_root(shared.kitchen_sink))
     self.generate()
     assert "certifi" not in self.spec()
@@ -145,7 +145,7 @@ def test_kitchen_sink(monkeypatch):
     "tag": "37",
     "architecture": "noarch",
     "package_type": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc37.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3.4-1.fc37.noarch.rpm",
     "signature_path": null
   },
   {
@@ -153,7 +153,7 @@ def test_kitchen_sink(monkeypatch):
     "tag": "42",
     "architecture": "noarch",
     "package_type": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3-1.fc42.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3.4-1.fc42.noarch.rpm",
     "signature_path": null
   }
 ]"""

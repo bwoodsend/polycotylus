@@ -88,7 +88,7 @@ def test_poetry():
 
 
 def test_kitchen_sink(monkeypatch):
-    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3.4")
     self = polycotylus.Ubuntu(polycotylus.Project.from_root(shared.kitchen_sink))
     self.generate()
     package = self.build()["main"]

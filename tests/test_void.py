@@ -64,7 +64,7 @@ def test_png_source_icon(polycotylus_yaml):
 
 
 def test_kitchen_sink(monkeypatch):
-    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3.4")
     self = VoidMusl(Project.from_root(shared.kitchen_sink))
     self.generate()
     packages = self.build()

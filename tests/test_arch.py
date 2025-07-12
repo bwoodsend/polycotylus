@@ -121,7 +121,7 @@ def test_license_info():
 
 
 def test_kitchen_sink_signing(monkeypatch):
-    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3")
+    monkeypatch.setenv("SETUPTOOLS_SCM_PRETEND_VERSION", "1.2.3.4")
     monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
     self = Arch(Project.from_root(shared.kitchen_sink), signature="póĺýĉöţỹùṣ 🎩")
     # Test for encoding surprises such as https://bugs.archlinux.org/task/40805#comment124197

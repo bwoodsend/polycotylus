@@ -21,4 +21,4 @@ A nightmare package designed to test all the unusual, non default behaviours.
 
 To build this package requires providing the version for setuptools-scm::
 
-    SETUPTOOLS_SCM_PRETEND_VERSION=1.2.3 polycotylus alpine
+    SETUPTOOLS_SCM_PRETEND_VERSION=1.2.3.4 polycotylus alpine
