@@ -157,4 +157,5 @@ def setup(app):
         indextemplate='pair: %s; configuration value',
     )
 
+
 html_favicon = 'static/favicon.png'
