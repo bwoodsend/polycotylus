@@ -3,6 +3,6 @@ pytest
 pytest-ordered
 coverage
 pytest-cov
-pillow
+pypng
 pyzstd
 setuptools-scm
