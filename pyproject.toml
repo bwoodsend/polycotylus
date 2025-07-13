@@ -34,17 +34,6 @@ requires-python  = ">=3.8"
 readme = "README.rst"
 version = "0.1.0"
 
-[project.optional-dependencies]
-test = [
-    "pytest>=3",
-    "pytest_ordered @ https://github.com/bwoodsend/pytest-ordered/archive/c86f9f460bb24b1029f6ce77feefea0e011e1b90.zip",
-    "coverage",
-    "pytest-cov",
-    "pillow",
-    "pyzstd",
-    "setuptools-scm",
-]
-
 [project.urls]
 "homepage" = "https://github.com/bwoodsend/polycotylus"
 
