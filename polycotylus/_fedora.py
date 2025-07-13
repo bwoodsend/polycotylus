@@ -339,6 +339,7 @@ class Fedora(GPGBased, BaseDistribution):
 
 class Fedora37(Fedora):
     version = "37"
+    _imagemagick_convert = BaseDistribution._imagemagick_convert_legacy
 
 
 class Fedora38(Fedora):

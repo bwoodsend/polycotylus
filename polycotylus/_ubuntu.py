@@ -21,6 +21,8 @@ class Ubuntu(Debian):
         # groups – get rid of it.
         return "RUN userdel ubuntu\n" + super()._install_user()
 
+    _imagemagick_convert = Debian._imagemagick_convert_legacy
+
 
 Ubuntu2404 = Ubuntu
 

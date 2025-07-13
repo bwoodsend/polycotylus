@@ -118,11 +118,14 @@ def check_dumb_text_viewer_installation(container, shebang=b"#!/usr/bin/python",
                                         icon_sizes=(16, 24, 128)):
     for size in icon_sizes:
         raw = container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer.png")
-        width, height, rows, _ = png.Reader(bytes=raw).read()
+        width, height, rows, info = png.Reader(bytes=raw).read()
         assert (width, height) == (size, size)
         row = next(rows)
-        assert len(row) == size * 4
-        assert row[3] == 0
+        if len(row) == size * 4:
+            assert list(row[:4]) == [0, 0, 0, 0]
+        else:
+            assert len(row) == size
+            assert info["palette"][row[0]] == (0, 0, 0, 0)
         container.file(f"/usr/share/icons/hicolor/{size}x{size}/apps/underwhelming_software-dumb_text_viewer-pink-mode.png")
 
     assert "Comment[zh_CN]=讀取純文本文件".encode() in container.file(

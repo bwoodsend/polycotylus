@@ -150,7 +150,7 @@ class Void(BaseDistribution):
             out += self._formatter("for size in 16 32 48 256; do", 1)
             for (source, dest) in self.icons:
                 out += self._formatter(f"""
-                    convert -background "#00000000" -size $size \\
+                    magick -background "#00000000" -size $size \\
                         "{source}" "{dest}.png"
                     vmkdir usr/share/icons/hicolor/${{size}}x${{size}}/apps
                     vcopy "{dest}.png" usr/share/icons/hicolor/${{size}}x${{size}}/apps/

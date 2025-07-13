@@ -3,6 +3,8 @@ import contextlib
 import shutil
 import subprocess
 
+import pytest
+
 import polycotylus
 from polycotylus._project import Project
 import shared
@@ -13,7 +15,8 @@ class TestCommon(shared.Base):
     package_install = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends"
 
 
-def test_dumb_text_viewer(tmp_path):
+@pytest.mark.parametrize("Ubuntu", [polycotylus.Ubuntu2410, polycotylus.Ubuntu2510])
+def test_dumb_text_viewer(tmp_path, Ubuntu):
     for file in [
         "LICENSE",
         "MANIFEST.in",
@@ -36,7 +39,7 @@ def test_dumb_text_viewer(tmp_path):
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_bytes(pyproject_toml.read_bytes() + b'[tool.setuptools.packages.find]\ninclude = ["dumb_text_viewer"]\n')
 
-    self = polycotylus.Ubuntu(Project.from_root(tmp_path))
+    self = Ubuntu(Project.from_root(tmp_path))
     self.generate()
     packages = self.build()
     assert sorted(packages) == ["main"]

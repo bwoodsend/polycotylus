@@ -234,7 +234,6 @@ class Debian(BaseDistribution):
             sysroot = f"debian/{self.package_name}"
             for line in self.install_icons(1, sysroot).splitlines():
                 line = line.replace("$", "$$")
-                line = line.replace("-size $$_size", "-resize $$_size")
                 if line[1] == "\t":
                     rules += line + "; \\\n"
                 elif line.startswith("\tfor"):
@@ -257,6 +256,8 @@ class Debian(BaseDistribution):
         test_script.chmod(0o700)
         (debian_root / "source").mkdir(exist_ok=True)
         _misc.unix_write(debian_root / "source" / "format", "3.0 (quilt)\n")
+
+    _imagemagick_convert = BaseDistribution._imagemagick_convert_legacy
 
     def build(self):
         with self.mirror:

@@ -84,14 +84,14 @@ def test_test_command(polycotylus_yaml):
 def test_dumb_text_viewer():
     extraneous_desktop_file = shared.dumb_text_viewer / ".polycotylus" / "delete-me.desktop"
     extraneous_desktop_file.write_bytes(b"")
-    self = Alpine(Project.from_root(shared.dumb_text_viewer))
+    self = AlpineEdge(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert not extraneous_desktop_file.exists()
     subprocess.run(["sh", str(self.distro_root / "APKBUILD")], check=True)
     assert "arch=noarch" in self.apkbuild()
     assert "gcc" not in self.apkbuild()
 
-    _docker.run(Alpine.base_image, ["ash", "-c", "set -e; source /io/APKBUILD"],
+    _docker.run(AlpineEdge.base_image, ["ash", "-c", "set -e; source /io/APKBUILD"],
                 volumes=[(self.distro_root, "/io")], architecture=self.docker_architecture)
     apks = self.build()
     assert len(apks) == 3
@@ -127,7 +127,7 @@ def test_png_source_icon(polycotylus_yaml):
     original = (shared.dumb_text_viewer / "polycotylus.yaml").read_text("utf-8")
     polycotylus_yaml(re.sub("(icon-source|pink-mode).svg",
                             "dumb_text_viewer/icon.png", original))
-    self = Alpine(Project.from_root(shared.dumb_text_viewer))
+    self = Alpine317(Project.from_root(shared.dumb_text_viewer))
     self.generate()
     assert "svg" not in self.apkbuild()
     apks = self.build()

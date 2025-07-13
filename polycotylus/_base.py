@@ -253,8 +253,7 @@ class BaseDistribution(abc.ABC):
         """, indentation)
         for (source, dest) in self.icons:
             out += self._formatter(
-                f'convert -background "#00000000" -size $_size +set date:create '
-                f'+set date:modify "{source}" "$_icon_dir/{dest}.png"',
+                self._imagemagick_convert.format("$_size", source, f"$_icon_dir/{dest}.png"),
                 indentation + 1)
         out += self._formatter("done", indentation)
         if any(i.endswith(".svg") for (i, _) in self.icons):
@@ -267,6 +266,9 @@ class BaseDistribution(abc.ABC):
                     f'cp "{source}" {sysroot}/usr/share/icons/hicolor/scalable/apps/{dest}.svg',
                     indentation)
         return out
+
+    _imagemagick_convert = 'magick -size {} -background "#00000000" "{}" "{}"'
+    _imagemagick_convert_legacy = 'convert -background "#00000000" -resize {0} +set date:create +set date:modify "{1}" "{2}"'
 
     def define_py3ver(self):
         return self._formatter(f"""
