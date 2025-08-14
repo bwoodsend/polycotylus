@@ -459,6 +459,9 @@ mirrors["debian13"] = CachedMirror(
     (_use_last_modified_header,),
     r"(.+_)([^-]+-\d+)(.+)",
 )
+mirrors["debian14"] = mirrors["debian13"].with_(
+    base_dir=cache_root / "debian14",
+)
 mirrors["ubuntu2304"] = mirrors["debian13"].with_(
     base_url="http://archive.ubuntu.com/ubuntu/",
     base_dir=cache_root / "ubuntu2304",

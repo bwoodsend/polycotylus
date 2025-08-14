@@ -46,6 +46,7 @@ class ControlFile:
 
 
 class Debian(BaseDistribution):
+    name = "debian"
     python_prefix = "/usr"
     python_extras = {
         "tkinter": ["python3-tk"],
@@ -284,6 +285,12 @@ class Debian(BaseDistribution):
 
 
 Debian13 = Debian
+
+
+class Debian14(Debian):
+    tag = "14"
+    mirror = _mirror.mirrors["debian14"]
+    base_image = "debian:forky-slim"
 
 
 def english_date():

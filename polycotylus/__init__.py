@@ -12,7 +12,7 @@ from ._arch import Arch
 from ._manjaro import Manjaro
 from ._fedora import Fedora, Fedora37, Fedora38, Fedora39, Fedora40, Fedora41, Fedora42, Fedora43
 from ._void import Void, VoidGlibc, VoidMusl
-from ._debian import Debian, Debian13
+from ._debian import Debian, Debian13, Debian14
 from ._ubuntu import Ubuntu, Ubuntu2404, Ubuntu2410, Ubuntu2504, Ubuntu2510
 
 distributions = {i.name: i for i in (Alpine, Arch, Debian, Fedora, Manjaro, Ubuntu, Void)}
@@ -26,6 +26,7 @@ distributions["alpine:3.21"] = Alpine321
 distributions["alpine:3.22"] = Alpine322
 distributions["alpine:edge"] = AlpineEdge
 distributions["debian:13"] = Debian13
+distributions["debian:14"] = Debian14
 distributions["fedora:37"] = Fedora37
 distributions["fedora:38"] = Fedora38
 distributions["fedora:39"] = Fedora39

@@ -373,6 +373,8 @@ obsolete_caches = {
 def test_prune(distro, monkeypatch):
     if distro.startswith("ubuntu"):
         return
+    if distro.startswith("debian") and distro != "debian13":
+        return
     mirror = mirrors[distro]
     monkeypatch.chdir(Path(__file__, "../mock-mirror-states", distro).resolve())
     monkeypatch.setattr(mirror, "base_dir", ".")

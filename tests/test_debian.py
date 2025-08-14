@@ -26,9 +26,8 @@ def test_ubrotli():
     with contextlib.suppress(FileNotFoundError):
         (shared.ubrotli / ".polycotylus/artifacts.json").unlink()
 
-    for architecture in ("amd64", "i386"):
-        self = polycotylus.Debian(Project.from_root(shared.ubrotli),
-                                  architecture=architecture)
+    for (architecture, Debian) in [("amd64", polycotylus.Debian13), ("i386", polycotylus.Debian14)]:
+        self = Debian(Project.from_root(shared.ubrotli), architecture=architecture)
         self.generate()
         packages = self.build()
         assert sorted(packages) == ["dbgsym", "main"]
@@ -60,18 +59,18 @@ def test_ubrotli():
         },
         {
             "distribution": "debian",
-            "tag": "13",
+            "tag": "14",
             "architecture": "i386",
             "package_type": "dbgsym",
-            "path": ".polycotylus/debian/13/python3-ubrotli-dbgsym_0.1.0-1_i386.deb",
+            "path": ".polycotylus/debian/14/python3-ubrotli-dbgsym_0.1.0-1_i386.deb",
             "signature_path": None,
         },
         {
             "distribution": "debian",
-            "tag": "13",
+            "tag": "14",
             "architecture": "i386",
             "package_type": "main",
-            "path": ".polycotylus/debian/13/python3-ubrotli_0.1.0-1_i386.deb",
+            "path": ".polycotylus/debian/14/python3-ubrotli_0.1.0-1_i386.deb",
             "signature_path": None,
         }
     ]

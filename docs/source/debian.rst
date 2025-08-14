@@ -36,9 +36,12 @@ Debian name  Instruction set name
 ``ppc64el``  ``ppc64le``
 ===========  ====================
 
+The default target Debian version is the latest `stable
+<https://www.debian.org/releases/>`_ release. Specific versions can be targeted
+using:
 
-Caveats
-.......
+* ``polycotylus debian:13`` for Trixie (default)
+* ``polycotylus debian:14`` for Forky (testing) or Kali
 
-* Due to Debian's extremely slow release cycle, only the testing branch of
-  Debian (13 a.k.a. Trixie) or can be supported.
+No older versions are supportable due to their containing too old copies of
+build backends (``setuptools``, ``hatchling``, etc).

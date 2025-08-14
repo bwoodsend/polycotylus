@@ -63,7 +63,7 @@ Distributions  Supported versions
 =============  ===========================================
 Alpine_        3.17-3.22, edge
 Arch_          rolling
-Debian_        13 (prerelease)
+Debian_        13, 14 (prerelease)
 Fedora_        37-42, 43 (prerelease)
 Manjaro_       rolling
 O̶p̶e̶n̶S̶U̶S̶E       Redacted
