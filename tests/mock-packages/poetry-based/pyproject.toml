@@ -12,7 +12,7 @@ homepage = "https://blah.blah"
 python = "^3.8"
 pyperclip = "^1.6"
 tabulate = "~0.9"
-certifi = "2024.*"
+certifi = "2025.*"
 cycler = ">= 0.8, < 10.5"
 toml = { version = "*", extras = ["kittens"] }
 snowballstemmer = { version = "^2", optional = true }
