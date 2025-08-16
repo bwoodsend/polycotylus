@@ -13,7 +13,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions, _misc
 from polycotylus._project import Project
-from polycotylus._fedora import Fedora, Fedora37, Fedora38, Fedora40, Fedora41, Fedora43
+from polycotylus._fedora import Fedora, Fedora37, Fedora38, Fedora40, Fedora41, Fedora44
 from polycotylus.__main__ import cli
 import shared
 
@@ -30,7 +30,7 @@ def _check_values_align(spec):
 
 
 # Cover oldest, latest and both sides of the transition made from 40->41
-@pytest.mark.parametrize("Fedora", [Fedora37, Fedora40, Fedora41, Fedora43])
+@pytest.mark.parametrize("Fedora", [Fedora37, Fedora40, Fedora41, Fedora44])
 def test_dnf_cache(Fedora):
     mounts = Fedora._mounted_caches
     before = time.time()
@@ -86,7 +86,7 @@ def test_ubrotli():
     self.test(packages["main"])
 
 
-@pytest.mark.parametrize("Fedora", [Fedora37, Fedora38, Fedora43])
+@pytest.mark.parametrize("Fedora", [Fedora37, Fedora38, Fedora44])
 def test_dumb_text_viewer(Fedora):
     self = Fedora(Project.from_root(shared.dumb_text_viewer))
     self.generate()
