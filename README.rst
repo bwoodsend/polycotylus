@@ -53,10 +53,10 @@ Supported distributions
 
 Polycotylus is limited by a hard constraint in that it can not support any
 target Linux distribution that does not provide ``setuptools>=61.0`` in its
-official package repositories. This unfortunately rules out almost all of the
-*stable*/long term support distributions (which also happen to be the most
-popular) currently including all stable branches of Debian, Ubuntu <23.04, SLES,
-OpenSUSE Leap and all of the RedHat/CentOS-like distributions par Fedora ≥37.
+official package repositories. This unfortunately rules out most of the
+*stable*/long term support distributions including all stable branches of Debian
+except 13, Ubuntu <23.04, SLES, OpenSUSE Leap and all of the RedHat/CentOS-like
+distributions par Fedora.
 
 =============  ===========================================
 Distributions  Supported versions
