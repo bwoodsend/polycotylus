@@ -476,9 +476,6 @@ mirrors["ubuntu2404"] = mirrors["ubuntu2304"].with_(
     base_dir=cache_root / "ubuntu2404",
     install_command=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list.d/ubuntu.sources",
 )
-mirrors["ubuntu2410"] = mirrors["ubuntu2404"].with_(
-    base_dir=cache_root / "ubuntu2410",
-)
 mirrors["ubuntu2504"] = mirrors["ubuntu2404"].with_(
     base_dir=cache_root / "ubuntu2504",
 )

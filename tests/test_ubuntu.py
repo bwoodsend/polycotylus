@@ -15,7 +15,7 @@ class TestCommon(shared.Base):
     package_install = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends"
 
 
-@pytest.mark.parametrize("Ubuntu", [polycotylus.Ubuntu2410, polycotylus.Ubuntu2510])
+@pytest.mark.parametrize("Ubuntu", [polycotylus.Ubuntu2404, polycotylus.Ubuntu2510])
 def test_dumb_text_viewer(tmp_path, Ubuntu):
     for file in [
         "LICENSE",
