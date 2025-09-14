@@ -159,7 +159,7 @@ def test_kitchen_sink(monkeypatch):
 ]"""
 
 
-def test_test_command(polycotylus_yaml):
+def test_test_command(polycotylus_yaml, force_color):
     dependencies = "dependencies:\n  test:\n    pip: pytest\n"
 
     polycotylus_yaml(dependencies)
