@@ -118,8 +118,8 @@ This reference should answer those questions.
         dnf search substring
 
         # Search by file:
-        dnf whatprovides /usr/bin/python
-        dnf whatprovides '*/libgmp.so'
+        dnf repoquery --file /usr/bin/python
+        dnf repoquery --file '*/libgmp.so'
 
         # List all available packages:
         dnf list

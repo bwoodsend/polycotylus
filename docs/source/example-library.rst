@@ -283,15 +283,12 @@ container when those build dependencies aren't met.
     ...
     Building wheels for collected packages: ubrotli
       Running command Building wheel for ubrotli (pyproject.toml)
-      /usr/lib/python3.11/site-packages/setuptools/config/pyprojecttoml.py:108: _BetaConfiguration: Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*.
-        warnings.warn(msg, _BetaConfiguration)
       running bdist_wheel
       running build
       running build_ext
       building 'ubrotli' extension
-      creating build
-      creating build/temp.linux-x86_64-cpython-311
-      gcc -Wsign-compare -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DNDEBUG -O2 -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -D_GNU_SOURCE -fPIC -fwrapv -O2 -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -D_GNU_SOURCE -fPIC -fwrapv -O2 -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -D_GNU_SOURCE -fPIC -fwrapv -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -I/usr/include/python3.11 -c wrapper.c -o build/temp.linux-x86_64-cpython-311/wrapper.o
+      creating build/temp.linux-x86_64-cpython-314
+      gcc -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fPIC -I/usr/include/python3.14 -c wrapper.c -o build/temp.linux-x86_64-cpython-314/wrapper.o
       error: command 'gcc' failed: No such file or directory
       error: subprocess-exited-with-error
 
@@ -300,16 +297,16 @@ container when those build dependencies aren't met.
       ╰─> See above for output.
 
       note: This error originates from a subprocess, and is likely not a problem with pip.
-      full command: /usr/bin/python3 /usr/lib/python3.11/site-packages/pip/_vendor/pep517/in_process/_in_process.py build_wheel /io/ubrotli-0.1.0/.pyproject-builddir/tmpy2t9fhwp
-      cwd: /io/ubrotli-0.1.0
+      full command: /usr/bin/python3 /usr/lib/python3.14/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py build_wheel /io/python3-ubrotli-0.1.0-build/.pyproject-builddir/tmpz0coe8h5
+      cwd: /io/python3-ubrotli-0.1.0-build/ubrotli-0.1.0
       Building wheel for ubrotli (pyproject.toml) ... error
       ERROR: Failed building wheel for ubrotli
     Failed to build ubrotli
     ERROR: Failed to build one or more wheels
-    error: Bad exit status from /var/tmp/rpm-tmp.G71h13 (%build)
+    error: Bad exit status from /var/tmp/rpm-tmp.Z709to (%build)
 
     RPM build errors:
-        Bad exit status from /var/tmp/rpm-tmp.G71h13 (%build)
+        Bad exit status from /var/tmp/rpm-tmp.Z709to (%build)
     Could not execute compile: Failed to execute command.
 
 Like we had with Alpine, we're stuck trying to compile that piece of C code
@@ -319,42 +316,28 @@ build dependencies such as ``gcc`` and ``make``. Alpine has an ``alpine-sdk``
 package which is assumed to be installed when running ``abuild`` which is why we
 got away with not adding ``gcc`` to Alpine's build dependencies.
 
-Some rather less clear ``yum`` queries tell us which packages provide ``gcc``,
+Some rather less clear ``dnf`` queries tell us which packages provide ``gcc``,
 the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again see
 :ref:`the package manager cheat sheet <package_manager_cheat_sheet>`).
 
 .. code-block:: console
 
-    [user@manjaro-2212 io]$ sudo yum search gcc
-    Last metadata expiration check: 1:37:20 ago on Sun Aug 20 20:19:29 2023.
-    ========================= Name Exactly Matched: gcc =========================
-    gcc.x86_64 : Various compilers (C, C++, Objective-C, ...)
+    [user@bagpuss-2212 io]$ sudo dnf search gcc
+    Matched fields: name (exact)
+     gcc.x86_64	Various compilers (C, C++, Objective-C, ...)
     ...
-    [user@manjaro-2212 io]$ sudo yum whatprovides '*/Python.h'
+    [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/Python.h'
+    python3-devel-0:3.14.0-1.fc43.x86_64
     ...
-    python3-devel-3.13.3-1.fc42.x86_64 : Libraries and header files needed for
-                                       : Python development
-    Repo        : fedora
-    Matched from:
-    Filename    : /usr/include/python3.13/Python.h
+    [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/brotli/decode.h'
+    brotli-devel-0:1.1.0-10.fc43.x86_64
+    ....
+    [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/libbrotlienc*'
+    libbrotli-0:1.1.0-10.fc43.x86_64
     ...
-    [user@manjaro-2212 io]$ sudo yum whatprovides '*/brotli/decode.h'
-    ...
-    brotli-devel-1.1.0-6.fc42.x86_64 : Lossless compression algorithm
-                                      : (development files)
-    Repo        : fedora
-    Matched from:
-    Filename    : /usr/include/brotli/decode.h
-    [user@manjaro-2212 io]$ sudo yum whatprovides '*/libbrotlienc*'
-    ...
-    libbrotli-1.1.0-6.fc42.x86_64 : Library for brotli lossless compression algorithm
-    Repo        : fedora
-    Matched from:
-    Filename    : /usr/lib64/libbrotlienc.so.1
-    Filename    : /usr/lib64/libbrotlienc.so.1.0.9
-
 
 These are ``gcc``, ``libbrotli``, ``brotli-devel`` and ``python3-devel``.
+(Ignore whatever extraneous version or architecture tags you can get away with.)
 
 .. code-block:: yaml
 

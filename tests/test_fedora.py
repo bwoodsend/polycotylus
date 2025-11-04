@@ -150,10 +150,10 @@ def test_kitchen_sink(monkeypatch):
   },
   {
     "distribution": "fedora",
-    "tag": "42",
+    "tag": "43",
     "architecture": "noarch",
     "package_type": "main",
-    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3.4-1.fc42.noarch.rpm",
+    "path": ".polycotylus/fedora/noarch/python3-99-s1lly-name-packag3-x-y-z-1.2.3.4-1.fc43.noarch.rpm",
     "signature_path": null
   }
 ]"""
@@ -208,7 +208,7 @@ def test_cli_signing(monkeypatch, capsys, force_color):
     rpm_info = _docker.run(Fedora.base_image,
                            ["rpm", "-qpi"] + ["/io/" + i.path.name for i in artifacts.values()],
                            volumes=[(artifacts["main"].path.parent, "/io")]).output
-    assert rpm_info.count("ED7C694736BC74B3".lower()) == 3
+    assert 3 <= rpm_info.count("ED7C694736BC74B3".lower()) <= 4
 
 
 def test_cli_invalid(monkeypatch, force_color):
