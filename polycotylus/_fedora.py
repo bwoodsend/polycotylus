@@ -264,7 +264,7 @@ class Fedora(GPGBased, BaseDistribution):
     @_misc.classproperty
     def _mounted_caches(_, cls):
         if int(cls.version) >= 41:
-            dnf_cache = cache_root / f"fedora-libdnf5-{_docker.docker.variant}"
+            dnf_cache = cache_root / f"fedora-{cls.version}-libdnf5-{_docker.docker.variant}"
             dnf_cache.mkdir(parents=True, exist_ok=True)
             return [(dnf_cache, "/var/cache/libdnf5")]
         else:
