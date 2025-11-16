@@ -8,10 +8,12 @@ Basic usage::
 
 * Supported architectures: ``amd64 arm64 armhf ppc64el s390x``
 
-* Ubuntu packages are compatible with `Linux Mint <https://linuxmint.com/>`_ and
-  will be compatible with the following distributions **only** when they migrate
-  to a Ubuntu >= 23.04 base: `Pop!_OS <https://pop.system76.com/>`_, `Zorin OS
-  <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_
+* Ubuntu packages are compatible with: `Linux Mint <https://linuxmint.com/>`_,
+  `Zorin OS <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_
+
+* Ubuntu packages will be compatible with the following distributions **only**
+  when they migrate to a Ubuntu >= 24.04 base: `Pop!_OS
+  <https://pop.system76.com/>`_
 
 * Ubuntu packages are not compatible with Debian or any of its other
   derivatives.
@@ -19,7 +21,7 @@ Basic usage::
 The default target Ubuntu version is the latest long term support release.
 Other versions can be targeted using:
 
-* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default) or Linux Mint 22
+* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default), Linux Mint 22, Zorin OS or KDE Neon
 * ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim release)
 * ``polycotylus ubuntu:25.10`` for Questing Quokka (interim release)
 
