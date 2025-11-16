@@ -37,3 +37,9 @@ class Ubuntu2510(Ubuntu):
     base_image = "ubuntu:25.10"
     tag = "25.10"
     mirror = _mirror.mirrors["ubuntu2510"]
+
+
+class Ubuntu2604(Ubuntu):
+    base_image = "ubuntu:26.04"
+    tag = "26.04"
+    mirror = _mirror.mirrors["ubuntu2604"]

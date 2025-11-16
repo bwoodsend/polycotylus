@@ -15,7 +15,7 @@ class TestCommon(shared.Base):
     package_install = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends"
 
 
-@pytest.mark.parametrize("Ubuntu", [polycotylus.Ubuntu2404, polycotylus.Ubuntu2510])
+@pytest.mark.parametrize("Ubuntu", [polycotylus.Ubuntu2404, polycotylus.Ubuntu2604])
 def test_dumb_text_viewer(tmp_path, Ubuntu):
     for file in [
         "LICENSE",
@@ -56,7 +56,7 @@ def test_ubrotli():
     # unfortunately makes it necessary to do an extremely slow qemu platform test.
     for self in [
         polycotylus.Ubuntu2404(Project.from_root(shared.ubrotli), architecture="arm64"),
-        polycotylus.Ubuntu2510(Project.from_root(shared.ubrotli), architecture="amd64"),
+        polycotylus.Ubuntu2604(Project.from_root(shared.ubrotli), architecture="amd64"),
     ]:
         self.generate()
         artifacts = self.build()
@@ -74,10 +74,10 @@ def test_ubrotli():
         },
         {
             "distribution": "ubuntu",
-            "tag": "25.10",
+            "tag": "26.04",
             "architecture": "amd64",
             "package_type": "main",
-            "path": ".polycotylus/ubuntu/25.10/python3-ubrotli_0.1.0-1_amd64.deb",
+            "path": ".polycotylus/ubuntu/26.04/python3-ubrotli_0.1.0-1_amd64.deb",
             "signature_path": None,
         }
     ]
