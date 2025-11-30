@@ -10,55 +10,9 @@ import polycotylus
 from polycotylus._exceptions import string
 
 
-class CompletionAction(argparse.Action):
-    files = {
-        "fish": "polycotylus.fish",
-    }
-
-    def __call__(self, parser, namespace, shell, option_string=None):
-        with contextlib.suppress(Exception):
-            if sys.stdout.isatty():  # pragma: no cover
-                print("# Pipe the output of this command into source or ~/.config/fish/completions/polycotylus.fish\n",
-                      file=sys.stderr, flush=True)
-        content = polycotylus._misc.read_resource("_completions/" + self.files[shell])
-        print(content.decode(), end="")
-        parser.exit()
-
-
-class ListLocalizationAction(argparse.Action):
-    def __call__(self, parser, namespace, key, option_string=None):
-        from polycotylus._yaml_schema import localizations
-        with contextlib.suppress(BrokenPipeError):
-            print(key.title(), "Tag  Description")
-            print("-" * (len(key) + 4), " -----------")
-            for (tag, description) in localizations[key].items():
-                print(f"{tag}{' ' * (4 + len(key) - len(tag))}  {description}")
-        parser.exit()
-
-
-class ConfigureAction(argparse.Action):
-    def __call__(self, parser, namespace, key, option_string=None):
-        if not key:
-            for option in polycotylus._configuration.options:
-                print(f"{option}={polycotylus._configuration.read(option) or ''}")
-        else:
-            for argument in key:
-                match = re.fullmatch(r"([a-z]+)=(.*)", argument)
-                if match:
-                    if match[2]:
-                        polycotylus._configuration.write(*match.groups())
-                    else:
-                        polycotylus._configuration.clear(match[1])
-                else:
-                    print(polycotylus._configuration.read(argument) or "")
-        parser.exit()
-
-
-class PresubmitCheckAction(argparse.Action):
-    def __call__(self, parser, namespace, key, option_string=None):
-        self = polycotylus.Project.from_root(".")
-        parser.exit(self.presubmit())
-
+completion_files = {
+    "fish": "polycotylus.fish",
+}
 
 distribution_description = "Supported distribution tags are:"
 for (distribution, tags) in sorted(polycotylus.distribution_tags.items()):
@@ -68,26 +22,23 @@ parser = argparse.ArgumentParser(
     "polycotylus", allow_abbrev=False,
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("distribution", help=distribution_description,
-                    metavar="distribution[:tag]")
+                    metavar="distribution[:tag]", nargs="?")
 parser.add_argument("--quiet", "-q", action="count", default=-2)
-parser.add_argument("--completion", action=CompletionAction,
-                    choices=sorted(CompletionAction.files))
-parser.add_argument("--configure", nargs="*", action=ConfigureAction,
+parser.add_argument("--completion", choices=sorted(completion_files))
+parser.add_argument("--configure", nargs="*",
                     help="Manipulate global settings. This is an overloaded syntax:\n"
                     "  * List all settings:  polycotylus --configure\n"
                     "  * Read a setting:     polycotylus --configure docker\n"
                     "  * Write a setting:    polycotylus --configure docker=podman\n"
                     "  * Clear a setting:    polycotylus --configure docker=")
-parser.add_argument("--list-localizations", action=ListLocalizationAction,
-                    choices=["language", "region", "modifier"])
+parser.add_argument("--list-localizations", choices=["language", "region", "modifier"])
 parser.add_argument("--architecture")
 parser.add_argument("--gpg-signing-id")
 parser.add_argument("--void-signing-certificate")
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
-parser.add_argument("--presubmit-check", action=PresubmitCheckAction, nargs=0,
-                    help=argparse.SUPPRESS)
+parser.add_argument("--presubmit-check", action="store_true", help=argparse.SUPPRESS)
 
 
 def _parse_distribution(input):
@@ -116,6 +67,49 @@ def cli(argv=None):
     try:
         assert isinstance(argv, list) or argv is None
         options = parser.parse_args(argv)
+        if options.completion:
+            with contextlib.suppress(Exception):
+                if sys.stdout.isatty():  # pragma: no cover
+                    print("# Pipe the output of this command into source or ~/.config/fish/completions/polycotylus.fish\n",
+                          file=sys.stderr, flush=True)
+            content = polycotylus._misc.read_resource("_completions/" + completion_files[options.completion])
+            print(content.decode(), end="")
+            return
+
+        if localization_type := options.list_localizations:
+            from polycotylus._yaml_schema import localizations
+            with contextlib.suppress(BrokenPipeError):
+                print(localization_type.title(), "Tag  Description")
+                print("-" * (len(localization_type) + 4), " -----------")
+                for (tag, description) in localizations[localization_type].items():
+                    print(f"{tag}{' ' * (4 + len(localization_type) - len(tag))}  {description}")
+            return
+
+        if (settings := options.configure) is not None:
+            if not settings:
+                for option in polycotylus._configuration.options:
+                    print(f"{option}={polycotylus._configuration.read(option) or ''}")
+            else:
+                for argument in settings:
+                    match = re.fullmatch(r"([a-z]+)=(.*)", argument)
+                    if match:
+                        if match[2]:
+                            polycotylus._configuration.write(*match.groups())
+                        else:
+                            polycotylus._configuration.clear(match[1])
+                    else:
+                        print(polycotylus._configuration.read(argument) or "")
+            return
+
+        if options.presubmit_check:
+            self = polycotylus.Project.from_root(".")
+            parser.exit(self.presubmit())
+
+        if not options.distribution:  # pragma: no cover
+            parser.print_usage()
+            print("polycotylus: error: the following arguments are required: distribution", file=sys.stderr)
+            parser.exit(2)
+
         os.environ["POLYCOTYLUS_VERBOSITY"] = str(max(-options.quiet, 0))
         polycotylus._docker.post_mortem = options.post_mortem
         cls = _parse_distribution(options.distribution)

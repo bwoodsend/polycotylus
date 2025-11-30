@@ -19,8 +19,7 @@ def test_list_localizations(monkeypatch, capsys):
     monkeypatch.setitem(localizations, "language", {
         "aa": "Afar", "aab": "Alumu-Tesu", "aae": "Arbëreshë Albanian",
         "aaf": "Aranadan"})
-    with pytest.raises(SystemExit):
-        cli(["--list-localizations=language"])
+    cli(["--list-localizations=language"])
     capture = capsys.readouterr()
     assert capture.out == list_localizations_sample_output
 

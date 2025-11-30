@@ -10,9 +10,7 @@ import shared
 
 
 def test_fish(capsys, monkeypatch):
-    with pytest.raises(SystemExit) as error:
-        cli(["--completion=fish"])
-    assert error.value.code == 0
+    cli(["--completion=fish"])
     completions = capsys.readouterr().out
 
     if not shutil.which("fish"):
