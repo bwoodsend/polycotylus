@@ -78,7 +78,7 @@ class Debian(BaseDistribution):
         "font": "fonts-dejavu",
     }
     tag = "13"
-    mirror = _mirror.mirrors["debian13"]
+    mirror = _mirror.mirrors["debian:13"]
 
     def __init__(self, project, architecture=None, signing_id=None):
         if architecture is None:
@@ -289,7 +289,7 @@ Debian13 = Debian
 
 class Debian14(Debian):
     tag = "14"
-    mirror = _mirror.mirrors["debian14"]
+    mirror = _mirror.mirrors["debian:14"]
     base_image = "debian:forky-slim"
 
 
