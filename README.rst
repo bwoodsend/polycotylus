@@ -61,7 +61,7 @@ distributions par Fedora.
 =============  ===========================================
 Distributions  Supported versions
 =============  ===========================================
-Alpine_        3.17-3.22, edge
+Alpine_        3.17-3.23, edge
 Arch_          rolling
 Debian_        13, 14 (prerelease)
 Fedora_        37-43, 44 (rawhide)

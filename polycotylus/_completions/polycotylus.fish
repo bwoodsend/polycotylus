@@ -1,5 +1,5 @@
 set -l distributions alpine arch debian fedora manjaro ubuntu void
-set -l alpine_tags alpine:3.17 alpine:3.18 alpine:3.19 alpine:3.20 alpine:3.21 alpine:3.22 alpine:edge
+set -l alpine_tags alpine:3.17 alpine:3.18 alpine:3.19 alpine:3.20 alpine:3.21 alpine:3.22 alpine:3.23 alpine:edge
 set -l debian_tags debian:13 debian:14
 set -l fedora_tags fedora:37 fedora:38 fedora:39 fedora:40 fedora:41 fedora:42 fedora:43 fedora:44
 set -l ubuntu_tags ubuntu:24.04 ubuntu:25.04 ubuntu:25.10 ubuntu:26.04
