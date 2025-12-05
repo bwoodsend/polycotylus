@@ -1,6 +1,5 @@
 import os
 import platform
-import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http import HTTPStatus
 import shutil
@@ -102,8 +101,6 @@ class CachedMirror:
     def serve(self):
         """Enable this mirror and block until killed (via Ctrl+C)."""
         with self:
-            print(f"http://localhost:{self.port}", "=>", self.base_url)
-            print(f"Install via:\n{self.install_command}")
             self.verbose = True
             with contextlib.suppress(KeyboardInterrupt):
                 while True:
@@ -449,7 +446,7 @@ mirrors["manjaro"] = mirrors["arch"].with_(
     port=8903,
     install_command="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
 )
-mirrors["debian13"] = CachedMirror(
+mirrors["debian:13"] = CachedMirror(
     "http://deb.debian.org/",
     cache_root / "debian13",
     ["InRelease"],
@@ -459,31 +456,22 @@ mirrors["debian13"] = CachedMirror(
     (_use_last_modified_header,),
     r"(.+_)([^-]+-\d+)(.+)",
 )
-mirrors["debian14"] = mirrors["debian13"].with_(
+mirrors["debian:14"] = mirrors["debian:13"].with_(
     base_dir=cache_root / "debian14",
 )
-mirrors["ubuntu2404"] = mirrors["debian13"].with_(
+mirrors["ubuntu:24.04"] = mirrors["debian:13"].with_(
     base_url="http://archive.ubuntu.com/ubuntu/",
     base_dir=cache_root / "ubuntu2404",
     port=8906,
     install_command=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list.d/ubuntu.sources",
     handler=UbuntuRequestHandler,
 )
-mirrors["ubuntu2504"] = mirrors["ubuntu2404"].with_(
+mirrors["ubuntu:25.04"] = mirrors["ubuntu:24.04"].with_(
     base_dir=cache_root / "ubuntu2504",
 )
-mirrors["ubuntu2510"] = mirrors["ubuntu2404"].with_(
+mirrors["ubuntu:25.10"] = mirrors["ubuntu:24.04"].with_(
     base_dir=cache_root / "ubuntu2510",
 )
-mirrors["ubuntu2604"] = mirrors["ubuntu2404"].with_(
+mirrors["ubuntu:26.04"] = mirrors["ubuntu:24.04"].with_(
     base_dir=cache_root / "ubuntu2604",
 )
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 2:
-        import subprocess
-        with mirrors[sys.argv[1]]:
-            subprocess.run(sys.argv[2:])
-    else:
-        mirrors[sys.argv[1]].serve()

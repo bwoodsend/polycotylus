@@ -49,6 +49,15 @@ def test_fish(capsys, monkeypatch):
     assert "--gpg-signing-id" not in _complete("polycotylus void -")
     assert "--gpg-signing-id" in _complete("polycotylus arch -")
 
+    assert "--mirror" in _complete("polycotylus -")
+    assert "--mirror" not in _complete("polycotylus alpine -")
+    assert "alpine" in _complete("polycotylus --mirror ").split()
+    assert "alpine:" not in _complete("polycotylus --mirror ")
+    assert "ubuntu" not in _complete("polycotylus --mirror ").split()
+    assert "ubuntu:24.04" in _complete("polycotylus --mirror ")
+    assert "fedora" not in _complete("polycotylus --mirror ").split()
+    assert "fedora:37" in _complete("polycotylus --mirror ").split()
+
     if shutil.which("gpg"):
         monkeypatch.setenv("GNUPGHOME", str(shared.gpg_home))
         assert "ED7C694736BC74B3" in _complete("polycotylus arch --gpg-signing-id ")

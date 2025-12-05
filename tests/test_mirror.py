@@ -19,6 +19,7 @@ import pytest
 
 from polycotylus import _docker, _exceptions
 from polycotylus._mirror import mirrors, CachedMirror, _alpine_sync_time
+import shared
 
 
 def _alpine_mirror(tmp_path):
@@ -360,7 +361,7 @@ obsolete_caches = {
         "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps",
         "./current/musl/musl-devel-1.1.24_14.x86_64-musl.xbps.sig",
     ],
-    "debian13": [
+    "debian:13": [
         "./debian/pool/main/n/ncurses/libncursesw6_6.2%2b20201114-2_amd64.deb",
         "./debian/pool/main/p/python3-defaults/libpython3-stdlib_3.9.2-3_amd64.deb",
         "./debian/pool/main/p/python3-defaults/python3-minimal_3.9.2-3_amd64.deb",
@@ -373,10 +374,10 @@ obsolete_caches = {
 def test_prune(distro, monkeypatch):
     if distro.startswith("ubuntu"):
         return
-    if distro.startswith("debian") and distro != "debian13":
+    if distro.startswith("debian") and distro != "debian:13":
         return
     mirror = mirrors[distro]
-    monkeypatch.chdir(Path(__file__, "../mock-mirror-states", distro).resolve())
+    monkeypatch.chdir(Path(__file__, "../mock-mirror-states", distro.replace(":", "")).resolve())
     monkeypatch.setattr(mirror, "base_dir", ".")
     to_delete = []
     monkeypatch.setattr(os, "remove", to_delete.append)
@@ -392,7 +393,7 @@ def test_concurrent_usage():
             urlopen(f"http://localhost:{b.port}").close()
             urlopen(f"http://localhost:{a.port}").close()
         urlopen(f"http://localhost:{a.port}").close()
-    p = subprocess.Popen([sys.executable, "-m", "polycotylus._mirror", "alpine"])
+    p = subprocess.Popen([sys.executable, "-m", "polycotylus", "--mirror", "alpine"])
     try:
         for i in range(50):
             try:
@@ -407,3 +408,44 @@ def test_concurrent_usage():
                 pass
     finally:
         p.kill()
+        p.wait()
+
+
+def test_cli(capsys, monkeypatch, force_color):
+    from polycotylus.__main__ import cli
+
+    class FakeSleep:
+        def __init__(self, port):
+            self.port = port
+
+        def __call__(self, _):
+            try:
+                with urlopen(f"http://127.0.0.1:{self.port}"):
+                    pass
+            finally:
+                signal.raise_signal(signal.SIGINT)
+
+    monkeypatch.setattr(time, "sleep", FakeSleep(mirrors["alpine"].port))
+    cli(["--mirror", "alpine"])
+    assert "In an alpine docker" in capsys.readouterr().out
+
+    monkeypatch.setattr(time, "sleep", FakeSleep(mirrors["ubuntu:24.04"].port))
+    cli(["--mirror", "ubuntu:24.04"])
+
+    monkeypatch.setattr(time, "sleep", FakeSleep(mirrors['debian:13'].port))
+    cli(["--mirror", "debian:13"])
+
+    cli(["--mirror", "fedora:44"])
+    stdout = capsys.readouterr().out
+    assert "in a fedora:44 docker" in stdout
+    assert ":/var/cache/libdnf5" in stdout
+    cli(["--mirror", "fedora:37"])
+    assert ":/var/cache/mock" in capsys.readouterr().out
+
+    with pytest.raises(SystemExit) as ex:
+        cli(["--mirror", "fedora"])
+    shared.snapshot_test(str(ex.value), "invalid-mirror-fedora")
+
+    with pytest.raises(SystemExit) as ex:
+        cli(["--mirror", "alpine:3.17"])
+    shared.snapshot_test(str(ex.value), "invalid-mirror-alpine")

@@ -38,6 +38,8 @@ parser.add_argument("--void-signing-certificate")
 parser.add_argument("--post-mortem", action="store_true",
                     help="Enter an in-container interactive shell whenever an "
                     "error occurs in a docker container")
+parser.add_argument("--mirror", metavar="distribution",
+                    help="Run a distribution's repository cache server")
 parser.add_argument("--presubmit-check", action="store_true", help=argparse.SUPPRESS)
 
 
@@ -104,6 +106,28 @@ def cli(argv=None):
         if options.presubmit_check:
             self = polycotylus.Project.from_root(".")
             parser.exit(self.presubmit())
+
+        from polycotylus import _exceptions
+        if options.mirror:
+            if re.match("fedora:.+", options.mirror):
+                import shlex
+                mounts = _parse_distribution(options.mirror)._mounted_caches
+                print("Polycotylus does not use mirrors for Fedora.")
+                print(f"To cache downloads in a {options.mirror} docker container, add the following arguments to the docker run command:")
+                print(termcolor.colored(shlex.join(["-v{}:{}".format(*i) for i in mounts]), "blue"))
+                return
+            from polycotylus import _mirror
+            if not (mirror := _mirror.mirrors.get(options.mirror)):
+                raise polycotylus.PolycotylusUsageError(_exceptions._unravel(f"""
+                    Unknown mirror {string(options.mirror)}. Choose from {string(' '.join(sorted(_mirror.mirrors)))}
+                """))
+            determiner = "an" if options.mirror[0] in "aeiou" else "a"
+            with mirror:
+                print(f"Serving cached mirror for {mirror.base_url} to http://localhost:{mirror.port}\n")
+                print(f"In {determiner} {options.mirror} docker container configured with --network=host, install this mirror by running:")
+                print(termcolor.colored(mirror.install_command, "blue"), end="\n\n")
+                mirror.serve()
+            return
 
         if not options.distribution:  # pragma: no cover
             parser.print_usage()

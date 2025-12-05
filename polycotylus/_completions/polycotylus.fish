@@ -5,7 +5,7 @@ set -l fedora_tags fedora:37 fedora:38 fedora:39 fedora:40 fedora:41 fedora:42 f
 set -l ubuntu_tags ubuntu:24.04 ubuntu:25.04 ubuntu:25.10 ubuntu:26.04
 set -l void_tags void:musl void:glibc
 set -l all_tags $distributions $alpine_tags $debian_tags $fedora_tags $ubuntu_tags $void_tags
-set -l atomic_flags --completion --list-localizations --configure --presubmit-check
+set -l atomic_flags --completion --list-localizations --configure --presubmit-check --mirror
 
 complete -c polycotylus -f
 complete -x -c polycotylus -n "not __fish_seen_subcommand_from $all_tags $atomic_flags" -a "$distributions"
@@ -40,4 +40,5 @@ complete -c polycotylus -f -s h -l help -d 'Show help'
 complete -c polycotylus -x -l completion -n "not __fish_seen_subcommand_from $all_tags" -a 'fish' -d 'Generate shell completions'
 complete -c polycotylus -x -l list-localizations -n "not __fish_seen_subcommand_from $all_tags" -a 'language region modifier'
 complete -c polycotylus -l configure -n "not __fish_seen_subcommand_from $all_tags" -d 'List/get/set/clear global settings'
+complete -c polycotylus -x -l mirror -n "not __fish_seen_subcommand_from $all_tags" -a "alpine arch $debian_tags $fedora_tags manjaro $ubuntu_tags void"
 complete -c polycotylus -l presubmit-check -n "not __fish_seen_subcommand_from $all_tags" -d 'Perform official package repositories specific checks'

@@ -13,7 +13,7 @@ class Ubuntu(Debian):
         "ppc64el": "ppc64le",
         "s390x": "s390x",
     }
-    mirror = _mirror.mirrors["ubuntu2404"]
+    mirror = _mirror.mirrors["ubuntu:24.04"]
 
     def _install_user(self):
         # Ubuntu docker images come with a user called ubuntu preinstalled with
@@ -30,16 +30,16 @@ Ubuntu2404 = Ubuntu
 class Ubuntu2504(Ubuntu):
     base_image = "ubuntu:25.04"
     tag = "25.04"
-    mirror = _mirror.mirrors["ubuntu2504"]
+    mirror = _mirror.mirrors["ubuntu:25.04"]
 
 
 class Ubuntu2510(Ubuntu):
     base_image = "ubuntu:25.10"
     tag = "25.10"
-    mirror = _mirror.mirrors["ubuntu2510"]
+    mirror = _mirror.mirrors["ubuntu:25.10"]
 
 
 class Ubuntu2604(Ubuntu):
     base_image = "ubuntu:26.04"
     tag = "26.04"
-    mirror = _mirror.mirrors["ubuntu2604"]
+    mirror = _mirror.mirrors["ubuntu:26.04"]
