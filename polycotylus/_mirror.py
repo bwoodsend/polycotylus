@@ -462,19 +462,12 @@ mirrors["debian13"] = CachedMirror(
 mirrors["debian14"] = mirrors["debian13"].with_(
     base_dir=cache_root / "debian14",
 )
-mirrors["ubuntu2304"] = mirrors["debian13"].with_(
+mirrors["ubuntu2404"] = mirrors["debian13"].with_(
     base_url="http://archive.ubuntu.com/ubuntu/",
-    base_dir=cache_root / "ubuntu2304",
-    port=8906,
-    install_command=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list",
-    handler=UbuntuRequestHandler,
-)
-mirrors["ubuntu2310"] = mirrors["ubuntu2304"].with_(
-    base_dir=cache_root / "ubuntu2310",
-)
-mirrors["ubuntu2404"] = mirrors["ubuntu2304"].with_(
     base_dir=cache_root / "ubuntu2404",
+    port=8906,
     install_command=r"sed -i -E 's|http://(.*).ubuntu.com/|http://localhost:8906/\1/|g' /etc/apt/sources.list.d/ubuntu.sources",
+    handler=UbuntuRequestHandler,
 )
 mirrors["ubuntu2504"] = mirrors["ubuntu2404"].with_(
     base_dir=cache_root / "ubuntu2504",
