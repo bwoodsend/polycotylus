@@ -40,10 +40,10 @@ awkward_pypi_packages = [
 def _group_python_extras(dependencies):
     extras = ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline",
               "bz2", "curses", "ctypes", "ssl", "hashlib", "venv", "uuid",
-              "curses.panel", "dbm.gnu", "dbm.ndbm", "binascii"]
+              "curses.panel", "dbm.gnu", "dbm.ndbm", "binascii",
+              "compression.zstd"]
     grouped = collections.defaultdict(list)
     for extra in extras:
-        # ~ yield dependencies.get(extra, ()), (extra,)
         grouped[tuple(dependencies.get(extra, ()))].append(extra)
     return grouped.items()
 
@@ -73,10 +73,13 @@ class Base:
                             lambda self: requests.append(self.path) or original_do_GET(self))
         for (packages, imports) in _group_python_extras(self.cls.python_extras):
             mirror = self.cls.mirror
+            code = "import " + ", ".join(i for i in imports if i != "compression.zstd")
+            if "compression.zstd" in imports:
+                code += '; __import__("sys").version_info >= (3, 14) and __import__("compression.zstd")'
             script = self.cls._formatter(f"""
                 {mirror.install_command}
                 {self.package_install} python3 {shlex.join(packages)}
-                python3 -c 'import {", ".join(imports)}'
+                python3 -c '{code}'
             """)
             with mirror:
                 _docker.run(self.cls.base_image, script,
