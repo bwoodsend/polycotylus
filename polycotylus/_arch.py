@@ -152,6 +152,7 @@ class Arch(GPGBased, BaseDistribution):
         return out
 
     patch_gpg_locale = ""
+    pacman_install = "pacman -Sy --noconfirm --needed archlinux-keyring && pacman -Su --noconfirm --needed"
 
     def dockerfile(self):
         dependencies = self.dependencies + self.build_dependencies + self.test_dependencies
@@ -159,18 +160,18 @@ class Arch(GPGBased, BaseDistribution):
             FROM {self.base_image} AS base
 
             RUN {self.mirror.install_command}
-            RUN pacman -Syu --noconfirm --needed sudo
+            RUN {self.pacman_install} sudo
             {self._install_user()}
             RUN mkdir /io && chown user /io
             WORKDIR /io
 
             FROM base AS build
             RUN echo 'PACKAGER="{self.project.maintainer_slug}"' >> /etc/makepkg.conf
-            RUN pacman -Syu --noconfirm --needed base-devel {shlex.join(dependencies)}
+            RUN {self.pacman_install} base-devel {shlex.join(dependencies)}
             {self.patch_gpg_locale}
 
             FROM base AS test
-            RUN pacman -Syu --noconfirm --needed {shlex.join(self.test_dependencies)}
+            RUN {self.pacman_install} {shlex.join(self.test_dependencies)}
         """)
         if self.signing_id:
             out += self._formatter(f"""

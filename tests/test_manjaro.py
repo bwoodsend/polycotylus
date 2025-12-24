@@ -9,7 +9,7 @@ import shared
 
 class TestCommon(shared.Base):
     cls = Manjaro
-    package_install = "pacman -Sy --needed --noconfirm glibc"
+    package_install = Manjaro.pacman_install + " glibc"
 
 
 def test_mirror_detection(monkeypatch):
