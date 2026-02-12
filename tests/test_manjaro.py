@@ -1,5 +1,7 @@
 import contextlib
 
+import pytest
+
 from polycotylus._project import Project
 from polycotylus._manjaro import Manjaro
 from polycotylus import _docker
@@ -12,6 +14,7 @@ class TestCommon(shared.Base):
     package_install = Manjaro.pacman_install + " glibc"
 
 
+@pytest.mark.skip(reason="_manjaro_preferred_mirror() is broken")
 def test_mirror_detection(monkeypatch):
     with contextlib.suppress(FileNotFoundError):
         (cache_root / "manjaro-mirror").unlink()

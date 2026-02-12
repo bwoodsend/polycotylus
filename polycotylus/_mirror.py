@@ -87,8 +87,8 @@ class CachedMirror:
 
     @property
     def base_url(self):
-        if callable(self._base_url):
-            self._base_url = self._base_url()
+        # if callable(self._base_url):
+        #    self._base_url = self._base_url()
         return self._base_url.strip("/")
 
     def local_path(self, server_path):
@@ -377,7 +377,8 @@ def _use_last_modified_header(self: RequestHandler):
     return latest.timestamp()
 
 
-def _manjaro_preferred_mirror():
+def _manjaro_preferred_mirror():  # pragma: no cover
+    # Currently broken due to --geoip being replaced with broken --timezone
     with contextlib.suppress(Exception):
         url = (cache_root / "manjaro-mirror").read_text("utf-8")
         urlopen(Request(url, method="HEAD")).close()
@@ -441,7 +442,7 @@ mirrors["void"] = CachedMirror(
     r"(.+-)([^_-]+_\d+)(\..+)",
 )
 mirrors["manjaro"] = mirrors["arch"].with_(
-    base_url=_manjaro_preferred_mirror,
+    base_url="https://forksystems.mm.fcix.net/manjaro/",
     base_dir=cache_root / "manjaro",
     port=8903,
     install_command="if grep -q /arm-stable/ /etc/pacman.d/mirrorlist ; then echo 'Server = http://localhost:8903/arm-stable/$repo/$arch' > /etc/pacman.d/mirrorlist; else echo 'Server = http://localhost:8903/stable/$repo/$arch' > /etc/pacman.d/mirrorlist; fi; sed -i 's/#Color/Color/' /etc/pacman.conf",
