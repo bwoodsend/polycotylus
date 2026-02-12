@@ -96,13 +96,13 @@ prevent you from installing packages with untrusted signatures).
 
 Export your public key::
 
-    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9 > 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+    gpg --armor --export 00553556BC1486300ACA4CC010FE6BB23466AC09 > 00553556BC1486300ACA4CC010FE6BB23466AC09.asc
 
 Then put the ``.asc`` file somewhere downloadable on your website. Users can
 then import the key using::
 
-    curl -O https://your.website/downloads/3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
-    sudo rpm --import 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+    curl -O https://your.website/downloads/00553556BC1486300ACA4CC010FE6BB23466AC09.asc
+    sudo rpm --import 00553556BC1486300ACA4CC010FE6BB23466AC09.asc
 
 They should now be able to verify your package using::
 

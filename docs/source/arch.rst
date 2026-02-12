@@ -47,7 +47,7 @@ ways:
 
 1. The recommended way is to upload it to Arch's preferred keyserver::
 
-    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    gpg --armor --export 00553556BC1486300ACA4CC010FE6BB23466AC09
     # Copy/paste the output to http://keyserver.ubuntu.com/#submitKey
 
   Note that there will be around a one hour propagation delay before the next
@@ -55,17 +55,17 @@ ways:
   key from the keyserver as follows::
 
     sudo pacman-key --init
-    sudo pacman-key --recv-keys 3CB69E1833270B714034B7558CA85BF8D96DB4E9
-    sudo pacman-key --lsign-key 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    sudo pacman-key --recv-keys 00553556BC1486300ACA4CC010FE6BB23466AC09
+    sudo pacman-key --lsign-key 00553556BC1486300ACA4CC010FE6BB23466AC09
 
 2. Alternatively, you can boycott the keyserver and put the public key somewhere
    on your website. Run::
 
-    gpg --armor --export 3CB69E1833270B714034B7558CA85BF8D96DB4E9 > 3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc
+    gpg --armor --export 00553556BC1486300ACA4CC010FE6BB23466AC09 > 00553556BC1486300ACA4CC010FE6BB23466AC09.asc
 
   Then put the ``.asc`` file somewhere downloadable on your website, with
   instructions to your users to run::
 
     sudo pacman-key --init
-    curl https://your.website/downloads/3CB69E1833270B714034B7558CA85BF8D96DB4E9.asc | sudo pacman-key --add -
-    sudo pacman-key --lsign-key 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    curl https://your.website/downloads/00553556BC1486300ACA4CC010FE6BB23466AC09.asc | sudo pacman-key --add -
+    sudo pacman-key --lsign-key 00553556BC1486300ACA4CC010FE6BB23466AC09

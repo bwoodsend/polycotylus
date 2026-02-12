@@ -28,7 +28,7 @@ To sign your packages:
 * Pass that key ID to the ``--gpg-signing-id`` flag when building (replace
   ``arch`` with whatever distribution you're building for)::
 
-    polycotylus arch --gpg-signing-id 3CB69E1833270B714034B7558CA85BF8D96DB4E9
+    polycotylus arch --gpg-signing-id 00553556BC1486300ACA4CC010FE6BB23466AC09
 
 If your GnuPG key has a password, you will be prompted to enter it during the
 build. There is currently no automation friendly way to pass the password through
