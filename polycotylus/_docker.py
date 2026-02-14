@@ -219,10 +219,10 @@ def lazy_run(base, command, **kwargs):
     assert isinstance(command, list)
     base_info = json.loads(_run([docker, "image", "inspect", base], stdout=PIPE).stdout)
     base = base_info[0]["Id"]
-    _images = _run([docker, "images", "-q"], stdout=PIPE).stdout.decode().split()
+    _images = _run([docker, "images", "-a", "-q"], stdout=PIPE).stdout.decode().split()
     images = json.loads(_run([docker, "image", "inspect"] + _images, stdout=PIPE).stdout)
     for image in images:
-        if image["Parent"].startswith((base, "sha256:" + base)):
+        if image.get("Parent", "").startswith((base, "sha256:" + base)):
             if (image.get("ContainerConfig") or image["Config"])["Cmd"] == command:
                 _time = time.strptime(image["Created"].split(".")[0].rstrip("Z"),
                                       "%Y-%m-%dT%H:%M:%S")
