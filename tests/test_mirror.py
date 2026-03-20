@@ -435,9 +435,9 @@ def test_cli(capsys, monkeypatch, force_color):
     monkeypatch.setattr(time, "sleep", FakeSleep(mirrors['debian:13'].port))
     cli(["--mirror", "debian:13"])
 
-    cli(["--mirror", "fedora:44"])
+    cli(["--mirror", "fedora:45"])
     stdout = capsys.readouterr().out
-    assert "in a fedora:44 docker" in stdout
+    assert "in a fedora:45 docker" in stdout
     assert ":/var/cache/libdnf5" in stdout
     cli(["--mirror", "fedora:37"])
     assert ":/var/cache/mock" in capsys.readouterr().out

@@ -278,6 +278,11 @@ class Fedora(GPGBased, BaseDistribution):
         base = super().build_builder_image()
         command = ["dnf", "install", "-y", "fedpkg", "python3dist(wheel)", "python3dist(pip)", "rpm-sign", "pinentry-tty"] + \
             self.build_dependencies + self.dependencies + self.test_dependencies
+        if self.version == "45":
+            # "dnf install fedpkg" segfaults running policycoreutils's
+            # post-install scripts but it works if policycoreutils is installed
+            # first.
+            command = ["sh", "-c", "dnf install -y policycoreutils && " + shlex.join(command)]
         return _docker.lazy_run(base, command, tty=True, volumes=self._mounted_caches,
                                 architecture=self.docker_architecture)
 
@@ -367,3 +372,7 @@ Fedora43 = Fedora
 
 class Fedora44(Fedora):
     version = "44"
+
+
+class Fedora45(Fedora):
+    version = "45"

@@ -10,7 +10,7 @@ from ._project import Project
 from ._alpine import Alpine, Alpine317, Alpine318, Alpine319, Alpine320, Alpine321, Alpine322, Alpine323, AlpineEdge
 from ._arch import Arch
 from ._manjaro import Manjaro
-from ._fedora import Fedora, Fedora37, Fedora38, Fedora39, Fedora40, Fedora41, Fedora42, Fedora43, Fedora44
+from ._fedora import Fedora, Fedora37, Fedora38, Fedora39, Fedora40, Fedora41, Fedora42, Fedora43, Fedora44, Fedora45
 from ._void import Void, VoidGlibc, VoidMusl
 from ._debian import Debian, Debian13, Debian14
 from ._ubuntu import Ubuntu, Ubuntu2404, Ubuntu2504, Ubuntu2510, Ubuntu2604
@@ -36,6 +36,7 @@ distributions["fedora:41"] = Fedora41
 distributions["fedora:42"] = Fedora42
 distributions["fedora:43"] = Fedora43
 distributions["fedora:44"] = Fedora44
+distributions["fedora:45"] = Fedora45
 distributions["ubuntu:24.04"] = Ubuntu2404
 distributions["ubuntu:25.04"] = Ubuntu2504
 distributions["ubuntu:25.10"] = Ubuntu2510
