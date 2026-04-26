@@ -327,13 +327,13 @@ the ``brotli`` runtime and the ``Python`` and ``brotli`` headers (again see
      gcc.x86_64	Various compilers (C, C++, Objective-C, ...)
     ...
     [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/Python.h'
-    python3-devel-0:3.14.0-1.fc43.x86_64
+    python3-devel-0:3.14.0-1.fc44.x86_64
     ...
     [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/brotli/decode.h'
-    brotli-devel-0:1.1.0-10.fc43.x86_64
+    brotli-devel-0:1.1.0-10.fc44.x86_64
     ....
     [user@bagpuss-2212 io]$ sudo dnf repoquery --file '*/libbrotlienc*'
-    libbrotli-0:1.1.0-10.fc43.x86_64
+    libbrotli-0:1.1.0-10.fc44.x86_64
     ...
 
 These are ``gcc``, ``libbrotli``, ``brotli-devel`` and ``python3-devel``.

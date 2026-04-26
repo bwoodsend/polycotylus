@@ -46,8 +46,8 @@ or newer using the commands below respectively. ::
     polycotylus fedora:40
     polycotylus fedora:41
     polycotylus fedora:42
-    polycotylus fedora:43  # default
-    polycotylus fedora:44  # prerelease
+    polycotylus fedora:43
+    polycotylus fedora:44  # default
     polycotylus fedora:45  # rawhide
 
 Installing a package built for a different release of Fedora will usually mean
