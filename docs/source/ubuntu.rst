@@ -21,10 +21,10 @@ Basic usage::
 The default target Ubuntu version is the latest long term support release.
 Other versions can be targeted using:
 
-* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support, default), Linux Mint 22, Zorin OS or KDE Neon
+* ``polycotylus ubuntu:24.04`` for Noble Numbat (long term support), Linux Mint 22, Zorin OS, KDE Neon or Pop!_OS 24.04
 * ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim release)
 * ``polycotylus ubuntu:25.10`` for Questing Quokka (interim release)
-* ``polycotylus ubuntu:26.04`` for Resolute Raccoon (prerelease)
+* ``polycotylus ubuntu:26.04`` for Resolute Raccoon (long term support, default)
 
 No earlier versions of Ubuntu are supported.
 

@@ -4,8 +4,8 @@ from polycotylus._debian import Debian
 
 class Ubuntu(Debian):
     name = "ubuntu"
-    base_image = "ubuntu:24.04"
-    tag = "24.04"
+    base_image = "ubuntu:26.04"
+    tag = "26.04"
     supported_architectures = {
         "amd64": "x86_64",
         "arm64": "aarch64",
@@ -13,7 +13,7 @@ class Ubuntu(Debian):
         "ppc64el": "ppc64le",
         "s390x": "s390x",
     }
-    mirror = _mirror.mirrors["ubuntu:24.04"]
+    mirror = _mirror.mirrors["ubuntu:26.04"]
 
     def _install_user(self):
         # Ubuntu docker images come with a user called ubuntu preinstalled with
@@ -24,7 +24,10 @@ class Ubuntu(Debian):
     _imagemagick_convert = Debian._imagemagick_convert_legacy
 
 
-Ubuntu2404 = Ubuntu
+class Ubuntu2404(Ubuntu):
+    base_image = "ubuntu:24.04"
+    tag = "24.04"
+    mirror = _mirror.mirrors["ubuntu:24.04"]
 
 
 class Ubuntu2504(Ubuntu):
@@ -39,7 +42,4 @@ class Ubuntu2510(Ubuntu):
     mirror = _mirror.mirrors["ubuntu:25.10"]
 
 
-class Ubuntu2604(Ubuntu):
-    base_image = "ubuntu:26.04"
-    tag = "26.04"
-    mirror = _mirror.mirrors["ubuntu:26.04"]
+Ubuntu2604 = Ubuntu
