@@ -9,11 +9,8 @@ Basic usage::
 * Supported architectures: ``amd64 arm64 armhf ppc64el s390x``
 
 * Ubuntu packages are compatible with: `Linux Mint <https://linuxmint.com/>`_,
-  `Zorin OS <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_
-
-* Ubuntu packages will be compatible with the following distributions **only**
-  when they migrate to a Ubuntu >= 24.04 base: `Pop!_OS
-  <https://pop.system76.com/>`_
+  `Zorin OS <https://zorin.com/os/>`_, `KDE Neon <https://neon.kde.org/>`_,
+  `Pop!_OS <https://pop.system76.com/>`_
 
 * Ubuntu packages are not compatible with Debian or any of its other
   derivatives.
@@ -26,7 +23,7 @@ Other versions can be targeted using:
 * ``polycotylus ubuntu:25.10`` for Questing Quokka (interim release)
 * ``polycotylus ubuntu:26.04`` for Resolute Raccoon (long term support, default)
 
-No earlier versions of Ubuntu are supported.
+Earlier versions of Ubuntu are unsupported.
 
 ..
     For Ubuntu code names:
