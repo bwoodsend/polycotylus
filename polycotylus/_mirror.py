@@ -212,7 +212,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if self._upstream:
             return self._upstream
         headers = {}
-        for header in ("Accept-Encoding",):
+        for header in ("Accept-Encoding", "User-Agent"):
             if header in self.headers:
                 headers[header] = self.headers[header]
         self._upstream = urlopen(Request(self.upstream_url, headers=headers))
