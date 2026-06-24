@@ -46,8 +46,8 @@ dependencies:
       # ``dependencies`` section in your ``pyproject.toml``. (You should never
       # set this field in practice.)
 
-    python: bz2 ctypes curses curses.panel dbm dbm.gnu dbm.ndbm decimal lzma readline sqlite3 tkinter
-      # Python optional dependencies, used at runtime: If you ``import`` any of
+    python: bz2 compression.zstd ctypes curses curses.panel dbm dbm.gnu dbm.ndbm decimal lzma readline sqlite3 tkinter _uuid
+      # Python optional dependencies, used at runtime: If you need any of
       # these libraries, list them here. `polycotylus` will ensure that their
       # Linux distributions' equivalents are installed.
 

@@ -81,7 +81,7 @@ class Maintainer(ScalarValidator):
 
 localizations = json.loads(_misc.read_resource("localizations.json"))
 
-python_extra = Regex("(bz2|ctypes|curses|curses.panel|dbm|dbm.gnu|dbm.ndbm|decimal|lzma|readline|sqlite3|tkinter|zlib)")
+python_extra = Regex("(bz2|compression.zstd|ctypes|curses|curses.panel|dbm|dbm.gnu|dbm.ndbm|decimal|lzma|readline|sqlite3|tkinter|_uuid|zlib)")
 desktop_file_id = Regex(r"(?:[a-zA-Z][\w\-.]+\.?)+")
 icon = OrValidator(Map({"id": desktop_file_id, "source": Str()}), Str())
 locale_string = OrValidator(Str(), MapPattern(Locale(), Str()))

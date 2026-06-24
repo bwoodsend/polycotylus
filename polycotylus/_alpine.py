@@ -25,6 +25,7 @@ class Alpine(BaseDistribution):
         "tkinter": ["python3-tkinter"],
         "dbm.gnu": ["python3-gdbm"],
     }
+    unsupported_python_extras = {"_uuid", "compression.zstd"}
     _formatter = _misc.Formatter("\t")
     supported_architectures = {
         "aarch64": "aarch64",
@@ -357,3 +358,10 @@ Alpine324 = Alpine
 class AlpineEdge(Alpine):
     version = "edge"
     base_image = "alpine:edge"
+    python_extras = {
+        **Alpine.python_extras,
+        "compression.zstd": ["python3-zstd"],
+        "_uuid": ["python3-uuid"],
+        "dbm.ndbm": ["python3-extra"],
+    }
+    unsupported_python_extras = {}

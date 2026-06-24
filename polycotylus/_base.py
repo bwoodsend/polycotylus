@@ -17,6 +17,7 @@ from polycotylus._mirror import mirrors
 class BaseDistribution(abc.ABC):
     python_prefix = "/usr"
     python_extras: dict = abc.abstractproperty()
+    unsupported_python_extras = set()
     _formatter = abc.abstractproperty()
     supported_architectures = abc.abstractproperty()
     _packages = abc.abstractproperty()
@@ -207,7 +208,8 @@ class BaseDistribution(abc.ABC):
     def _dependencies(self, dependencies):
         out = []
         for extra in dependencies.get("python", []):
-            out += self.python_extras.get(extra, [])
+            if extra not in self.unsupported_python_extras:
+                out += self.python_extras.get(extra, [])
         for package in dependencies.get("pip", []):
             out.append(self.python_package(package, self.dependency_name_map))
         out += dependencies.get(self.name, [])

@@ -37,14 +37,15 @@ awkward_pypi_packages = [
 ]
 
 
-def _group_python_extras(dependencies):
+def _group_python_extras(dependencies, unsupported):
     extras = ["tkinter", "sqlite3", "decimal", "lzma", "zlib", "readline",
-              "bz2", "curses", "ctypes", "ssl", "hashlib", "venv", "uuid",
+              "bz2", "curses", "ctypes", "ssl", "hashlib", "venv", "_uuid",
               "curses.panel", "dbm.gnu", "dbm.ndbm", "binascii",
               "compression.zstd"]
     grouped = collections.defaultdict(list)
     for extra in extras:
-        grouped[tuple(dependencies.get(extra, ()))].append(extra)
+        if extra not in unsupported:
+            grouped[tuple(dependencies.get(extra, ()))].append(extra)
     return grouped.items()
 
 
@@ -71,9 +72,10 @@ class Base:
         original_do_GET = RequestHandler.do_GET
         monkeypatch.setattr(RequestHandler, "do_GET",
                             lambda self: requests.append(self.path) or original_do_GET(self))
-        for (packages, imports) in _group_python_extras(self.cls.python_extras):
+        grouped = _group_python_extras(self.cls.python_extras, self.cls.unsupported_python_extras)
+        for (packages, imports) in grouped:
             mirror = self.cls.mirror
-            code = "import " + ", ".join(i for i in imports if i != "compression.zstd")
+            code = "import os" + "".join("," + i for i in imports if i != "compression.zstd")
             if "compression.zstd" in imports:
                 code += '; __import__("sys").version_info >= (3, 14) and __import__("compression.zstd")'
             script = self.cls._formatter(f"""

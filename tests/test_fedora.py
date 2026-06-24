@@ -56,7 +56,7 @@ def test_pretty_spec():
 
 
 def test_python_extras():
-    for (packages, imports) in shared._group_python_extras(Fedora.python_extras):
+    for (packages, imports) in shared._group_python_extras(Fedora.python_extras, Fedora.unsupported_python_extras):
         _docker.run(Fedora.base_image, f"""
             {Fedora.dnf_config_install}
             dnf install -y {shlex.join(packages)} python3

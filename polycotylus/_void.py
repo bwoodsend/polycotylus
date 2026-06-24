@@ -20,6 +20,7 @@ class Void(BaseDistribution):
     python_extras = {
         "tkinter": ["python3-tkinter"],
     }
+    unsupported_python_extras = {"_uuid"}
     _packages = {
         "python": "python3",
         "image-conversion": ["ImageMagick"],
