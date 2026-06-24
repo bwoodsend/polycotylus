@@ -22,6 +22,7 @@ Other versions can be targeted using:
 * ``polycotylus ubuntu:25.04`` for Plucky Puffin (interim release)
 * ``polycotylus ubuntu:25.10`` for Questing Quokka (interim release)
 * ``polycotylus ubuntu:26.04`` for Resolute Raccoon (long term support, default)
+* ``polycotylus ubuntu:26.10`` for Stonking Stingray (interim prerelease)
 
 Earlier versions of Ubuntu are unsupported.
 

@@ -476,3 +476,6 @@ mirrors["ubuntu:25.10"] = mirrors["ubuntu:24.04"].with_(
 mirrors["ubuntu:26.04"] = mirrors["ubuntu:24.04"].with_(
     base_dir=cache_root / "ubuntu2604",
 )
+mirrors["ubuntu:26.10"] = mirrors["ubuntu:24.04"].with_(
+    base_dir=cache_root / "ubuntu2610",
+)

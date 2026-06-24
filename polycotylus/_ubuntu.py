@@ -1,10 +1,9 @@
-from polycotylus import _mirror
+from polycotylus import _mirror, _misc
 from polycotylus._debian import Debian
 
 
 class Ubuntu(Debian):
     name = "ubuntu"
-    base_image = "ubuntu:26.04"
     tag = "26.04"
     supported_architectures = {
         "amd64": "x86_64",
@@ -13,7 +12,14 @@ class Ubuntu(Debian):
         "ppc64el": "ppc64le",
         "s390x": "s390x",
     }
-    mirror = _mirror.mirrors["ubuntu:26.04"]
+
+    @_misc.classproperty
+    def base_image(_, cls):
+        return "ubuntu:" + cls.tag
+
+    @_misc.classproperty
+    def mirror(_, cls):
+        return _mirror.mirrors["ubuntu:" + cls.tag]
 
     def _install_user(self):
         # Ubuntu docker images come with a user called ubuntu preinstalled with
@@ -25,21 +31,19 @@ class Ubuntu(Debian):
 
 
 class Ubuntu2404(Ubuntu):
-    base_image = "ubuntu:24.04"
     tag = "24.04"
-    mirror = _mirror.mirrors["ubuntu:24.04"]
 
 
 class Ubuntu2504(Ubuntu):
-    base_image = "ubuntu:25.04"
     tag = "25.04"
-    mirror = _mirror.mirrors["ubuntu:25.04"]
 
 
 class Ubuntu2510(Ubuntu):
-    base_image = "ubuntu:25.10"
     tag = "25.10"
-    mirror = _mirror.mirrors["ubuntu:25.10"]
 
 
 Ubuntu2604 = Ubuntu
+
+
+class Ubuntu2610(Ubuntu):
+    tag = "26.10"
