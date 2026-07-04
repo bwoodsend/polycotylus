@@ -343,8 +343,9 @@ def test_dynamic_version(force_color, tmp_path):
     """)
     with pytest.raises(PolycotylusUsageError) as capture:
         Project.from_root(tmp_path)
+    _tag = next(i for i in [(3, 13), (3, 11), (3, 8)] if sys.version_info >= i)
     shared.snapshot_test(strip_full_paths(str(capture.value)),
-                         "dynamic-version-stack-{}.{}".format(*sys.version_info))
+                         "dynamic-version-stack-{}.{}".format(*_tag))
 
 
 def test_maintainer(pyproject_toml, polycotylus_yaml, force_color):
