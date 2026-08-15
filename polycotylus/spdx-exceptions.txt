@@ -11,6 +11,7 @@ Bison-exception-2.2
 Bootloader-exception
 CGAL-linking-exception
 Classpath-exception-2.0
+Classpath-exception-2.0-short
 CLISP-exception-2.0
 cryptsetup-OpenSSL-exception
 Digia-Qt-LGPL-exception-1.1
@@ -30,6 +31,7 @@ GNAT-exception
 GNOME-examples-exception
 GNU-compiler-exception
 gnu-javamail-exception
+Google-Patent-WebM
 GPL-3.0-389-ds-base-exception
 GPL-3.0-interface-exception
 GPL-3.0-linking-exception
@@ -41,6 +43,7 @@ harbour-exception
 i2p-gpl-java-exception
 Independent-modules-exception
 KiCad-libraries-exception
+kvirc-openssl-exception
 LGPL-3.0-linking-exception
 libpri-OpenH323-exception
 Libtool-exception
@@ -64,9 +67,13 @@ Qt-LGPL-exception-1.1
 Qwt-exception-1.0
 romic-exception
 RRDtool-FLOSS-exception-2.0
+rsync-linking-exception
 SANE-exception
 SHL-2.0
 SHL-2.1
+Simple-Library-Usage-exception
+Spelling-Provider-LGPL-exception
+sqlitestudio-OpenSSL-exception
 stunnel-exception
 SWI-exception
 Swift-exception
