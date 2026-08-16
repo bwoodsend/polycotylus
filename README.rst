@@ -64,7 +64,7 @@ Distributions  Supported versions
 Alpine_        3.17-3.24, edge
 Arch_          rolling
 Debian_        13, 14 (prerelease)
-Fedora_        37-44, 45 (prerelease)
+Fedora_        37-44, 45 (prerelease), 46 (rawhide)
 Manjaro_       rolling
 O̶p̶e̶n̶S̶U̶S̶E       Redacted
 Ubuntu_        24.04-26.04, 26.10 (prerelease)
